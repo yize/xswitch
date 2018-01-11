@@ -1,0 +1,18 @@
+{
+    "devDependencies": {
+        "ali-contributors": "^2.1.1"
+    },
+    "name": "xswitch",
+    "description": "XSwitch: switch url for Chrome Users",
+    "version": "1.0.0",
+    "main": "background.js",
+    "dependencies": {},
+    "repository": {
+        "type": "git",
+        "url":
+            "git@gitlab.alibaba-inc.com:vision-utils/legao-developer-tools.git"
+    },
+    "keywords": ["legao", "chrome"],
+    "author": "yize.shc",
+    "license": "MIT"
+}
