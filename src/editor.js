@@ -5,17 +5,26 @@ chrome.storage.sync.get('config_for_shown', (result) => {
     const editor = window.monaco.editor.create(document.getElementById('container'), {
       value: result.config_for_shown || window.DEFAULT_DATA,
       language: 'json',
+
       minimap: {
         enabled: false,
       },
-      // lineNumbers: 'off',
-      contextmenu: false,
       fontFamily: 'Fira Code, monospace',
       fontSize: 13,
-      scrollbar: {
-        verticalScrollbarSize: 3,
-      },
       fontLigatures: true,
+
+      contextmenu: false,
+      scrollBeyondLastLine: false,
+      folding: true,
+
+      useTabStops: true,
+      wordBasedSuggestions: true,
+      quickSuggestions: true,
+      suggestOnTriggerCharacters: true,
+
+      scrollbar: {
+        verticalScrollbarSize: 5,
+      },
     });
 
     function setStorage() {
@@ -29,16 +38,30 @@ chrome.storage.sync.get('config_for_shown', (result) => {
       );
     }
     monaco.languages.registerCompletionItemProvider('json', {
-      provideCompletionItems: (model, position) =>
-        chrome.extension.getBackgroundPage().urls.map(item => ({
+      provideCompletionItems: (model, position) => {
+        const textArr = chrome.extension.getBackgroundPage().urls.map(item => ({
           label: item,
           kind: monaco.languages.CompletionItemKind.Text,
-        })),
+        }));
+        const extraItems = [
+          {
+            label: 'rule',
+            kind: monaco.languages.CompletionItemKind.Method,
+            insertText: {
+              value: `[
+  "\${1:from}",
+  "\${2:to}"
+]\${0}`,
+            },
+          },
+        ];
+
+        return [...textArr, ...extraItems];
+      },
     });
 
     editor.onDidChangeModelContent(() => {
       setStorage();
-      editor.trigger('source - use any string you like', 'editor.action.triggerSuggest', {});
     });
   });
 });
