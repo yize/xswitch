@@ -29,8 +29,8 @@ A proxy tool based on Chrome.extensions
 }
 ```
 
-Visit https://g.alicdn.com/platform/daily-test/isDaily.js
-Final you got https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js
+* Visit https://g.alicdn.com/platform/daily-test/isDaily.js
+* Final you got https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js
 
 ## ProxyRules
 
