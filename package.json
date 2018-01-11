@@ -1,14 +1,14 @@
 {
-    "name": "xswitch",
-    "description": "XSwitch: switch url for Chrome Users",
-    "version": "1.0.0",
-    "main": "background.js",
-    "dependencies": {},
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:yize/xswitch.git"
-    },
-    "keywords": ["xswitch", "chrome", "urlProxy", "proxy"],
-    "author": "yize.shc",
-    "license": "MIT"
+  "name": "xswitch",
+  "description": "XSwitch: switch url for Chrome Users",
+  "version": "1.0.0",
+  "main": "background.js",
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:yize/xswitch.git"
+  },
+  "keywords": ["xswitch", "chrome", "urlProxy", "proxy"],
+  "author": "yize.shc",
+  "license": "MIT"
 }
