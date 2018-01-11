@@ -21,13 +21,16 @@ A proxy tool based on Chrome.extensions
   // proxyRules
   "proxy": [
     [
-      "some_url_to_redirect", // from
-      "some_url_to_redirect_to" //to
+      "g.alicdn.com/platform/daily-test/isDaily.js", // from
+      "alinw.alicdn.com/platform/daily-test/isDaily.js" //to
     ]
     // you can add rules here
   ]
 }
 ```
+
+Visit https://g.alicdn.com/platform/daily-test/isDaily.js
+Final you got https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js
 
 ## ProxyRules
 
