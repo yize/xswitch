@@ -34,7 +34,7 @@ Final you got https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js
 
 ## ProxyRules
 
-### rules
+### Rules
 
 ```js
 {
@@ -58,7 +58,7 @@ Final you got https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js
 }
 ```
 
-### Core:
+### Core
 
 ```js
 const reg = new RegExp(rule[0]);
