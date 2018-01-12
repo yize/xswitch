@@ -1,6 +1,6 @@
 let lastRequestId;
 let proxyConfig = {};
-window.urls = []; // for cache
+window.urls = new Array(30); // for cache
 
 chrome.storage.sync.get('config', (result) => {
   try {
@@ -8,7 +8,7 @@ chrome.storage.sync.get('config', (result) => {
   } catch (e) {}
 });
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
+chrome.storage.onChanged.addListener((changes) => {
   if (changes.config) {
     try {
       proxyConfig = JSON.parse(changes.config.newValue);
@@ -38,7 +38,12 @@ const redirectToMatchingRule = (details) => {
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
-    if (/http(s?):\/\//i.test(details.url) && window.urls.indexOf(details.url) < 0) {
+    // we just suggest .js css .json .jsonp
+    if (
+      /http(s?):\/\/.*\.(js|css|json|jsonp)/i.test(details.url) &&
+      window.urls.indexOf(details.url) < 0
+    ) {
+      window.urls.shift();
       window.urls.push(details.url);
     }
     return redirectToMatchingRule(details);

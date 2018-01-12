@@ -38,11 +38,17 @@ chrome.storage.sync.get('config_for_shown', (result) => {
       );
     }
     monaco.languages.registerCompletionItemProvider('json', {
-      provideCompletionItems: (model, position) => {
-        const textArr = chrome.extension.getBackgroundPage().urls.map(item => ({
-          label: item,
-          kind: monaco.languages.CompletionItemKind.Text,
-        }));
+      provideCompletionItems: () => {
+        const textArr = [];
+        chrome.extension.getBackgroundPage().urls.forEach((item) => {
+          if (item) {
+            textArr.push({
+              label: item,
+              kind: monaco.languages.CompletionItemKind.Text,
+            });
+          }
+        });
+
         const extraItems = [
           {
             label: 'rule',
@@ -50,12 +56,11 @@ chrome.storage.sync.get('config_for_shown', (result) => {
             insertText: {
               value: `[
   "\${1:from}",
-  "\${2:to}"
+  "\${1:to}"
 ]\${0}`,
             },
           },
         ];
-
         return [...textArr, ...extraItems];
       },
     });
