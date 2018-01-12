@@ -27,7 +27,8 @@ const redirectToMatchingRule = (details) => {
 
         // support [ ] ( ) \ * ^ $
         if (/\\|\[|]|\(|\)|\*|\$|\^/i.test(reg)) {
-          reg = new RegExp(reg, 'i');
+          // support ??
+          reg = new RegExp(reg.replace('??', '\\?\\?'), 'i');
           matched = reg.test(details.url);
         } else {
           matched = details.url.indexOf(reg) > -1;
