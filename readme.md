@@ -8,7 +8,7 @@
 
 ## XSwitch
 
-A proxy tool of [Chrome Extension](https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg).
+A [Chrome Extension](https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg) for forwarding request urls.
 
 ## Why XSwitch
 
