@@ -14,10 +14,19 @@ describe('no rules', () => {
   test('no forwarding when no rules', () => {
     expect(window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })).toEqual({});
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com??a.js,b.js,c.js', requestId: 2 }),
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com??a.js,b.js,c.js', requestId: 2 }),
     ).toEqual({});
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com??a.js,b.js,c.js', requestId: 2 }),
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com??a.js,b.js,c.js', requestId: 2 }),
+    ).toEqual({});
+  });
+});
+
+describe('chrome-extension://', () => {
+  window.proxyConfig.proxy = [['(.*).js', '$1..js']];
+  test('should not forward', () => {
+    expect(
+      window.redirectToMatchingRule({ url: 'chrome-extension://xxxxx/a.js', requestId: 1 }),
     ).toEqual({});
   });
 });
@@ -26,7 +35,7 @@ describe('same request id should not forwarding', () => {
   test('no forwarding', () => {
     expect(window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })).toEqual({});
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com??a.js,b.js,c.js', requestId: 1 }),
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com??a.js,b.js,c.js', requestId: 1 }),
     ).toEqual({});
   });
 });
@@ -35,31 +44,35 @@ describe('string urls', () => {
   test('should forwarding normal url without query', () => {
     window.proxyConfig.proxy = [['g.alicdn.com', 'g.alicdn.com?t=2']];
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com', requestId: 1 }).redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2');
 
-    expect(window.redirectToMatchingRule({ url: 'g.alicdn.com#aaaa', requestId: 2 })).toEqual({
-      redirectUrl: 'g.alicdn.com?t=2#aaaa',
+    expect(
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com#aaaa', requestId: 2 }),
+    ).toEqual({
+      redirectUrl: 'https://g.alicdn.com?t=2#aaaa',
     });
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com/??a.js,b.js,c.js', requestId: 3 })
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com/??a.js,b.js,c.js', requestId: 3 })
         .redirectUrl,
-    ).toEqual('g.alicdn.com?t=2/??a.js,b.js,c.js');
+    ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
   test('should forwarding normal url with query', () => {
-    window.proxyConfig.proxy = [['g.alicdn.com?t=1', 'g.alicdn.com?t=2']];
+    window.proxyConfig.proxy = [['https://g.alicdn.com?t=1', 'https://g.alicdn.com?t=2']];
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com?t=1&k=2', requestId: 1 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2&k=2');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com?t=1&k=2', requestId: 1 })
+        .redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com#aaaa', requestId: 2 }).redirectUrl,
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com#aaaa', requestId: 2 }).redirectUrl,
     ).toBeFalsy();
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com?t=1#aaaa', requestId: 3 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2#aaaa');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com?t=1#aaaa', requestId: 3 })
+        .redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
 });
 
@@ -68,51 +81,56 @@ describe('reg urls', () => {
     window.proxyConfig.proxy = [['g.(\\w+).com', 'g.alicdn.com?t=2']];
 
     expect(
-      window.redirectToMatchingRule({ url: 'g1.alicdn.com', requestId: 1 }).redirectUrl,
+      window.redirectToMatchingRule({ url: 'https://g1.alicdn.com', requestId: 1 }).redirectUrl,
     ).toBeFalsy();
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 2 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com', requestId: 2 }).redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2');
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com#aaaa', requestId: 3 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2#aaaa');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com#aaaa', requestId: 3 }).redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2#aaaa');
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com/??a.js,b.js,c.js', requestId: 4 })
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com/??a.js,b.js,c.js', requestId: 4 })
         .redirectUrl,
-    ).toEqual('g.alicdn.com?t=2/??a.js,b.js,c.js');
+    ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
   test('should forwarding reg url with query', () => {
-    window.proxyConfig.proxy = [['g.(.*).com\\?t=1', 'g.alicdn.com?t=2']];
+    window.proxyConfig.proxy = [['(.*)g.(.*).com\\?t=1', 'https://g.alicdn.com?t=2']];
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com?t=1&k=2', requestId: 1 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2&k=2');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com?t=1&k=2', requestId: 1 })
+        .redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com#aaaa', requestId: 2 }).redirectUrl,
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com#aaaa', requestId: 2 }).redirectUrl,
     ).toBeFalsy();
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com?t=1#aaaa', requestId: 3 }).redirectUrl,
-    ).toEqual('g.alicdn.com?t=2#aaaa');
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com?t=1#aaaa', requestId: 3 })
+        .redirectUrl,
+    ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
 
   test('should forwarding reg url with ??', () => {
-    window.proxyConfig.proxy = [['g.alicdn.com/\\?\\?(.*)', 'alinw.alicdn.com/??$1']];
+    window.proxyConfig.proxy = [['(.*)g.alicdn.com/\\?\\?(.*)', '$1alinw.alicdn.com/??$2']];
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com/??a.js,b.js?t=1', requestId: 1 })
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com/??a.js,b.js?t=1', requestId: 1 })
         .redirectUrl,
-    ).toEqual('alinw.alicdn.com/??a.js,b.js?t=1');
+    ).toEqual('https://alinw.alicdn.com/??a.js,b.js?t=1');
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com/#aaaa', requestId: 2 }).redirectUrl,
+      window.redirectToMatchingRule({ url: 'https://g.alicdn.com/#aaaa', requestId: 2 })
+        .redirectUrl,
     ).toBeFalsy();
 
     expect(
-      window.redirectToMatchingRule({ url: 'g.alicdn.com/??a.js,b.js?t=1#aaa', requestId: 3 })
-        .redirectUrl,
-    ).toEqual('alinw.alicdn.com/??a.js,b.js?t=1#aaa');
+      window.redirectToMatchingRule({
+        url: 'https://g.alicdn.com/??a.js,b.js?t=1#aaa',
+        requestId: 3,
+      }).redirectUrl,
+    ).toEqual('https://alinw.alicdn.com/??a.js,b.js?t=1#aaa');
   });
 });

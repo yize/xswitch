@@ -11,6 +11,11 @@ window.redirectToMatchingRule = (details) => {
     window.urls.push(details.url);
   }
 
+  // do not forwarding urls like chrome-extension://
+  if (!/^http(s?):\/\//.test(details.url)) {
+    return {};
+  }
+
   const rules = window.proxyConfig.proxy;
   try {
     for (let i = 0; i < rules.length; i++) {
