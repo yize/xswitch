@@ -9,6 +9,13 @@
     "type": "git",
     "url": "git@github.com:yize/xswitch.git"
   },
+  "scripts": {
+    "test": "jest",
+    "ci": "jest --ci --coverage"
+  },
   "keywords": ["xswitch", "chrome", "urlProxy", "proxy", "xproxy"],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^22.0.6"
+  }
 }
