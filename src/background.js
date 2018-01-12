@@ -1,6 +1,6 @@
 let lastRequestId;
 let proxyConfig = {};
-window.urls = new Array(30); // for cache
+window.urls = new Array(200); // for cache
 
 chrome.storage.sync.get('config', (result) => {
   try {
@@ -22,8 +22,18 @@ const redirectToMatchingRule = (details) => {
     for (let i = 0; i < rules.length; i++) {
       const rule = rules[i];
       if (rule && rule[0]) {
-        const reg = new RegExp(rule[0]);
-        if (reg.test(details.url) && details.requestId !== lastRequestId) {
+        let reg = rule[0];
+        let matched = false;
+
+        // support [ ] ( ) \ * ^ $
+        if (/\\|\[|]|\(|\)|\*|\$|\^/i.test(reg)) {
+          reg = new RegExp(reg, 'i');
+          matched = reg.test(details.url);
+        } else {
+          matched = details.url.indexOf(reg) > -1;
+        }
+
+        if (matched && details.requestId !== lastRequestId) {
           lastRequestId = details.requestId;
           return {
             redirectUrl: details.url.replace(reg, rule[1]),
