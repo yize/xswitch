@@ -3,16 +3,17 @@ window.proxyConfig = {};
 window.urls = new Array(200); // for cache
 
 window.redirectToMatchingRule = (details) => {
+  let redirectUrl = details.url;
   if (
-    /http(s?):\/\/.*\.(js|css|json|jsonp)/i.test(details.url) &&
-    window.urls.indexOf(details.url) < 0
+    /http(s?):\/\/.*\.(js|css|json|jsonp)/i.test(redirectUrl) &&
+    window.urls.indexOf(redirectUrl) < 0
   ) {
     window.urls.shift();
-    window.urls.push(details.url);
+    window.urls.push(redirectUrl);
   }
 
   // do not forwarding urls like chrome-extension://
-  if (!/^http(s?):\/\//.test(details.url)) {
+  if (!/^http(s?):\/\//.test(redirectUrl)) {
     return {};
   }
 
@@ -28,24 +29,21 @@ window.redirectToMatchingRule = (details) => {
         if (/\\|\[|]|\(|\)|\*|\$|\^/i.test(reg)) {
           // support ??
           reg = new RegExp(reg.replace('??', '\\?\\?'), 'i');
-          matched = reg.test(details.url);
+          matched = reg.test(redirectUrl);
         } else {
-          matched = details.url.indexOf(reg) > -1;
+          matched = redirectUrl.indexOf(reg) > -1;
         }
 
         if (matched && details.requestId !== window.lastRequestId) {
-          window.lastRequestId = details.requestId;
-          return {
-            redirectUrl: details.url.replace(reg, rule[1]),
-          };
-        } else {
-          return {};
+          redirectUrl = redirectUrl.replace(reg, rule[1]);
         }
       }
     }
   } catch (e) {
-    return {};
+    console.error('rule match error', e);
   }
+  window.lastRequestId = details.requestId;
+  return redirectUrl === details.url ? {} : { redirectUrl };
 };
 
 window.onBeforeRequestCallback = details => window.redirectToMatchingRule(details);

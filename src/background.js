@@ -1,14 +1,18 @@
 chrome.storage.sync.get('config', (result) => {
   try {
     window.proxyConfig = JSON.parse(result.config);
-  } catch (e) {}
+  } catch (e) {
+    console.log('can not parse config', result.config);
+  }
 });
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.config) {
     try {
       window.proxyConfig = JSON.parse(changes.config.newValue);
-    } catch (e) {}
+    } catch (e) {
+      console.log('can not parse fresh config', changes.config.newValue);
+    }
   }
 });
 

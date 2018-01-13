@@ -1,5 +1,5 @@
 require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
-const reg = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
+
 chrome.storage.sync.get('config_for_shown', (result) => {
   window.require(['vs/editor/editor.main'], () => {
     const editor = window.monaco.editor.create(document.getElementById('container'), {
@@ -37,14 +37,14 @@ chrome.storage.sync.get('config_for_shown', (result) => {
         () => {},
       );
     }
-    monaco.languages.registerCompletionItemProvider('json', {
+    window.monaco.languages.registerCompletionItemProvider('json', {
       provideCompletionItems: () => {
         const textArr = [];
         chrome.extension.getBackgroundPage().urls.forEach((item) => {
           if (item) {
             textArr.push({
               label: item,
-              kind: monaco.languages.CompletionItemKind.Text,
+              kind: window.monaco.languages.CompletionItemKind.Text,
             });
           }
         });
@@ -52,7 +52,7 @@ chrome.storage.sync.get('config_for_shown', (result) => {
         const extraItems = [
           {
             label: 'rule',
-            kind: monaco.languages.CompletionItemKind.Method,
+            kind: window.monaco.languages.CompletionItemKind.Method,
             insertText: {
               value: `[
   "\${1:from}",

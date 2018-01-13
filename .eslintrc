@@ -1,9 +1,15 @@
 {
   "extends": "airbnb",
+  "plugins": ["jest"],
   "env": {
-    "browser": true
+    "browser": true,
+    "jest": true
   },
   "globals": {
     "chrome": true
+  },
+  "rules": {
+    "no-console": "off",
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
   }
 }
