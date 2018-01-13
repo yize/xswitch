@@ -37,6 +37,9 @@ chrome.storage.sync.get('config_for_shown', (result) => {
         () => {},
       );
     }
+
+    setStorage();
+
     window.monaco.languages.registerCompletionItemProvider('json', {
       provideCompletionItems: () => {
         const textArr = [];

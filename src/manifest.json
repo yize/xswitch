@@ -2,7 +2,7 @@
   "name": "XSwitch",
   "description": "XSwitch tools for proxy web request url, support reg",
   "short_name": "xs",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "icon.png",
