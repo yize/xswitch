@@ -3,7 +3,6 @@ body {
 }
 
 .container {
-  overflow: hidden;
   width: 800px;
   height: 400px;
   padding: 14px 0;

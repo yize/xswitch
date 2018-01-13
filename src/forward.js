@@ -3,21 +3,21 @@ window.proxyConfig = {};
 window.urls = new Array(200); // for cache
 
 window.redirectToMatchingRule = (details) => {
+  const rules = window.proxyConfig.proxy;
   let redirectUrl = details.url;
+
+  if (!rules || !rules.length || !/^http(s?):\/\//.test(redirectUrl)) {
+    return {};
+  }
+
   if (
-    /http(s?):\/\/.*\.(js|css|json|jsonp)/i.test(redirectUrl) &&
+    /http(s?):\/\/.*\.(js|css|json|jsonp)/.test(redirectUrl) &&
     window.urls.indexOf(redirectUrl) < 0
   ) {
     window.urls.shift();
     window.urls.push(redirectUrl);
   }
 
-  // do not forwarding urls like chrome-extension://
-  if (!/^http(s?):\/\//.test(redirectUrl)) {
-    return {};
-  }
-
-  const rules = window.proxyConfig.proxy;
   try {
     for (let i = 0; i < rules.length; i++) {
       const rule = rules[i];
