@@ -10,13 +10,15 @@
 
 A [Chrome Extension][web-store] for forwarding request urls.
 
-![usage][screenshot]
+<a href="https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg">
+  <img src="https://img.alicdn.com/tfs/TB1qqEAmvDH8KJjy1XcXXcpdXXa-1674-968.png">
+</a>
 
-## Why XSwitch
+## Features
 
-* can redirect `request.url` base on `chrome.webRequest.onBeforeRequest`.
-* [Monaco Editor][monaco-editor] based, support proxy rules suggestions.
-* support comments in JSON.
+* [x] can redirect `request.url` base on `chrome.webRequest.onBeforeRequest`.
+* [x] [Monaco Editor][monaco-editor] based, support proxy rules suggestions.
+* [x] support comments in JSON.
 
 ## Usage
 
@@ -27,55 +29,23 @@ A [Chrome Extension][web-store] for forwarding request urls.
   // proxyRules
   "proxy": [
     [
-      "g.alicdn.com/platform/daily-test/isDaily.js", // from
-      "alinw.alicdn.com/platform/daily-test/isDaily.js" //to
+      "//alinw.alicdn.com/platform/daily-test/isDaily.js",
+      "//alinw.alicdn.com/platform/daily-test/isDaily.json"
+    ],
+    [
+      "alinw.alicdn.com",
+      "g.alicdn.com"
+    ],
+    [
+      // "(.*)/platform/daily-test/(.*).js$",
+      // "http://localhost:3000/daily-test/$1.js"
     ]
   ]
 }
 ```
 
-* visit [https://g.alicdn.com/platform/daily-test/isDaily.js](https://g.alicdn.com/platform/daily-test/isDaily.js)
-* finally, you got [https://<b>alinw</b>.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
-
-## ProxyRules
-
-### Rules
-
-```js
-{
-  // proxyRules
-  "proxy": [
-    [
-      "g.alicdn.com/platform/daily-test/isDaily.js",
-      "alinw.alicdn.com/platform/daily-test/isDaily.js"
-    ],
-    [
-       "//g.alicdn.com/platform/(.*)/(.*)\.js",
-       "//localhost:3000/$1/$2.js"
-    ],
-    [
-       "app.min.js",
-       "app.js"
-    ]
-  ]
-}
-```
-
-### Core
-
-`src/forward.js` :
-
-```js
-const reg = new RegExp(rule[0]);
-// ...
-return {
-    redirectUrl: details.url.replace(reg, rule[1]);
-}
-```
-
-[web-store]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
-[screenshot]: https://img.alicdn.com/tfs/TB1qqEAmvDH8KJjy1XcXXcpdXXa-1674-968.png
-[monaco-editor]: https://github.com/Microsoft/monaco-editor
+* visit [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
+* finally, you got [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
 
 ## License
 
@@ -101,4 +71,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-### PRs Welcome
+[web-store]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
+[screenshot]: https://img.alicdn.com/tfs/TB1qqEAmvDH8KJjy1XcXXcpdXXa-1674-968.png
+[monaco-editor]: https://github.com/Microsoft/monaco-editor
