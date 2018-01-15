@@ -1,6 +1,6 @@
 window.DEFAULT_DATA = `{
   // Use IntelliSense to learn about possible links.
-  // Type `rule` to quick insert rule.
+  // Type \`rule\` to quick insert rule.
   // For more information, visit: https://github.com/yize/xswitch
   "proxy": [
     [
