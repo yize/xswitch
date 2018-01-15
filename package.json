@@ -11,11 +11,12 @@
   },
   "scripts": {
     "test": "jest",
-    "ci": "jest --ci --coverage"
+    "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
   "keywords": ["xswitch", "chrome", "urlProxy", "proxy", "xproxy"],
   "license": "MIT",
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "jest": "^22.0.6"
   }
 }
