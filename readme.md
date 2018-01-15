@@ -6,7 +6,7 @@
 
 ## XSwitch
 
-[![Build Status](https://travis-ci.org/yize/xswitch.svg?branch=master)](https://travis-ci.org/yize/xswitch)
+[![Build Status](https://travis-ci.org/yize/xswitch.svg?branch=master)](https://travis-ci.org/yize/xswitch) [![Coverage Status](https://coveralls.io/repos/github/yize/xswitch/badge.svg?branch=master)](https://coveralls.io/github/yize/xswitch?branch=master)
 
 A [Chrome Extension][web-store] for forwarding request urls.
 
