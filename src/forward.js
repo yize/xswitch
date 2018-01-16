@@ -2,6 +2,8 @@ window.lastRequestId = null;
 window.proxyConfig = {};
 window.urls = new Array(200); // for cache
 
+window.isString = string => ({}.toString.call(string) === '[object String]');
+
 window.redirectToMatchingRule = (details) => {
   const rules = window.proxyConfig.proxy;
   let redirectUrl = details.url;
@@ -21,7 +23,7 @@ window.redirectToMatchingRule = (details) => {
   try {
     for (let i = 0; i < rules.length; i++) {
       const rule = rules[i];
-      if (rule && rule[0]) {
+      if (rule && rule[0] && window.isString(rule[1])) {
         let reg = rule[0];
         let matched = false;
 

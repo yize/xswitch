@@ -24,6 +24,41 @@ describe('no rules', () => {
   });
 });
 
+describe('rule[1] is not string', () => {
+  test('no forwarding when no rule[1]', () => {
+    window.proxyConfig.proxy = [['g.alicdn.com']];
+    expect(window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })).toEqual({});
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://g.alicdn.com??a.js,b.js,c.js',
+        requestId: 2,
+      }),
+    ).toEqual({});
+  });
+
+  test('no forwarding when rule[1] is not string', () => {
+    window.proxyConfig.proxy = [['g.alicdn.com', ['a', 'b']]];
+    expect(window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })).toEqual({});
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://g.alicdn.com??a.js,b.js,c.js',
+        requestId: 2,
+      }),
+    ).toEqual({});
+  });
+
+  test('no forwarding when rule[1] is not string', () => {
+    window.proxyConfig.proxy = [['g.alicdn.com', {}]];
+    expect(window.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })).toEqual({});
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://g.alicdn.com??a.js,b.js,c.js',
+        requestId: 2,
+      }),
+    ).toEqual({});
+  });
+});
+
 describe('chrome-extension://', () => {
   window.proxyConfig.proxy = [['(.*).js', '$1..js']];
   test('should not forward', () => {

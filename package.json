@@ -13,10 +13,17 @@
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
-  "keywords": ["xswitch", "chrome", "urlProxy", "proxy", "xproxy"],
+  "keywords": [
+    "xswitch",
+    "chrome",
+    "urlProxy",
+    "proxy",
+    "xproxy"
+  ],
   "license": "MIT",
   "devDependencies": {
     "coveralls": "^3.0.0",
+    "eslint-plugin-jest": "^21.6.2",
     "jest": "^22.0.6"
   }
 }
