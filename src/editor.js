@@ -86,4 +86,38 @@ function preventSave() {
   );
 }
 
+function turnOn() {
+  document.getElementById('J_Switch').classList.add('ant-switch-checked');
+  document.getElementById('J_SwitchInner').innerHTML = 'On';
+}
+
+function turnOff() {
+  document.getElementById('J_Switch').classList.remove('ant-switch-checked');
+  document.getElementById('J_SwitchInner').innerHTML = 'Off';
+}
+
+chrome.storage.sync.get('disabled', (result) => {
+  document.getElementById('J_Switch_area').style.opacity = 1;
+  if (result.disabled === 'disabled') {
+    turnOff();
+  } else {
+    turnOn();
+  }
+});
+
+document.getElementById('J_Switch').addEventListener('click', (ev) => {
+  // if disabled
+  if (ev.currentTarget.classList.contains('ant-switch-checked')) {
+    turnOff();
+    chrome.storage.sync.set({
+      disabled: 'disabled',
+    });
+  } else {
+    chrome.storage.sync.set({
+      disabled: '',
+    });
+    turnOn();
+  }
+});
+
 preventSave();

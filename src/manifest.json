@@ -2,17 +2,17 @@
   "name": "XSwitch",
   "description": "XSwitch tools for proxy web request url, support reg",
   "short_name": "xs",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "manifest_version": 2,
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "images/blue_128.png",
     "default_title": "XSwitch",
     "default_popup": "XSwitch.html"
   },
   "permissions": ["webRequest", "storage", "webRequestBlocking", "<all_urls>"],
   "icons": {
-    "48": "icon.png",
-    "128": "icon.png"
+    "48": "images/blue_128.png",
+    "128": "images/blue_128.png"
   },
   "background": {
     "scripts": ["forward.js", "background.js"]
