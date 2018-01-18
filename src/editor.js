@@ -73,3 +73,17 @@ chrome.storage.sync.get('config_for_shown', (result) => {
     });
   });
 });
+
+function preventSave() {
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.keyCode === 83 && (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)) {
+        e.preventDefault();
+      }
+    },
+    false,
+  );
+}
+
+preventSave();
