@@ -9,7 +9,7 @@
     "default_title": "XSwitch",
     "default_popup": "XSwitch.html"
   },
-  "permissions": ["webRequest", "storage", "webRequestBlocking", "<all_urls>"],
+  "permissions": ["webRequest", "storage", "webRequestBlocking", "browsingData", "<all_urls>"],
   "icons": {
     "48": "images/blue_128.png",
     "128": "images/blue_128.png"

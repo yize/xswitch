@@ -1,4 +1,5 @@
 window.proxyDisabled = '';
+window.clearRunning = false;
 chrome.storage.sync.get('config', (result) => {
   try {
     window.proxyConfig = JSON.parse(result.config);
@@ -27,6 +28,22 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
+function clearCache() {
+  if (!window.clearRunning) {
+    window.clearRunning = true;
+    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+    const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
+    chrome.browsingData.removeCache(
+      {
+        since: oneWeekAgo,
+      },
+      () => {
+        window.clearRunning = false;
+      },
+    );
+  }
+}
+
 chrome.storage.sync.get('disabled', (result) => {
   window.proxyDisabled = result.disabled;
   setIcon(result.disabled);
@@ -35,6 +52,7 @@ chrome.storage.sync.get('disabled', (result) => {
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (window.proxyDisabled !== 'disabled') {
+      clearCache();
       return window.onBeforeRequestCallback(details);
     }
     return {};
