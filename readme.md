@@ -11,7 +11,7 @@
 A [Chrome Extension][web-store] for forwarding request urls.
 
 <a href="https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg">
-  <img src="https://img.alicdn.com/tfs/TB1qqEAmvDH8KJjy1XcXXcpdXXa-1674-968.png">
+  <img src="https://img.alicdn.com/tfs/TB1SNbynC_I8KJjy0FoXXaFnVXa-1672-1018.png">
 </a>
 
 ## Features
@@ -19,6 +19,7 @@ A [Chrome Extension][web-store] for forwarding request urls.
 * [x] can redirect `request.url` base on `chrome.webRequest.onBeforeRequest`.
 * [x] [Monaco Editor][monaco-editor] based, support proxy rules suggestions.
 * [x] support comments in JSON.
+* [x] support global switch control.
 
 ## Usage
 
