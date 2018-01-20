@@ -16,6 +16,7 @@ chrome.storage.sync.get('config_for_shown', (result) => {
       contextmenu: false,
       scrollBeyondLastLine: false,
       folding: true,
+      showFoldingControls: 'always',
 
       useTabStops: true,
       wordBasedSuggestions: true,
