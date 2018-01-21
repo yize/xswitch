@@ -6,9 +6,9 @@
 
 ## XSwitch
 
-[![Build Status][build-status-badge]][build-status] [![Coverage Status][coverage-status-badge]][coverage-status] [![license][license]][github-xswitch]
+[![Chrome version][badge-cws]][link-cws] [![Build Status][badge-travis]][link-travis] [![Coverage Status][badge-coverage]][link-coverage] [![license][badge-license]][link-xswitch]
 
-A [Chrome Extension][web-store] for forwarding request urls.
+A [Chrome Extension][link-cws] for forwarding request urls.
 
 <a href="https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg">
   <img src="https://img.alicdn.com/tfs/TB1SNbynC_I8KJjy0FoXXaFnVXa-1672-1018.png">
@@ -51,11 +51,12 @@ A [Chrome Extension][web-store] for forwarding request urls.
 
 [MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://ithans.com)
 
-[github-xswitch]: https://github.com/yize/xswitch
-[web-store]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
-[monaco-editor]: https://github.com/Microsoft/monaco-editor
-[build-status]: https://travis-ci.org/yize/xswitch
-[build-status-badge]: https://travis-ci.org/yize/xswitch.svg?branch=master
-[coverage-status]: https://coveralls.io/github/yize/xswitch?branch=master
-[coverage-status-badge]: https://coveralls.io/repos/github/yize/xswitch/badge.svg?branch=master
-[license]: https://img.shields.io/github/license/yize/xswitch.svg
+[link-xswitch]: https://github.com/yize/xswitch
+[link-cws]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
+[link-me]: https://github.com/Microsoft/monaco-editor
+[link-travis]: https://travis-ci.org/yize/xswitch
+[link-coverage]: https://coveralls.io/github/yize/xswitch?branch=master
+[badge-travis]: https://travis-ci.org/yize/xswitch.svg?branch=master
+[badge-coverage]: https://coveralls.io/repos/github/yize/xswitch/badge.svg?branch=master
+[badge-license]: https://img.shields.io/github/license/yize/xswitch.svg
+[badge-cws]: https://img.shields.io/chrome-web-store/v/idkjhjggpffolpidfkikidcokdkdaogg.svg?label=chrome
