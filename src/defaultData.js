@@ -9,12 +9,12 @@ window.DEFAULT_DATA = `{
     ],
     [
       "alinw.alicdn.com",
-      "g.alicdn.com"
+      "g.alicdn.com",
     ],
     [
       // "(.*)/platform/daily-test/(.*).js$",
       // "http://localhost:3000/daily-test/$1.js"
-    ]
+    ],
   ]
 }
 `;
