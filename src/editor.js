@@ -2,6 +2,7 @@ require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
 chrome.storage.sync.get('config_for_shown', (result) => {
   window.require(['vs/editor/editor.main'], () => {
+    const reg = /(,+)([^"[])/g;
     const editor = window.monaco.editor.create(document.getElementById('container'), {
       value: result.config_for_shown || window.DEFAULT_DATA,
       language: 'json',
@@ -33,7 +34,10 @@ chrome.storage.sync.get('config_for_shown', (result) => {
       chrome.storage.sync.set(
         {
           config_for_shown: data,
-          config: window.stripJsonComments(data),
+          config: window
+            .stripJsonComments(data)
+            .replace(/\s+/g, '')
+            .replace(reg, ($0, $1, $2) => $2),
         },
         () => {},
       );

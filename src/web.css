@@ -8,6 +8,13 @@ body {
   padding: 14px 0;
 }
 
+
+/* remove redsquiggly */
+
+.monaco-editor .redsquiggly {
+  background: none !important;
+}
+
 .switch-area {
   position: fixed;
   right: 10px;
