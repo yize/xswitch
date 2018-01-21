@@ -6,7 +6,7 @@
 
 ## XSwitch
 
-[![Build Status][build-status-badge]][build-status] [![Coverage Status][coverage-status-badge]][coverage-status]
+[![Build Status][build-status-badge]][build-status] [![Coverage Status][coverage-status-badge]][coverage-status] [![license][license]][github-xswitch]
 
 A [Chrome Extension][web-store] for forwarding request urls.
 
@@ -51,9 +51,11 @@ A [Chrome Extension][web-store] for forwarding request urls.
 
 [MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://ithans.com)
 
+[github-xswitch]: https://github.com/yize/xswitch
 [web-store]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
 [monaco-editor]: https://github.com/Microsoft/monaco-editor
 [build-status]: https://travis-ci.org/yize/xswitch
 [build-status-badge]: https://travis-ci.org/yize/xswitch.svg?branch=master
 [coverage-status]: https://coveralls.io/github/yize/xswitch?branch=master
 [coverage-status-badge]: https://coveralls.io/repos/github/yize/xswitch/badge.svg?branch=master
+[license]: https://img.shields.io/github/license/yize/xswitch.svg
