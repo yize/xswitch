@@ -2,7 +2,7 @@ require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
 chrome.storage.sync.get('config_for_shown', (result) => {
   window.require(['vs/editor/editor.main'], () => {
-    const reg = /(,+)([^"[])/g;
+    const reg = /(,+)([^a-z0-9"])/gi;
     const editor = window.monaco.editor.create(document.getElementById('container'), {
       value: result.config_for_shown || window.DEFAULT_DATA,
       language: 'json',
