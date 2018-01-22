@@ -132,6 +132,29 @@ describe('string urls', () => {
       }).redirectUrl,
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
+  test('should forwarding url with ?? ', () => {
+    window.proxyConfig.proxy = [['https://a.com/??a.js,b.js', 'https://b.com/??a.js,b.js']];
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://a.com/??a.js,b.js',
+        requestId: 1,
+      }).redirectUrl,
+    ).toEqual('https://b.com/??a.js,b.js');
+
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://g.alicdn.com/#aaaa',
+        requestId: 2,
+      }).redirectUrl,
+    ).toBeFalsy();
+
+    expect(
+      window.redirectToMatchingRule({
+        url: 'https://a.com/??a.js,b.js?t=1#aaa',
+        requestId: 3,
+      }).redirectUrl,
+    ).toEqual('https://b.com/??a.js,b.js?t=1#aaa');
+  });
 });
 
 describe('reg urls', () => {

@@ -1,10 +1,10 @@
 require('../src/lib/strip-json-comments');
 
-const reg = /(,+)([^"[])/g;
+const reg = /(,+)([^a-z0-9"])/gi;
 
 const replace = (data) => {
   try {
-    JSON.parse(
+    return JSON.parse(
       window
         .stripJsonComments(data)
         .replace(/\s+/g, '')
@@ -45,6 +45,33 @@ describe('parse', () => {
   ],
 }`;
 
-    expect(replace(jsonString)).not.toEqual('parsed error');
+    expect(replace(jsonString)).toEqual({ proxy: [['a.com', 'b.com']] });
+  });
+  test('parse urls with ?? ,', () => {
+    const jsonString = `{
+  "proxy": [
+    [
+      "a.com??a.js,b.js",
+      "b.com??a.js,b.js",
+    ],
+  ]
+}`;
+
+    expect(replace(jsonString)).toEqual({ proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']] });
+  });
+
+  test('parse reg rules', () => {
+    const jsonString = `{
+  "proxy": [
+    [
+      "(.*)a.com??a.js,b.js",
+      "$1b.com??a.js,b.js",
+    ],
+  ]
+}`;
+
+    expect(replace(jsonString)).toEqual({
+      proxy: [['(.*)a.com??a.js,b.js', '$1b.com??a.js,b.js']],
+    });
   });
 });
