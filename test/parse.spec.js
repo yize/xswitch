@@ -1,6 +1,5 @@
 require('../src/lib/strip-json-comments');
-
-const reg = /(,+)([^a-z0-9"])/gi;
+require('../src/cleanJSONReg');
 
 const replace = (data) => {
   try {
@@ -8,14 +7,14 @@ const replace = (data) => {
       window
         .stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(reg, ($0, $1, $2) => $2),
+        .replace(window.cleanJSONReg, ($0, $1, $2) => $2),
     );
   } catch (e) {
     console.log(
       window
         .stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(reg, ($0, $1, $2) => $2),
+        .replace(window.cleanJSONReg, ($0, $1, $2) => $2),
     );
     return 'parsed error';
   }
@@ -58,6 +57,46 @@ describe('parse', () => {
 }`;
 
     expect(replace(jsonString)).toEqual({ proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']] });
+  });
+
+  test('parse urls with ?? with comments,', () => {
+    const jsonString = `{
+  "proxy": [
+    [
+      "a.com??a.js,b.js",
+      // 
+      "b.com??a.js,b.js",
+    ],
+  ]
+}`;
+
+    expect(replace(jsonString)).toEqual({ proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']] });
+  });
+
+  test('parse urls with ?? with comments,', () => {
+    const jsonString = `{
+  "proxy": [
+    // jQuery
+    [
+      // jQuery
+      "a.com??a.js,b.js",
+      // 
+      "b.com??a.js,b.js",
+      // jQuery
+    ],
+    // jQuery
+    [
+      "jQuery",
+      // jQuery
+      ,"jQuery.min.js"
+      // jQuery
+    ]
+  ]
+}`;
+
+    expect(replace(jsonString)).toEqual({
+      proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js'], ['jQuery', 'jQuery.min.js']],
+    });
   });
 
   test('parse reg rules', () => {
