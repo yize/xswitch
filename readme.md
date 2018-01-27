@@ -6,7 +6,7 @@
 
 ## XSwitch
 
-[![Chrome version][badge-cws]][link-cws] [![Build Status][badge-travis]][link-travis] [![Coverage Status][badge-coverage]][link-coverage] [![license][badge-license]][link-xswitch]
+[![Chrome version][badge-cws]][link-cws] [![Chrome version][badge-cws-count]][link-cws] [![Build Status][badge-travis]][link-travis] [![Coverage Status][badge-coverage]][link-coverage] [![license][badge-license]][link-xswitch]
 
 A [Chrome Extension][link-cws] for forwarding request urls.
 
@@ -60,3 +60,4 @@ A [Chrome Extension][link-cws] for forwarding request urls.
 [badge-coverage]: https://coveralls.io/repos/github/yize/xswitch/badge.svg?branch=master
 [badge-license]: https://img.shields.io/github/license/yize/xswitch.svg
 [badge-cws]: https://img.shields.io/chrome-web-store/v/idkjhjggpffolpidfkikidcokdkdaogg.svg?label=chrome
+[badge-cws-count]: https://img.shields.io/chrome-web-store/users/idkjhjggpffolpidfkikidcokdkdaogg.svg
