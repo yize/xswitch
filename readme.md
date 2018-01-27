@@ -16,13 +16,15 @@ A [Chrome Extension][link-cws] for forwarding request urls.
 
 ## Features
 
-* [x] redirect `request.url`
-* [x] global switch control
-* [x] disable browser cache
+* [x] Redirect `request.url`
+* [x] Global switch control
+* [x] Disable browser cache
 * [x] JSON comments
-* [x] rule suggestions
+* [x] Rule suggestions
 
 ## Usage
+
+更多说明：[#9](https://github.com/yize/xswitch/issues/9)
 
 ```js
 {
@@ -44,10 +46,8 @@ A [Chrome Extension][link-cws] for forwarding request urls.
 }
 ```
 
-* visit [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
-* finally, you got [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
-
-更多说明：[#9](https://github.com/yize/xswitch/issues/9)
+* Visit [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
+* Finally, you got [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
 
 ## License
 
