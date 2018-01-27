@@ -47,6 +47,8 @@ A [Chrome Extension][link-cws] for forwarding request urls.
 * visit [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
 * finally, you got [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
 
+更多说明：[#9](https://github.com/yize/xswitch/issues/9)
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://ithans.com)
