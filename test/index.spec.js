@@ -60,12 +60,21 @@ describe('rule[1] is not string', () => {
 });
 
 describe('chrome-extension://', () => {
-  window.proxyConfig.proxy = [['(.*).js', '$1..js']];
   test('should not forward', () => {
+    window.proxyConfig.proxy = [['(.*).js', '$1..js']];
     expect(
       window.redirectToMatchingRule({
         url: 'chrome-extension://xxxxx/a.js',
         requestId: 1,
+      }),
+    ).toEqual({});
+  });
+  test('should not forward', () => {
+    window.proxyConfig.proxy = [['xxxxx', 'xxxx']];
+    expect(
+      window.redirectToMatchingRule({
+        url: 'chrome-extension://xxxxx/a.js',
+        requestId: 2,
       }),
     ).toEqual({});
   });

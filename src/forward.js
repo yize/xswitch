@@ -8,7 +8,8 @@ window.redirectToMatchingRule = (details) => {
   const rules = window.proxyConfig.proxy;
   let redirectUrl = details.url;
 
-  if (!rules || !rules.length || !/^http(s?):\/\//.test(redirectUrl)) {
+  // in case of chrome-extension downtime
+  if (!rules || !rules.length || /^chrome-extension:\/\//i.test(redirectUrl)) {
     return {};
   }
 
