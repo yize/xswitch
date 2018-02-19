@@ -1,11 +1,11 @@
 body {
   margin: 0;
+  padding: 14px 0;
 }
 
 .container {
-  width: 800px;
-  height: 400px;
-  padding: 14px 0;
+  width: 630px;
+  height: 437px;
 }
 
 

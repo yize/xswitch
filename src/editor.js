@@ -1,32 +1,31 @@
 require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
-chrome.storage.sync.get('config_for_shown', (result) => {
+chrome.storage.sync.get('config_for_shown', result => {
   window.require(['vs/editor/editor.main'], () => {
-    const editor = window.monaco.editor.create(document.getElementById('container'), {
-      value: result.config_for_shown || window.DEFAULT_DATA,
-      language: 'json',
+    const editor = window.monaco.editor.create(
+      document.getElementById('container'),
+      {
+        value: result.config_for_shown || window.DEFAULT_DATA,
+        language: 'json',
 
-      minimap: {
-        enabled: false,
-      },
-      fontFamily: 'Fira Code, monospace',
-      fontSize: 13,
-      fontLigatures: true,
+        minimap: {
+          enabled: false
+        },
+        fontFamily: 'Fira Code, monospace',
+        fontSize: 13,
+        fontLigatures: true,
 
-      contextmenu: false,
-      scrollBeyondLastLine: false,
-      folding: true,
-      showFoldingControls: 'always',
+        contextmenu: false,
+        scrollBeyondLastLine: false,
+        folding: true,
+        showFoldingControls: 'always',
 
-      useTabStops: true,
-      wordBasedSuggestions: true,
-      quickSuggestions: true,
-      suggestOnTriggerCharacters: true,
-
-      scrollbar: {
-        verticalScrollbarSize: 5,
-      },
-    });
+        useTabStops: true,
+        wordBasedSuggestions: true,
+        quickSuggestions: true,
+        suggestOnTriggerCharacters: true
+      }
+    );
 
     function setStorage() {
       const data = editor.getValue();
@@ -46,9 +45,9 @@ chrome.storage.sync.get('config_for_shown', (result) => {
       chrome.storage.sync.set(
         {
           config_for_shown: data,
-          config,
+          config
         },
-        () => {},
+        () => {}
       );
     }
 
@@ -57,11 +56,11 @@ chrome.storage.sync.get('config_for_shown', (result) => {
     window.monaco.languages.registerCompletionItemProvider('json', {
       provideCompletionItems: () => {
         const textArr = [];
-        chrome.extension.getBackgroundPage().urls.forEach((item) => {
+        chrome.extension.getBackgroundPage().urls.forEach(item => {
           if (item) {
             textArr.push({
               label: item,
-              kind: window.monaco.languages.CompletionItemKind.Text,
+              kind: window.monaco.languages.CompletionItemKind.Text
             });
           }
         });
@@ -74,12 +73,12 @@ chrome.storage.sync.get('config_for_shown', (result) => {
               value: `[
   "\${1:from}",
   "\${1:to}"
-]\${0}`,
-            },
-          },
+]\${0}`
+            }
+          }
         ];
         return [...textArr, ...extraItems];
-      },
+      }
     });
 
     editor.onDidChangeModelContent(() => {
@@ -91,12 +90,15 @@ chrome.storage.sync.get('config_for_shown', (result) => {
 function preventSave() {
   document.addEventListener(
     'keydown',
-    (e) => {
-      if (e.keyCode === 83 && (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)) {
+    e => {
+      if (
+        e.keyCode === 83 &&
+        (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)
+      ) {
         e.preventDefault();
       }
     },
-    false,
+    false
   );
 }
 
@@ -110,7 +112,7 @@ function turnOff() {
   document.getElementById('J_SwitchInner').innerHTML = 'Off';
 }
 
-chrome.storage.sync.get('disabled', (result) => {
+chrome.storage.sync.get('disabled', result => {
   document.getElementById('J_Switch_area').style.opacity = 1;
   if (result.disabled === 'disabled') {
     turnOff();
@@ -119,16 +121,16 @@ chrome.storage.sync.get('disabled', (result) => {
   }
 });
 
-document.getElementById('J_Switch').addEventListener('click', (ev) => {
+document.getElementById('J_Switch').addEventListener('click', ev => {
   // if disabled
   if (ev.currentTarget.classList.contains('ant-switch-checked')) {
     turnOff();
     chrome.storage.sync.set({
-      disabled: 'disabled',
+      disabled: 'disabled'
     });
   } else {
     chrome.storage.sync.set({
-      disabled: '',
+      disabled: ''
     });
     turnOn();
   }

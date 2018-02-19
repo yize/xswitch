@@ -1,31 +1,45 @@
 window.proxyDisabled = '';
 window.clearRunning = false;
-chrome.storage.sync.get('config', (result) => {
+chrome.storage.sync.get('config', result => {
   try {
     window.proxyConfig = JSON.parse(result.config);
   } catch (e) {
-    console.log('can not parse config', result.config);
+    console.warn('can not parse config', result.config);
+    window.proxyConfig.proxy = [];
   }
 });
 
-function setIcon(disabled) {
-  chrome.browserAction.setIcon({
-    path: `images/${disabled === 'disabled' ? 'grey' : 'blue'}_128.png`,
-  });
+function setIcon() {
+  let text = '';
+  const cba = chrome.browserAction;
+  if (
+    window.proxyDisabled !== 'disabled' &&
+    window.proxyConfig.proxy &&
+    window.proxyConfig.proxy.length
+  ) {
+    text = window.proxyConfig.proxy.length;
+  }
+
+  if (cba) {
+    cba.setBadgeText({
+      text: '' + text
+    });
+  }
 }
 
-chrome.storage.onChanged.addListener((changes) => {
+chrome.storage.onChanged.addListener(changes => {
   if (changes.config) {
     try {
       window.proxyConfig = JSON.parse(changes.config.newValue);
     } catch (e) {
-      console.log('can not parse fresh config', changes.config.newValue);
+      console.warn('can not parse fresh config', changes.config.newValue);
+      window.proxyConfig.proxy = [];
     }
   }
   if (changes.disabled) {
-    setIcon(changes.disabled.newValue);
     window.proxyDisabled = changes.disabled.newValue;
   }
+  setIcon();
 });
 
 function clearCache() {
@@ -35,22 +49,22 @@ function clearCache() {
     const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
     chrome.browsingData.removeCache(
       {
-        since: oneWeekAgo,
+        since: oneWeekAgo
       },
       () => {
         window.clearRunning = false;
-      },
+      }
     );
   }
 }
 
-chrome.storage.sync.get('disabled', (result) => {
+chrome.storage.sync.get('disabled', result => {
   window.proxyDisabled = result.disabled;
-  setIcon(result.disabled);
+  setIcon();
 });
 
 chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
+  details => {
     if (window.proxyDisabled !== 'disabled') {
       clearCache();
       return window.onBeforeRequestCallback(details);
@@ -58,7 +72,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     return {};
   },
   {
-    urls: ['<all_urls>'],
+    urls: ['<all_urls>']
   },
-  ['blocking'],
+  ['blocking']
 );
