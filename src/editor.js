@@ -113,7 +113,7 @@ function turnOff() {
 }
 
 chrome.storage.sync.get('disabled', result => {
-  document.getElementById('J_Switch_area').style.opacity = 1;
+  document.getElementById('J_SwitchArea').style.opacity = 1;
   if (result.disabled === 'disabled') {
     turnOff();
   } else {
@@ -134,6 +134,14 @@ document.getElementById('J_Switch').addEventListener('click', ev => {
     });
     turnOn();
   }
+});
+
+document.getElementById('J_OpenInNewTab').addEventListener('click', ev => {
+  chrome.tabs.create({ url: chrome.extension.getURL('XSwitch.html') }, function(
+    tab
+  ) {
+    // Tab opened.
+  });
 });
 
 preventSave();

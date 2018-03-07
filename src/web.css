@@ -4,8 +4,8 @@ body {
 }
 
 .container {
-  width: 630px;
-  height: 437px;
+  min-width: 630px;
+  min-height: 437px;
 }
 
 
@@ -17,14 +17,29 @@ body {
 
 .switch-area {
   position: fixed;
-  right: 10px;
-  top: 13px;
+  right: 42px;
   z-index: 1000;
   opacity: 0;
 }
 
+.new-tab-control {
+  position: fixed;
+  right: 14px;
+  z-index: 1000;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.new-tab-control:hover {
+  opacity: 1;
+}
+
+.new-tab-icon {
+  width: 22px;
+}
+
 .ant-switch {
-  font-family: "Monospace Number", "Chinese Quote", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Monospace Number', 'Chinese Quote', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.65);
@@ -68,7 +83,7 @@ body {
   top: 1px;
   border-radius: 18px;
   background-color: #fff;
-  content: " ";
+  content: ' ';
   cursor: pointer;
 }
 
@@ -83,7 +98,7 @@ body {
 }
 
 .ant-switch:before {
-  content: "\E64D";
+  content: '\E64D';
   font-family: anticon;
   text-align: center;
   background: transprent;
