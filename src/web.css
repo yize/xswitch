@@ -1,33 +1,55 @@
+* {
+  box-sizing: border-box;
+}
+
+html,body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   padding: 14px 0;
 }
 
 .container {
-  min-width: 630px;
-  min-height: 437px;
+  width: 100%;
+  min-width: 800px;
+  min-height: 580px;
+  height: 100%;
 }
+
+.toolbar-area{
+  width: 120px;
+  position: fixed;
+  right: 20px;
+  top: 13px;
+  z-index: 1000;
+  opacity: 0.5;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 
 
 /* remove redsquiggly */
 
-.monaco-editor .redsquiggly {
+.monaco-editor .squiggly-error {
   background: none !important;
 }
 
-.switch-area {
-  position: fixed;
-  right: 42px;
-  z-index: 1000;
+.switch-control {
   opacity: 0;
+  width: 50px;
 }
 
 .new-tab-control {
-  position: fixed;
-  right: 14px;
-  z-index: 1000;
-  opacity: 0.5;
-  cursor: pointer;
+}
+
+
+.open-readme{
+  
 }
 
 .new-tab-control:hover {

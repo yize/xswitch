@@ -2,9 +2,11 @@
   "name": "xswitch",
   "description": "A proxy tool based on Chrome.extensions",
   "author": "yize",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "main": "src/background.js",
-  "dependencies": {},
+  "dependencies": {
+    "monaco-editor": "^0.13.1"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:yize/xswitch.git"
@@ -13,7 +15,13 @@
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
-  "keywords": ["xswitch", "chrome", "urlProxy", "proxy", "xproxy"],
+  "keywords": [
+    "xswitch",
+    "chrome",
+    "urlProxy",
+    "proxy",
+    "xproxy"
+  ],
   "license": "MIT",
   "devDependencies": {
     "coveralls": "^3.0.0",

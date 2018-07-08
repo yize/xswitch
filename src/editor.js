@@ -144,4 +144,12 @@ document.getElementById('J_OpenInNewTab').addEventListener('click', ev => {
   });
 });
 
+document.getElementById('J_OpenReadme').addEventListener('click', ev => {
+  chrome.tabs.create({ url: 'https://yuque.com/jiushen/blog/xswitch-readme' }, function(
+    tab
+  ) {
+    // Tab opened.
+  });
+});
+
 preventSave();
