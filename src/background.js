@@ -76,3 +76,20 @@ chrome.webRequest.onBeforeRequest.addListener(
   },
   ['blocking']
 );
+
+chrome.webRequest.onHeadersReceived.addListener(
+  details => {
+    if (window.proxyDisabled !== 'disabled') {
+      let responseHeaders = details.responseHeaders.filter(elem => elem.name.toLowerCase() !== 'access-control-allow-origin' 
+        && elem.name.toLowerCase() !== 'access-control-allow-methods' )
+      responseHeaders.push({'name': 'Access-Control-Allow-Origin','value': '*'});
+      responseHeaders.push({'name': 'Access-Control-Allow-Methods', 'value': 'GET, PUT, POST, DELETE, HEAD, OPTIONS'});
+      return {responseHeaders:responseHeaders}
+    }
+    return {};
+  },
+  {
+    urls: ['<all_urls>']
+  },
+  ['blocking','responseHeaders']
+);
