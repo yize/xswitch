@@ -78,6 +78,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 //Breaking the CORS Limitation
-chrome.webRequest.onHeadersReceived.addListener(window.onHeadersReceivedCallback, {
+chrome.webRequest.onHeadersReceived.addListener(details=>window.onHeadersReceivedCallback(details), {
   urls: ['<all_urls>']
 }, ["blocking", "responseHeaders"]);

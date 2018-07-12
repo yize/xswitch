@@ -4,3 +4,4 @@ node_modules/
 *.lock
 coverage/
 .DS_Store
+npm-debug.log
