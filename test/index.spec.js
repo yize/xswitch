@@ -452,8 +452,8 @@ describe('CORS without Access-Control-Allow-Origin', () => {
         value: 'true'
       },
       {
-        name: 'Access-Control-Allow-Headers',
-        value: 'x-requested-with,Content-Type'
+        name: 'Access-Control-Allow-Methods',
+        value: '*'
       }
     ];
     expect(
@@ -660,8 +660,8 @@ describe('CORS withCredentials', () => {
         value: 'true'
       },
       {
-        name: 'Access-Control-Allow-Headers',
-        value: 'x-requested-with,Content-Type'
+        name: 'Access-Control-Allow-Methods',
+        value: '*'
       }
     ];
     expect(
@@ -683,8 +683,8 @@ describe('CORS withCredentials and no proxyConfig', () => {
         value: 'true'
       },
       {
-        name: 'Access-Control-Allow-Headers',
-        value: 'x-requested-with,Content-Type'
+        name: 'Access-Control-Allow-Methods',
+        value: '*'
       }
     ]);
   });

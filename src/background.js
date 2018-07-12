@@ -81,3 +81,8 @@ chrome.webRequest.onBeforeRequest.addListener(
 chrome.webRequest.onHeadersReceived.addListener(details=>window.onHeadersReceivedCallback(details), {
   urls: ['<all_urls>']
 }, ["blocking", "responseHeaders"]);
+
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  details=>window.onBeforeSendHeadersCallback(details),
+  {urls: ["<all_urls>"]},
+  ["blocking", "requestHeaders"]);

@@ -2,7 +2,7 @@
   "name": "xswitch",
   "description": "A proxy tool based on Chrome.extensions",
   "author": "yize",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "main": "src/background.js",
   "dependencies": {
     "monaco-editor": "^0.13.1"
