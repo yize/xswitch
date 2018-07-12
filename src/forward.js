@@ -3,6 +3,53 @@ window.proxyConfig = {};
 window.urls = new Array(200); // for cache
 
 window.isString = string => ({}.toString.call(string) === '[object String]');
+//Breaking the CORS Limitation
+window.onHeadersReceivedCallback = details => {
+  if (window.proxyDisabled == 'disabled'){
+    return {};
+  }
+  const rules = window.proxyConfig.proxy;
+  // in case of chrome-extension downtime
+  if (!rules || !rules.length || /^chrome-extension:\/\//i.test(details.url)) {
+    return {};
+  }
+  for (let i = 0; i < rules.length; i++) {
+    if (details.url && details.url.indexOf(getHostName(rules[i][1])) > -1) {
+      let hasAccessControlAllowOriginHeader = false;
+      let headerNames = details.responseHeaders.map(item => {
+        if (item.name == "Access-Control-Allow-Origin") {
+          hasAccessControlAllowOriginHeader = true;
+          //item.value = `http://${getHostName(rules[i][0])}`
+          item.value = rules[i][0].indexOf('http')>-1?rules[i][0].substring(0,rules[i][0].lastIndexOf('/')):`http:${rules[i][0].substring(0,rules[i][0].lastIndexOf('/'))}`
+        }
+        return item;
+      });
+      if (!hasAccessControlAllowOriginHeader) {
+        //alert(JSON.stringify(details))
+        headerNames.push({
+          name: "Access-Control-Allow-Origin",
+          //value: `http://${getHostName(rules[i][0])}`
+          value: rules[i][0].indexOf('http')>-1?rules[i][0].substring(0,rules[i][0].lastIndexOf('/')):`http:${rules[i][0].substring(0,rules[i][0].lastIndexOf('/'))}`
+        });
+        headerNames.push({
+          name: "Access-Control-Allow-Credentials",
+          value: "true"
+        });
+        headerNames.push({
+          name: "Access-Control-Allow-Headers",
+          value: "x-requested-with,Content-Type"
+        });
+      }
+      return {
+        responseHeaders: headerNames
+      };
+    }
+  }
+
+  function getHostName(url) {
+    return url.split("/")[2];
+  }
+};
 
 window.redirectToMatchingRule = (details) => {
   const rules = window.proxyConfig.proxy;

@@ -3,3 +3,5 @@ node_modules/
 *.pem
 *.lock
 coverage/
+.DS_Store
+npm-debug.log
