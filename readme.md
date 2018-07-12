@@ -21,6 +21,7 @@ A [Chrome Extension][link-cws] for forwarding request urls.
 * [x] Disable browser cache
 * [x] JSON comments
 * [x] Rule suggestions
+* [x] CORS
 
 ## Usage
 

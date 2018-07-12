@@ -1,54 +1,28 @@
 window.lastRequestId = null;
 window.proxyConfig = {};
 window.urls = new Array(200); // for cache
-
 window.isString = string => ({}.toString.call(string) === '[object String]');
+
 //Breaking the CORS Limitation
 window.onHeadersReceivedCallback = details => {
-  if (window.proxyDisabled == 'disabled'){
+  if (window.proxyDisabled == 'disabled') {
     return {};
-  }
-  const rules = window.proxyConfig.proxy;
-  // in case of chrome-extension downtime
-  if (!rules || !rules.length || /^chrome-extension:\/\//i.test(details.url)) {
-    return {};
-  }
-  for (let i = 0; i < rules.length; i++) {
-    if (details.url && details.url.indexOf(getHostName(rules[i][1])) > -1) {
-      let hasAccessControlAllowOriginHeader = false;
-      let headerNames = details.responseHeaders.map(item => {
-        if (item.name == "Access-Control-Allow-Origin") {
-          hasAccessControlAllowOriginHeader = true;
-          //item.value = `http://${getHostName(rules[i][0])}`
-          item.value = rules[i][0].indexOf('http')>-1?rules[i][0].substring(0,rules[i][0].lastIndexOf('/')):`http:${rules[i][0].substring(0,rules[i][0].lastIndexOf('/'))}`
-        }
-        return item;
-      });
-      if (!hasAccessControlAllowOriginHeader) {
-        //alert(JSON.stringify(details))
-        headerNames.push({
-          name: "Access-Control-Allow-Origin",
-          //value: `http://${getHostName(rules[i][0])}`
-          value: rules[i][0].indexOf('http')>-1?rules[i][0].substring(0,rules[i][0].lastIndexOf('/')):`http:${rules[i][0].substring(0,rules[i][0].lastIndexOf('/'))}`
-        });
-        headerNames.push({
-          name: "Access-Control-Allow-Credentials",
-          value: "true"
-        });
-        headerNames.push({
-          name: "Access-Control-Allow-Headers",
-          value: "x-requested-with,Content-Type"
-        });
-      }
-      return {
-        responseHeaders: headerNames
-      };
-    }
   }
 
-  function getHostName(url) {
-    return url.split("/")[2];
+  let resHeaders = [];
+  if(details.responseHeaders && details.responseHeaders.filter){
+    resHeaders = details.responseHeaders.filter((responseHeader) => {
+      return !~responseHeader.name.toLowerCase().indexOf('access-control-allow');
+    })
   }
+  
+  resHeaders.push({ name: 'Access-Control-Allow-Origin', value: details.initiator || '*' });
+  resHeaders.push({ name: 'Access-Control-Allow-Credentials', value: 'true' });
+  resHeaders.push({ name: 'Access-Control-Allow-Headers', value: 'x-requested-with,Content-Type' });
+
+  return {
+    responseHeaders: resHeaders
+  };
 };
 
 window.redirectToMatchingRule = (details) => {
@@ -84,7 +58,7 @@ window.redirectToMatchingRule = (details) => {
           matched = redirectUrl.indexOf(reg) > -1;
         }
 
-        if (matched && details.requestId !== window.lastRequestId) {
+        if (matched && details.requestId !== lastRequestId) {
           redirectUrl = redirectUrl.replace(reg, rule[1]);
         }
       }
@@ -96,4 +70,4 @@ window.redirectToMatchingRule = (details) => {
   return redirectUrl === details.url ? {} : { redirectUrl };
 };
 
-window.onBeforeRequestCallback = details => window.redirectToMatchingRule(details);
+window.onBeforeRequestCallback = details => redirectToMatchingRule(details);
