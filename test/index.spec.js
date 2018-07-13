@@ -454,6 +454,10 @@ describe('CORS without Access-Control-Allow-Origin', () => {
       {
         name: 'Access-Control-Allow-Methods',
         value: '*'
+      },
+      {
+        name: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
       }
     ];
     expect(
@@ -662,6 +666,10 @@ describe('CORS withCredentials', () => {
       {
         name: 'Access-Control-Allow-Methods',
         value: '*'
+      },
+      {
+        name: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
       }
     ];
     expect(
@@ -685,6 +693,10 @@ describe('CORS withCredentials and no proxyConfig', () => {
       {
         name: 'Access-Control-Allow-Methods',
         value: '*'
+      },
+      {
+        name: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
       }
     ]);
   });
