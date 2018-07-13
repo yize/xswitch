@@ -6,7 +6,7 @@ window.originRequestId = null;
 window.originValue = null;
 
 //Breaking the CORS Limitation
-window.onHeadersReceivedCallback = (details, corsEnabled) => {
+window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
   if (window.proxyDisabled == 'disabled' || !corsEnabled) {
     return {};
   }
