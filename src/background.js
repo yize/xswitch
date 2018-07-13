@@ -1,5 +1,7 @@
 window.proxyDisabled = '';
 window.clearRunning = false;
+window.clearCacheEnabled = true;
+window.corsEnabled = true;
 chrome.storage.sync.get('config', result => {
   try {
     window.proxyConfig = JSON.parse(result.config);
@@ -27,6 +29,11 @@ function setIcon() {
   }
 }
 
+function headersReceivedListener(details) {
+  return window.onHeadersReceivedCallback(details, window.corsEnabled)
+}
+
+
 chrome.storage.onChanged.addListener(changes => {
   if (changes.config) {
     try {
@@ -39,6 +46,15 @@ chrome.storage.onChanged.addListener(changes => {
   if (changes.disabled) {
     window.proxyDisabled = changes.disabled.newValue;
   }
+
+  if (changes.clearCacheEnabled) {
+    window.clearCacheEnabled = changes.clearCacheEnabled.newValue === 'enabled';
+  }
+
+  if (changes.corsEnabled) {
+    window.corsEnabled = changes.corsEnabled.newValue === 'enabled';
+  }
+
   setIcon();
 });
 
@@ -58,15 +74,24 @@ function clearCache() {
   }
 }
 
-chrome.storage.sync.get('disabled', result => {
+chrome.storage.sync.get({
+  'disabled': 'enabled',
+  'clearCacheEnabled': 'enabled',
+  'corsEnabled': 'enabled',
+}, result => {
   window.proxyDisabled = result.disabled;
+  window.clearCacheEnabled = result.clearCacheEnabled === 'enabled';
+  window.corsEnabled = result.corsEnabled === 'enabled';
   setIcon();
 });
 
 chrome.webRequest.onBeforeRequest.addListener(
   details => {
     if (window.proxyDisabled !== 'disabled') {
-      clearCache();
+      if (window.clearCacheEnabled) {
+        clearCache();
+      }
+
       return window.onBeforeRequestCallback(details);
     }
     return {};
@@ -78,11 +103,15 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 //Breaking the CORS Limitation
-chrome.webRequest.onHeadersReceived.addListener(details=>window.onHeadersReceivedCallback(details), {
-  urls: ['<all_urls>']
-}, ["blocking", "responseHeaders"]);
+chrome.webRequest.onHeadersReceived.addListener(headersReceivedListener,
+  {
+    urls: ['<all_urls>']
+  },
+  ['blocking', 'responseHeaders']
+);
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
-  details=>window.onBeforeSendHeadersCallback(details),
-  {urls: ["<all_urls>"]},
-  ["blocking", "requestHeaders"]);
+  details => window.onBeforeSendHeadersCallback(details),
+  { urls: ['<all_urls>'] },
+  ['blocking', 'requestHeaders']
+);

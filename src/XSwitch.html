@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
   <link rel="stylesheet" href="web.css">
 </head>
+
 <body>
-<div id="container" class="container"></div>
-<div class="toolbar-area">
+  <div id="container" class="container"></div>
+  <div class="toolbar-area">
     <div id="J_SwitchArea" class="switch-control" title="control">
-        <span class="ant-switch" id="J_Switch"><span class="ant-switch-inner" id="J_SwitchInner">Off</span></span>
-      </div>
-    <a id="J_OpenReadme" class="open-readme" title="Open help page" href="javascript:;"><img class="new-tab-icon" src="images/info.svg"/></a>
-    <a id="J_OpenInNewTab" class="new-tab-control" title="Open in new tab"><img class="new-tab-icon" src="images/new-tab.svg"/></a>
-</div>
-<script src="lib/monaco-editor/min/vs/loader.js"></script>
-<script src="lib/strip-json-comments.js"></script>
-<script src="defaultData.js"></script>
-<script src="cleanJSONReg.js"></script>
-<script src="editor.js"></script>
+      <span class="ant-switch" id="J_Switch">
+        <span class="ant-switch-inner" id="J_SwitchInner">Off</span>
+      </span>
+    </div>
+    <a id="J_OpenReadme" class="open-readme" title="Open help page" href="javascript:;">
+      <img class="new-tab-icon" src="images/info.svg" />
+    </a>
+    <a id="J_OpenInNewTab" class="new-tab-control" title="Open in new tab">
+      <img class="new-tab-icon" src="images/new-tab.svg" />
+    </a>
+  </div>
+  <script src="lib/monaco-editor/min/vs/loader.js"></script>
+  <script src="lib/strip-json-comments.js"></script>
+  <script src="defaultData.js"></script>
+  <script src="cleanJSONReg.js"></script>
+  <script src="editor.js"></script>
 </body>
+
 </html>
