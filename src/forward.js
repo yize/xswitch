@@ -80,12 +80,14 @@ window.redirectToMatchingRule = details => {
           // support ??
           reg = new RegExp(reg.replace('??', '\\?\\?'), 'i');
           matched = reg.test(redirectUrl);
+          if (matched && details.requestId !== lastRequestId) {
+            redirectUrl = redirectUrl.replace(reg, rule[1]);
+          }
         } else {
           matched = redirectUrl.indexOf(reg) > -1;
-        }
-
-        if (matched && details.requestId !== lastRequestId) {
-          redirectUrl = redirectUrl.replace(reg, rule[1]);
+          if (matched && details.requestId !== lastRequestId) {
+            redirectUrl = redirectUrl.split(rule[0]).join(rule[1]);
+          }
         }
       }
     }
