@@ -27,23 +27,28 @@ window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
     });
   }
 
+  const ori = window.originRequest.get(details.requestId);
+  // get origin from request, should replace null to '*';
+  let ACAOValue = ori && ori != 'null' ?
+    ori :
+    details.initiator;
+
   resHeaders.push({
     name: 'Access-Control-Allow-Origin',
     // when Origin has value null, CORS header must be null.
-    value:
-      (window.originRequest.get(details.requestId)
-        ? window.originRequest.get(details.requestId)
-        : details.initiator) || '*'
+    value: ACAOValue && ACAOValue != 'null' ? ACAOValue : '*'
   });
-  resHeaders.push({ name: 'Access-Control-Allow-Credentials', value: 'true' });
+  resHeaders.push({
+    name: 'Access-Control-Allow-Credentials',
+    value: 'true'
+  });
   resHeaders.push({
     name: 'Access-Control-Allow-Methods',
     value: '*'
   });
   resHeaders.push({
     name: 'Access-Control-Allow-Headers',
-    value:
-      'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+    value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
   });
 
   return {
@@ -96,10 +101,12 @@ window.redirectToMatchingRule = details => {
   }
 
   window.lastRequestId = details.requestId;
-  return redirectUrl === details.url ? {} : { redirectUrl };
+  return redirectUrl === details.url ? {} : {
+    redirectUrl
+  };
 };
 
-window.onBeforeSendHeadersCallback = function(details) {
+window.onBeforeSendHeadersCallback = function (details) {
   for (var i = 0; i < details.requestHeaders.length; ++i) {
     if (details.requestHeaders[i].name === 'Origin') {
       window.originRequest.set(
@@ -110,7 +117,9 @@ window.onBeforeSendHeadersCallback = function(details) {
     }
   }
 
-  return { requestHeaders: details.requestHeaders };
+  return {
+    requestHeaders: details.requestHeaders
+  };
 };
 
 window.onBeforeRequestCallback = details => redirectToMatchingRule(details);
