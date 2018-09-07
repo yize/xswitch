@@ -2,7 +2,7 @@ require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
 chrome.storage.sync.get('config_for_shown', result => {
   window.require(['vs/editor/editor.main'], () => {
-    const editor = window.monaco.editor.create(
+    window.editor = window.monaco.editor.create(
       document.getElementById('container'),
       {
         value: result.config_for_shown || window.DEFAULT_DATA,
@@ -47,7 +47,7 @@ chrome.storage.sync.get('config_for_shown', result => {
           config_for_shown: data,
           config
         },
-        () => {}
+        () => { }
       );
     }
 
@@ -72,8 +72,8 @@ chrome.storage.sync.get('config_for_shown', result => {
             insertText: {
               value: `[
   "\${1:from}",
-  "\${1:to}"
-]\${0}`
+  "\${1:to}",
+],`
             }
           }
         ];
@@ -84,8 +84,15 @@ chrome.storage.sync.get('config_for_shown', result => {
     editor.onDidChangeModelContent(() => {
       setStorage();
     });
+    editor.onDidScrollChange(()=>{
+      runFormat();
+    })
   });
 });
+
+function runFormat() {
+  return window.editor.trigger('anyString', 'editor.action.formatDocument')
+}
 
 function preventSave() {
   document.addEventListener(
@@ -137,7 +144,7 @@ document.getElementById('J_Switch').addEventListener('click', ev => {
 });
 
 document.getElementById('J_OpenInNewTab').addEventListener('click', ev => {
-  chrome.tabs.create({ url: chrome.extension.getURL('XSwitch.html') }, function(
+  chrome.tabs.create({ url: chrome.extension.getURL('XSwitch.html') }, function (
     tab
   ) {
     // Tab opened.
@@ -145,7 +152,7 @@ document.getElementById('J_OpenInNewTab').addEventListener('click', ev => {
 });
 
 document.getElementById('J_OpenReadme').addEventListener('click', ev => {
-  chrome.tabs.create({ url: 'https://yuque.com/jiushen/blog/xswitch-readme' }, function(
+  chrome.tabs.create({ url: 'https://yuque.com/jiushen/blog/xswitch-readme' }, function (
     tab
   ) {
     // Tab opened.

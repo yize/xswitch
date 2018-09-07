@@ -60,6 +60,12 @@ body {
   width: 22px;
 }
 
+.decorationsOverviewRuler,
+.scrollbar.vertical
+{
+  display: none !important;
+}
+
 .ant-switch {
   font-family: 'Monospace Number', 'Chinese Quote', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 14px;
@@ -123,7 +129,7 @@ body {
   content: '\E64D';
   font-family: anticon;
   text-align: center;
-  background: transprent;
+  background: transparent;
   z-index: 1;
   display: none;
   font-size: 12px;
