@@ -2,45 +2,65 @@ window.proxyDisabled = '';
 window.clearRunning = false;
 window.clearCacheEnabled = true;
 window.corsEnabled = true;
+window.parseError = false;
+
 chrome.storage.sync.get('config', result => {
   try {
     window.proxyConfig = JSON.parse(result.config);
+    window.parseError = false;
   } catch (e) {
     console.warn('can not parse config', result.config);
     window.proxyConfig.proxy = [];
+    window.parseError = true;
   }
 });
 
 function setIcon() {
   let text = '';
-  const cba = chrome.browserAction;
-  if (
-    window.proxyDisabled !== 'disabled' &&
-    window.proxyConfig.proxy &&
-    window.proxyConfig.proxy.length
-  ) {
-    text = window.proxyConfig.proxy.length;
+  const { browserAction } = chrome;
+  text = window.proxyConfig.proxy.length;
+
+  if (window.parseError) {
+    browserAction.setBadgeText({
+      text: '' + 'Error'
+    });
+    browserAction.setBadgeBackgroundColor({
+      color: '#c53929'
+    })
+    return;
   }
 
-  if (cba) {
-    cba.setBadgeText({
+  if (window.proxyDisabled !== 'disabled') {
+    browserAction.setBadgeText({
       text: '' + text
     });
+    browserAction.setBadgeBackgroundColor({
+      color: '#3367d6'
+    })
+  } else {
+    browserAction.setBadgeText({
+      text: '' + 'OFF'
+    });
+    browserAction.setBadgeBackgroundColor({
+      color: '#bfbfbf'
+    })
+    return;
   }
 }
 
 function headersReceivedListener(details) {
-  return window.onHeadersReceivedCallback(details, window.corsEnabled)
+  return window.onHeadersReceivedCallback(details, window.corsEnabled);
 }
-
 
 chrome.storage.onChanged.addListener(changes => {
   if (changes.config) {
     try {
       window.proxyConfig = JSON.parse(changes.config.newValue);
+      window.parseError = false;
     } catch (e) {
       console.warn('can not parse fresh config', changes.config.newValue);
       window.proxyConfig.proxy = [];
+      window.parseError = true;
     }
   }
   if (changes.disabled) {
@@ -74,16 +94,19 @@ function clearCache() {
   }
 }
 
-chrome.storage.sync.get({
-  'disabled': 'enabled',
-  'clearCacheEnabled': 'enabled',
-  'corsEnabled': 'enabled',
-}, result => {
-  window.proxyDisabled = result.disabled;
-  window.clearCacheEnabled = result.clearCacheEnabled === 'enabled';
-  window.corsEnabled = result.corsEnabled === 'enabled';
-  setIcon();
-});
+chrome.storage.sync.get(
+  {
+    disabled: 'enabled',
+    clearCacheEnabled: 'enabled',
+    corsEnabled: 'enabled'
+  },
+  result => {
+    window.proxyDisabled = result.disabled;
+    window.clearCacheEnabled = result.clearCacheEnabled === 'enabled';
+    window.corsEnabled = result.corsEnabled === 'enabled';
+    setIcon();
+  }
+);
 
 chrome.webRequest.onBeforeRequest.addListener(
   details => {
@@ -103,7 +126,8 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 //Breaking the CORS Limitation
-chrome.webRequest.onHeadersReceived.addListener(headersReceivedListener,
+chrome.webRequest.onHeadersReceived.addListener(
+  headersReceivedListener,
   {
     urls: ['<all_urls>']
   },
