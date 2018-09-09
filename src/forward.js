@@ -92,7 +92,7 @@ window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
   resHeaders.push({
     name: 'Access-Control-Allow-Headers',
     value:
-      'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+      'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
   });
 
   return {
