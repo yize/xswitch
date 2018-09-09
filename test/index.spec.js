@@ -457,7 +457,7 @@ describe('CORS without Access-Control-Allow-Origin', () => {
       },
       {
         name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
       }
     ];
     expect(
@@ -669,7 +669,7 @@ describe('CORS withCredentials', () => {
       },
       {
         name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
       }
     ];
     expect(
@@ -696,7 +696,7 @@ describe('CORS withCredentials and no proxyConfig', () => {
       },
       {
         name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
       }
     ]);
   });
