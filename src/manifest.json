@@ -2,7 +2,7 @@
   "name": "XSwitch",
   "description": "XSwitch tools for proxy web request url, support reg",
   "short_name": "xs",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "images/grey_128.png",
@@ -19,6 +19,14 @@
   "icons": {
     "48": "images/grey_128.png",
     "128": "images/grey_128.png"
+  },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "windows": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      }
+    }
   },
   "options_page": "options.html",
   "background": {
