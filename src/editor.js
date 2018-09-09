@@ -11,7 +11,7 @@ chrome.storage.sync.get('config_for_shown', result => {
         minimap: {
           enabled: false
         },
-        fontFamily: 'Fira Code, monospace',
+        fontFamily: 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace',
         fontSize: 13,
         fontLigatures: true,
 
@@ -84,7 +84,7 @@ chrome.storage.sync.get('config_for_shown', result => {
     editor.onDidChangeModelContent(() => {
       setStorage();
     });
-    editor.onDidScrollChange(()=>{
+    editor.onDidScrollChange(() => {
       runFormat();
     })
   });

@@ -6,13 +6,21 @@ window.originRequest = new Map();
 
 //Breaking the CORS Limitation
 window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
+
   if (window.proxyDisabled == 'disabled' || !corsEnabled) {
     return {};
   }
 
+  let originUrl = details.url;
   let resHeaders = [];
+  let CORSOrigin = '';
+
   if (details.responseHeaders && details.responseHeaders.filter) {
     resHeaders = details.responseHeaders.filter(responseHeader => {
+      // Already has access-control-allow-origin headers
+      if ('access-control-allow-origin'.indexOf(responseHeader.name.toLowerCase()) > -1) {
+        CORSOrigin = responseHeader.value;
+      }
       if (
         [
           'access-control-allow-origin',
@@ -27,13 +35,54 @@ window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
     });
   }
 
+  let CORSHeader = (window.originRequest.get(details.requestId)
+    ? window.originRequest.get(details.requestId)
+    : details.initiator) || '*';
+
+  // suck point
+  if (CORSOrigin === '*' && window.originRequest.get(details.requestId) === 'null') {
+    CORSHeader = '*';
+  }
+
+  // console.group(details.url);
+  // console.table({
+  //   'ACAO':  CORSOrigin,
+  //   'Origin': window.originRequest.get(details.requestId),
+  //   'Final': CORSHeader,
+  // })
+  // console.groupEnd(details.url);
+
+  // try {
+  //   const rules = window.proxyConfig["Access-Control-Allow-Origin"];
+  //   for (let i = 0; i < rules.length; i++) {
+  //     const rule = rules[i];
+  //     if (rule && rule[0] && window.isString(rule[1])) {
+  //       let reg = rule[0];
+  //       let matched = false;
+
+  //       // support [ ] ( ) \ * ^ $
+  //       if (/\\|\[|]|\(|\)|\*|\$|\^/i.test(reg)) {
+  //         // support ??
+  //         reg = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+  //         matched = reg.test(originUrl);
+  //         if (matched){
+  //           CORSHeader = reg[1];
+  //         }
+  //       } else {
+  //         matched = originUrl.indexOf(reg) > -1;
+  //         if (matched) {
+  //           CORSHeader = reg[1];
+  //         }
+  //       }
+  //     }
+  //   }
+  // } catch (e) {
+  //   console.error('rule match error', e);
+  // }
+
   resHeaders.push({
     name: 'Access-Control-Allow-Origin',
-    // when Origin has value null, CORS header must be null.
-    value:
-      (window.originRequest.get(details.requestId)
-        ? window.originRequest.get(details.requestId)
-        : details.initiator) || '*'
+    value: CORSHeader
   });
   resHeaders.push({ name: 'Access-Control-Allow-Credentials', value: 'true' });
   resHeaders.push({
@@ -43,7 +92,7 @@ window.onHeadersReceivedCallback = (details, corsEnabled = true) => {
   resHeaders.push({
     name: 'Access-Control-Allow-Headers',
     value:
-      'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
+      'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
   });
 
   return {
@@ -99,7 +148,7 @@ window.redirectToMatchingRule = details => {
   return redirectUrl === details.url ? {} : { redirectUrl };
 };
 
-window.onBeforeSendHeadersCallback = function(details) {
+window.onBeforeSendHeadersCallback = function (details) {
   for (var i = 0; i < details.requestHeaders.length; ++i) {
     if (details.requestHeaders[i].name === 'Origin') {
       window.originRequest.set(
