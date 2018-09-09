@@ -5,17 +5,16 @@ window.DEFAULT_DATA = `{
   // For more information, visit: https://github.com/yize/xswitch
   "proxy": [
     [
-      "//alinw.alicdn.com/platform/daily-test/isDaily.js",
-      "//alinw.alicdn.com/platform/daily-test/isDaily.json"
+      ".production.min.js",
+      // ".production(.min)?.js",
+      ".development.js"
+      // "react.development.js",
     ],
     [
-      "alinw.alicdn.com",
-      "g.alicdn.com",
-    ],
-    [
-      // "(.*)/platform/daily-test/(.*).js$",
-      // "http://localhost:3000/daily-test/$1.js"
-    ],
+      "16.4.1",
+      "16.4.0",
+    ]
+    // then try visit https://unpkg.com/react@16.4.1/umd/react.production.min.js
   ]
 }
 `;
