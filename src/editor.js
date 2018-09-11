@@ -2,7 +2,7 @@ require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
 chrome.storage.sync.get('config_for_shown', result => {
   let firstShow = 1;
-  window.require(['vs/editor/editor.main'], () => {
+  window.require([ 'vs/language/json/monaco.contribution'], () => {
     window.editor = window.monaco.editor.create(
       document.getElementById('container'),
       {

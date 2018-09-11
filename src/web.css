@@ -35,9 +35,9 @@ body {
 
 /* remove redsquiggly */
 
-.monaco-editor .squiggly-error {
+/* .monaco-editor .squiggly-error {
   background: none !important;
-}
+} */
 
 .switch-control {
   opacity: 0;
@@ -60,11 +60,11 @@ body {
   width: 22px;
 }
 
-.decorationsOverviewRuler,
+/* .decorationsOverviewRuler,
 .scrollbar.vertical
 {
   display: none !important;
-}
+} */
 
 .ant-switch {
   font-family: 'Monospace Number', 'Chinese Quote', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
