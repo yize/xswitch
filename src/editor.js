@@ -1,6 +1,7 @@
 require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
 
 chrome.storage.sync.get('config_for_shown', result => {
+  let firstShow = 1;
   window.require(['vs/editor/editor.main'], () => {
     window.editor = window.monaco.editor.create(
       document.getElementById('container'),
@@ -85,7 +86,10 @@ chrome.storage.sync.get('config_for_shown', result => {
       setStorage();
     });
     editor.onDidScrollChange(() => {
-      runFormat();
+      if (firstShow) {
+        firstShow = 0;
+        runFormat();
+      }
     })
   });
 });

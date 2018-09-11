@@ -287,13 +287,17 @@ describe('CORS without Access-Control-Allow-Origin', () => {
   test('should support cors', () => {
     window.proxyConfig.proxy = [
       [
-        'http://dev-smart.youku.com/(.*).json',
-        'http://pre-youku-smart.youku.com/$1.json'
+        'http://dev-a.b.com/(.*).json',
+        'http://dev-c.d.com/$1.json'
       ]
     ];
+    window.proxyConfig.cors = [
+      'dev-c.d.com'
+    ];
+
     var testheaderDetails = {
       frameId: 0,
-      initiator: 'http://dev-smart.youku.com',
+      initiator: 'http://dev-a.b.com',
       method: 'GET',
       parentFrameId: -1,
       requestId: '265010',
@@ -320,7 +324,7 @@ describe('CORS without Access-Control-Allow-Origin', () => {
         },
         {
           name: 'X-Application-Context',
-          value: 'youku-smart-admin:7001'
+          value: 'a-b-c:7001'
         },
         {
           name: 'X-Content-Type-Options',
@@ -372,94 +376,9 @@ describe('CORS without Access-Control-Allow-Origin', () => {
       tabId: 2988,
       timeStamp: 1531312725294.728,
       type: 'xmlhttprequest',
-      url: 'http://pre-youku-smart.youku.com/overview/type.json?'
+      url: 'http://dev-c.d.com/overview/type.json?'
     };
-    var expectHeaderDetails = [
-      {
-        name: 'Date',
-        value: 'Wed, 11 Jul 2018 12:38:45 GMT'
-      },
-      {
-        name: 'Content-Type',
-        value: 'application/json;charset=UTF-8'
-      },
-      {
-        name: 'Transfer-Encoding',
-        value: 'chunked'
-      },
-      {
-        name: 'Connection',
-        value: 'keep-alive'
-      },
-      {
-        name: 'Vary',
-        value: 'Accept-Encoding'
-      },
-      {
-        name: 'X-Application-Context',
-        value: 'youku-smart-admin:7001'
-      },
-      {
-        name: 'X-Content-Type-Options',
-        value: 'nosniff'
-      },
-      {
-        name: 'X-XSS-Protection',
-        value: '1; mode=block'
-      },
-      {
-        name: 'Cache-Control',
-        value: 'no-cache, no-store, max-age=0, must-revalidate'
-      },
-      {
-        name: 'Pragma',
-        value: 'no-cache'
-      },
-      {
-        name: 'Expires',
-        value: '0'
-      },
-      {
-        name: 'X-Frame-Options',
-        value: 'DENY'
-      },
-      {
-        name: 'Strict-Transport-Security',
-        value: 'max-age=31536000 ; includeSubDomains'
-      },
-      {
-        name: 'Content-Encoding',
-        value: 'gzip'
-      },
-      {
-        name: 'Server',
-        value: 'Tengine/Aserver'
-      },
-      {
-        name: 'EagleEye-TraceId',
-        value: '0a67793015313127251908120e23db'
-      },
-      {
-        name: 'Timing-Allow-Origin',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Origin',
-        value: 'http://dev-smart.youku.com'
-      },
-      {
-        name: 'Access-Control-Allow-Credentials',
-        value: 'true'
-      },
-      {
-        name: 'Access-Control-Allow-Methods',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
-      }
-    ];
+    var expectHeaderDetails = [{ "name": "Date", "value": "Wed, 11 Jul 2018 12:38:45 GMT" }, { "name": "Content-Type", "value": "application/json;charset=UTF-8" }, { "name": "Transfer-Encoding", "value": "chunked" }, { "name": "Connection", "value": "keep-alive" }, { "name": "Vary", "value": "Accept-Encoding" }, { "name": "X-Application-Context", "value": "a-b-c:7001" }, { "name": "X-Content-Type-Options", "value": "nosniff" }, { "name": "X-XSS-Protection", "value": "1; mode=block" }, { "name": "Cache-Control", "value": "no-cache, no-store, max-age=0, must-revalidate" }, { "name": "Pragma", "value": "no-cache" }, { "name": "Expires", "value": "0" }, { "name": "X-Frame-Options", "value": "DENY" }, { "name": "Strict-Transport-Security", "value": "max-age=31536000 ; includeSubDomains" }, { "name": "Content-Encoding", "value": "gzip" }, { "name": "Server", "value": "Tengine/Aserver" }, { "name": "EagleEye-TraceId", "value": "0a67793015313127251908120e23db" }, { "name": "Timing-Allow-Origin", "value": "*" }, { "name": "Access-Control-Allow-Origin", "value": "http://dev-a.b.com" }, { "name": "Access-Control-Allow-Credentials", "value": "true" }, { "name": "Access-Control-Allow-Methods", "value": "*" }, { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer" }];
     expect(
       window.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
@@ -469,11 +388,14 @@ describe('CORS without Access-Control-Allow-Origin', () => {
 describe('CORS withCredentials', () => {
   test('should support cors', () => {
     window.proxyConfig.proxy = [
-      ['http://localhost:8000/(.*).json', 'http://ottscg.alibaba.net/$1.json']
+      ['http://127.0.0.1/(.*).json', 'http://a.b.com/$1.json']
+    ];
+    window.proxyConfig.cors = [
+      'http://a.b.com'
     ];
     var testheaderDetails = {
       frameId: 0,
-      initiator: 'http://localhost:8000',
+      initiator: 'http://127.0.0.1',
       method: 'GET',
       parentFrameId: -1,
       requestId: '271953',
@@ -532,7 +454,7 @@ describe('CORS withCredentials', () => {
         },
         {
           name: 'Access-Control-Allow-Origin',
-          value: 'http://localhost:8000'
+          value: 'http://127.0.0.1'
         },
         {
           name: 'Vary',
@@ -572,106 +494,9 @@ describe('CORS withCredentials', () => {
       tabId: 3055,
       timeStamp: 1531362729284.772,
       type: 'xmlhttprequest',
-      url: 'http://ottscg.alibaba.net/scg/option.json?'
+      url: 'http://a.b.com/scg/option.json?'
     };
-    var expectHeaderDetails = [
-      {
-        name: 'Date',
-        value: 'Thu, 12 Jul 2018 02:32:09 GMT'
-      },
-      {
-        name: 'Content-Type',
-        value: 'application/json;charset=UTF-8'
-      },
-      {
-        name: 'Transfer-Encoding',
-        value: 'chunked'
-      },
-      {
-        name: 'Connection',
-        value: 'keep-alive'
-      },
-      {
-        name: 'Vary',
-        value: 'Accept-Encoding'
-      },
-      {
-        name: 'X-Content-Type-Options',
-        value: 'nosniff'
-      },
-      {
-        name: 'X-XSS-Protection',
-        value: '1; mode=block'
-      },
-      {
-        name: 'Cache-Control',
-        value: 'no-cache, no-store, max-age=0, must-revalidate'
-      },
-      {
-        name: 'Pragma',
-        value: 'no-cache'
-      },
-      {
-        name: 'Expires',
-        value: '0'
-      },
-      {
-        name: 'X-Frame-Options',
-        value: 'DENY'
-      },
-      {
-        name: 'Strict-Transport-Security',
-        value: 'max-age=31536000 ; includeSubDomains'
-      },
-      {
-        name: 'Vary',
-        value: 'Origin'
-      },
-      {
-        name: 'Access-Control-Expose-Headers',
-        value: 'Set-Cookie'
-      },
-      {
-        name: 'X-Application-Context',
-        value: 'ottscgadmin:7001'
-      },
-      {
-        name: 'EagleEye-TraceId-daily',
-        value: '1e37823915313627291994023e'
-      },
-      {
-        name: 'Content-Encoding',
-        value: 'gzip'
-      },
-      {
-        name: 'Server',
-        value: 'Tengine/Aserver'
-      },
-      {
-        name: 'EagleEye-TraceId',
-        value: '0bef992c15313627291782432e3237'
-      },
-      {
-        name: 'Timing-Allow-Origin',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Origin',
-        value: 'http://localhost:8000'
-      },
-      {
-        name: 'Access-Control-Allow-Credentials',
-        value: 'true'
-      },
-      {
-        name: 'Access-Control-Allow-Methods',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
-      }
-    ];
+    var expectHeaderDetails = [{ "name": "Date", "value": "Thu, 12 Jul 2018 02:32:09 GMT" }, { "name": "Content-Type", "value": "application/json;charset=UTF-8" }, { "name": "Transfer-Encoding", "value": "chunked" }, { "name": "Connection", "value": "keep-alive" }, { "name": "Vary", "value": "Accept-Encoding" }, { "name": "X-Content-Type-Options", "value": "nosniff" }, { "name": "X-XSS-Protection", "value": "1; mode=block" }, { "name": "Cache-Control", "value": "no-cache, no-store, max-age=0, must-revalidate" }, { "name": "Pragma", "value": "no-cache" }, { "name": "Expires", "value": "0" }, { "name": "X-Frame-Options", "value": "DENY" }, { "name": "Strict-Transport-Security", "value": "max-age=31536000 ; includeSubDomains" }, { "name": "Vary", "value": "Origin" }, { "name": "Access-Control-Expose-Headers", "value": "Set-Cookie" }, { "name": "X-Application-Context", "value": "ottscgadmin:7001" }, { "name": "EagleEye-TraceId-daily", "value": "1e37823915313627291994023e" }, { "name": "Content-Encoding", "value": "gzip" }, { "name": "Server", "value": "Tengine/Aserver" }, { "name": "EagleEye-TraceId", "value": "0bef992c15313627291782432e3237" }, { "name": "Timing-Allow-Origin", "value": "*" }, { "name": "Access-Control-Allow-Origin", "value": "http://127.0.0.1" }, { "name": "Access-Control-Allow-Credentials", "value": "true" }, { "name": "Access-Control-Allow-Methods", "value": "*" }, { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer" }];
     expect(
       window.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
@@ -681,24 +506,7 @@ describe('CORS withCredentials', () => {
 describe('CORS withCredentials and no proxyConfig', () => {
   test('should return {}', () => {
     window.proxyConfig.proxy = [];
-    expect(window.onHeadersReceivedCallback({}).responseHeaders).toEqual([
-      {
-        name: 'Access-Control-Allow-Origin',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Credentials',
-        value: 'true'
-      },
-      {
-        name: 'Access-Control-Allow-Methods',
-        value: '*'
-      },
-      {
-        name: 'Access-Control-Allow-Headers',
-        value: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer, X-ZA-Product, Content-Encoding, X-ZA-Batch-Size, X-ZA-Log-Version'
-      }
-    ]);
+    expect(window.onHeadersReceivedCallback({}).responseHeaders).toEqual();
   });
 });
 

@@ -15,6 +15,11 @@ window.DEFAULT_DATA = `{
       "16.4.0",
     ]
     // then try visit https://unpkg.com/react@16.4.1/umd/react.production.min.js
+  ],
+  // urls that want CORS
+  "cors": [
+    "mocks.a.com",
+    "mocks.b.com"
   ]
 }
 `;

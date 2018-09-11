@@ -59,6 +59,11 @@
     //   "https://alinw.alicdn.com/platform/daily-test/isDaily.js",
     //   "data:text/javascript,window.__isDaily = true;"
     // ]
+  ],
+  // 希望开启 CORS 跨域的链接
+  "cors": [
+    "cors.a.com",
+    "(.*).b.com"
   ]
 }
 ```

@@ -61,6 +61,11 @@ Rules will be executed in order before all requests are initiated.
       "https://alinw.alicdn.com/platform/daily-test/isDaily.js",
       "data:text/javascript,window.__isDaily = true;"
     ]
+  ],
+  // urls that want CORS
+  "cors": [
+    "cors.a.com",
+    "(.*).b.com"
   ]
 }
 ```
