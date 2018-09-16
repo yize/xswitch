@@ -7,10 +7,17 @@ let parseError = false;
 
 chrome.storage.sync.get('config', result => {
   try {
-    forward.config = JSON.parse(result.config);
+    if (result && result.config) {
+      forward.config = JSON.parse(result.config);
+    } else {
+      forward.config = {
+        proxy: [],
+        cors: []
+      };
+    }
     parseError = false;
   } catch (e) {
-    console.warn('can not parse config', result.config);
+    console.log('can not parse config');
     forward.config.proxy = [];
     parseError = true;
   }

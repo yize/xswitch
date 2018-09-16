@@ -1,14 +1,14 @@
 function save_options() {
 
-  var clearCacheEnabled = (<HTMLInputElement>document.getElementById('clearCacheEnabled')).checked;
-  var corsEnabled = (<HTMLInputElement>document.getElementById('corsEnabled')).checked;
+  const clearCacheEnabled = (<HTMLInputElement>document.getElementById('clearCacheEnabled')).checked;
+  const corsEnabled = (<HTMLInputElement>document.getElementById('corsEnabled')).checked;
 
   chrome.storage.sync.set({
     clearCacheEnabled: clearCacheEnabled ? 'enabled' : 'disabled',
     corsEnabled: corsEnabled ? 'enabled' : 'disabled',
   }, function () {
     // Update status to let user know options were saved.
-    var status = document.getElementById('status');
+    const status = document.getElementById('status');
     status.textContent = 'Options saved.';
     setTimeout(function () {
       status.textContent = '';

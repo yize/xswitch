@@ -10,7 +10,7 @@
   "scripts": {
     "start": "webpack --config webpack/webpack.dev.js --watch",
     "build": "webpack --config webpack/webpack.prod.js",
-    "pub": "npm run build && zip -r xswitch.zip src",
+    "pub": "npm run build && npm t && rm xswitch.zip &&zip -r xswitch.zip dist && open https://chrome.google.com/webstore/developer/dashboard",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
