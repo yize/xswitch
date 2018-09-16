@@ -1,5 +1,5 @@
 import { stripJsonComments } from './strip-json-comments';
-import { cleanJSONReg,DEFAULT_DATA } from './constant';
+import { TRIM_JSON_REG,DEFAULT_DATA } from './constant';
 import forward from './forward';
 
 window.require.config({ paths: { vs: '../lib/monaco-editor/min/vs' } });
@@ -37,7 +37,7 @@ chrome.storage.sync.get('config_for_shown', result => {
       const data = editor.getValue();
       const config = stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(cleanJSONReg, ($0, $1, $2) => $2);
+        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2);
       try {
         console.log('=========data');
         console.log(data);

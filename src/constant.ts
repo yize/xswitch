@@ -1,4 +1,4 @@
-export const cleanJSONReg = /(,+)([^a-z0-9["])/gi;
+export const TRIM_JSON_REG = /(,+)([^a-z0-9["])/gi;
 
 export const DEFAULT_DATA = `{
   // Use IntelliSense to learn about possible links.

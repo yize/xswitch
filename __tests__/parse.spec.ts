@@ -1,4 +1,4 @@
-import { cleanJSONReg } from '../src/constant'
+import { TRIM_JSON_REG } from '../src/constant'
 import { stripJsonComments } from '../src/strip-json-comments';
 
 const replace = (data) => {
@@ -6,13 +6,13 @@ const replace = (data) => {
     return JSON.parse(
       stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(cleanJSONReg, ($0, $1, $2) => $2),
+        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2),
     );
   } catch (e) {
     console.log(
       stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(cleanJSONReg, ($0, $1, $2) => $2),
+        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2),
     );
     return 'parsed error';
   }
