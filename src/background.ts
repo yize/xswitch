@@ -1,86 +1,94 @@
-window.proxyDisabled = '';
-window.clearRunning = false;
-window.clearCacheEnabled = true;
-window.corsEnabled = true;
-window.parseError = false;
+import forward from './forward';
+
+let clearRunning = false;
+let clearCacheEnabled = true;
+let corsEnabled = true;
+let parseError = false;
 
 chrome.storage.sync.get('config', result => {
   try {
-    window.proxyConfig = JSON.parse(result.config);
-    window.parseError = false;
+    if (result && result.config) {
+      forward.config = JSON.parse(result.config);
+    } else {
+      forward.config = {
+        proxy: [],
+        cors: []
+      };
+    }
+    parseError = false;
   } catch (e) {
-    console.warn('can not parse config', result.config);
-    window.proxyConfig.proxy = [];
-    window.parseError = true;
+    console.log('can not parse config');
+    forward.config.proxy = [];
+    parseError = true;
   }
 });
 
 function setIcon() {
-  let text = '';
+  let text = 0;
   const { browserAction } = chrome;
-  text = window.proxyConfig.proxy.length;
+  text = forward.config.proxy.length;
 
-  if (window.parseError) {
+  if (parseError) {
     browserAction.setBadgeText({
       text: '' + 'Error'
     });
     browserAction.setBadgeBackgroundColor({
       color: '#c53929'
-    })
+    });
     return;
   }
 
-  if (window.proxyDisabled !== 'disabled') {
+  if (forward.disabled !== 'disabled') {
     browserAction.setBadgeText({
       text: '' + text
     });
     browserAction.setBadgeBackgroundColor({
       color: '#3367d6'
-    })
+    });
   } else {
     browserAction.setBadgeText({
       text: '' + 'OFF'
     });
     browserAction.setBadgeBackgroundColor({
       color: '#bfbfbf'
-    })
+    });
     return;
   }
 }
 
 function headersReceivedListener(details) {
-  return window.onHeadersReceivedCallback(details, window.corsEnabled);
+  return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 
 chrome.storage.onChanged.addListener(changes => {
   if (changes.config) {
     try {
-      window.proxyConfig = JSON.parse(changes.config.newValue);
-      window.parseError = false;
+      forward.config = JSON.parse(changes.config.newValue);
+      parseError = false;
     } catch (e) {
       console.warn('can not parse fresh config', changes.config.newValue);
-      window.proxyConfig.proxy = [];
-      window.parseError = true;
+      forward.config.proxy = [];
+      parseError = true;
     }
   }
   if (changes.disabled) {
-    window.proxyDisabled = changes.disabled.newValue;
+    forward.disabled = changes.disabled.newValue;
   }
 
   if (changes.clearCacheEnabled) {
-    window.clearCacheEnabled = changes.clearCacheEnabled.newValue === 'enabled';
+    clearCacheEnabled = changes.clearCacheEnabled.newValue === 'enabled';
   }
 
   if (changes.corsEnabled) {
-    window.corsEnabled = changes.corsEnabled.newValue === 'enabled';
+    corsEnabled = changes.corsEnabled.newValue === 'enabled';
   }
 
   setIcon();
 });
 
 function clearCache() {
-  if (!window.clearRunning) {
-    window.clearRunning = true;
+  if (!clearRunning) {
+    clearRunning = true;
     const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
     const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
     chrome.browsingData.removeCache(
@@ -88,7 +96,7 @@ function clearCache() {
         since: oneWeekAgo
       },
       () => {
-        window.clearRunning = false;
+        clearRunning = false;
       }
     );
   }
@@ -101,21 +109,21 @@ chrome.storage.sync.get(
     corsEnabled: 'enabled'
   },
   result => {
-    window.proxyDisabled = result.disabled;
-    window.clearCacheEnabled = result.clearCacheEnabled === 'enabled';
-    window.corsEnabled = result.corsEnabled === 'enabled';
+    forward.disabled = result.disabled;
+    clearCacheEnabled = result.clearCacheEnabled === 'enabled';
+    corsEnabled = result.corsEnabled === 'enabled';
     setIcon();
   }
 );
 
 chrome.webRequest.onBeforeRequest.addListener(
   details => {
-    if (window.proxyDisabled !== 'disabled') {
-      if (window.clearCacheEnabled) {
+    if (forward.disabled !== 'disabled') {
+      if (clearCacheEnabled) {
         clearCache();
       }
 
-      return window.onBeforeRequestCallback(details);
+      return forward.onBeforeRequestCallback(details);
     }
     return {};
   },
@@ -135,7 +143,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 );
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
-  details => window.onBeforeSendHeadersCallback(details),
+  details => forward.onBeforeSendHeadersCallback(details),
   { urls: ['<all_urls>'] },
   ['blocking', 'requestHeaders']
 );

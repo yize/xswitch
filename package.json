@@ -2,16 +2,15 @@
   "name": "xswitch",
   "description": "A proxy tool based on Chrome.extensions",
   "author": "yize",
-  "version": "1.11.0",
-  "main": "src/background.js",
-  "dependencies": {
-    "monaco-editor": "^0.13.1"
-  },
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:yize/xswitch.git"
   },
   "scripts": {
+    "start": "webpack --config webpack/webpack.dev.js --watch",
+    "build": "webpack --config webpack/webpack.prod.js",
+    "pub": "npm run build && npm t && rm xswitch.zip &&zip -r xswitch.zip dist && open https://chrome.google.com/webstore/developer/dashboard",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
@@ -24,8 +23,37 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "coveralls": "^3.0.0",
-    "eslint-plugin-jest": "^21.6.2",
-    "jest": "^22.0.6"
+    "@types/chrome": "^0.0.73",
+    "@types/jest": "^23.3.2",
+    "@types/node": "^10.9.4",
+    "coveralls": "^3.0.2",
+    "css-loader": "^1.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "jest": "^23.6.0",
+    "mini-css-extract-plugin": "^0.4.2",
+    "ts-jest": "^23.1.4",
+    "ts-loader": "~5.0.0",
+    "typescript": "~3.0.3",
+    "webpack": "~4.17.2",
+    "webpack-cli": "~3.1.0",
+    "webpack-merge": "~4.1.4"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.json"
+      }
+    },
+    "testMatch": [
+      "**/__tests__/*.+(ts|tsx|js)"
+    ]
   }
 }
