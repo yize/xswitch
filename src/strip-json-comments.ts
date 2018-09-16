@@ -5,7 +5,7 @@ const stripWithoutWhitespace = () => "";
 const stripWithWhitespace = (str, start, end) =>
     str.slice(start, end).replace(/\S/g, " ");
 
-window.stripJsonComments = (str, opts) => {
+export function stripJsonComments(str, opts?) {
     opts = opts || {};
 
     const strip =
@@ -14,7 +14,7 @@ window.stripJsonComments = (str, opts) => {
             : stripWithWhitespace;
 
     let insideString = false;
-    let insideComment = false;
+    let insideComment: number | boolean = false;
     let offset = 0;
     let ret = "";
 
@@ -70,6 +70,7 @@ window.stripJsonComments = (str, opts) => {
     }
 
     return (
-        ret + (insideComment ? strip(str.substr(offset)) : str.substr(offset))
+        ret + (insideComment ? strip(str.substr(offset), 0, 0) : str.substr(offset))
     );
 };
+

@@ -1,4 +1,6 @@
-window.DEFAULT_DATA = `{
+export const cleanJSONReg = /(,+)([^a-z0-9["])/gi;
+
+export const DEFAULT_DATA = `{
   // Use IntelliSense to learn about possible links.
   // Type \`rule\` to quick insert rule.
   // 输入 rule 来快速插入规则

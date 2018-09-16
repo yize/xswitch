@@ -1,20 +1,18 @@
-require('../src/lib/strip-json-comments');
-require('../src/cleanJSONReg');
+import { cleanJSONReg } from '../src/constant'
+import { stripJsonComments } from '../src/strip-json-comments';
 
 const replace = (data) => {
   try {
     return JSON.parse(
-      window
-        .stripJsonComments(data)
+      stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(window.cleanJSONReg, ($0, $1, $2) => $2),
+        .replace(cleanJSONReg, ($0, $1, $2) => $2),
     );
   } catch (e) {
     console.log(
-      window
-        .stripJsonComments(data)
+      stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(window.cleanJSONReg, ($0, $1, $2) => $2),
+        .replace(cleanJSONReg, ($0, $1, $2) => $2),
     );
     return 'parsed error';
   }

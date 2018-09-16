@@ -1,12 +1,17 @@
-require.config({ paths: { vs: 'lib/monaco-editor/min/vs' } });
+import { stripJsonComments } from './strip-json-comments';
+import { cleanJSONReg,DEFAULT_DATA } from './constant';
+import forward from './forward';
 
+window.require.config({ paths: { vs: '../lib/monaco-editor/min/vs' } });
+
+let editor;
 chrome.storage.sync.get('config_for_shown', result => {
   let firstShow = 1;
-  window.require([ 'vs/language/json/monaco.contribution'], () => {
-    window.editor = window.monaco.editor.create(
+  window.require(['vs/language/json/monaco.contribution'], () => {
+    editor = window.monaco.editor.create(
       document.getElementById('container'),
       {
-        value: result.config_for_shown || window.DEFAULT_DATA,
+        value: result.config_for_shown || DEFAULT_DATA,
         language: 'json',
 
         minimap: {
@@ -30,10 +35,9 @@ chrome.storage.sync.get('config_for_shown', result => {
 
     function setStorage() {
       const data = editor.getValue();
-      const config = window
-        .stripJsonComments(data)
+      const config = stripJsonComments(data)
         .replace(/\s+/g, '')
-        .replace(window.cleanJSONReg, ($0, $1, $2) => $2);
+        .replace(cleanJSONReg, ($0, $1, $2) => $2);
       try {
         console.log('=========data');
         console.log(data);
@@ -57,7 +61,7 @@ chrome.storage.sync.get('config_for_shown', result => {
     window.monaco.languages.registerCompletionItemProvider('json', {
       provideCompletionItems: () => {
         const textArr = [];
-        chrome.extension.getBackgroundPage().urls.forEach(item => {
+        forward.urls.forEach(item => {
           if (item) {
             textArr.push({
               label: item,
@@ -95,7 +99,7 @@ chrome.storage.sync.get('config_for_shown', result => {
 });
 
 function runFormat() {
-  return window.editor.trigger('anyString', 'editor.action.formatDocument')
+  return editor.trigger('anyString', 'editor.action.formatDocument')
 }
 
 function preventSave() {
@@ -124,7 +128,7 @@ function turnOff() {
 }
 
 chrome.storage.sync.get('disabled', result => {
-  document.getElementById('J_SwitchArea').style.opacity = 1;
+  document.getElementById('J_SwitchArea').style.opacity = "1";
   if (result.disabled === 'disabled') {
     turnOff();
   } else {
@@ -134,7 +138,7 @@ chrome.storage.sync.get('disabled', result => {
 
 document.getElementById('J_Switch').addEventListener('click', ev => {
   // if disabled
-  if (ev.currentTarget.classList.contains('ant-switch-checked')) {
+  if ((<HTMLSelectElement>ev.currentTarget).classList.contains('ant-switch-checked')) {
     turnOff();
     chrome.storage.sync.set({
       disabled: 'disabled'

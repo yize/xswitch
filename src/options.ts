@@ -1,7 +1,7 @@
 function save_options() {
 
-  var clearCacheEnabled = document.getElementById('clearCacheEnabled').checked;
-  var corsEnabled = document.getElementById('corsEnabled').checked;
+  var clearCacheEnabled = (<HTMLInputElement>document.getElementById('clearCacheEnabled')).checked;
+  var corsEnabled = (<HTMLInputElement>document.getElementById('corsEnabled')).checked;
 
   chrome.storage.sync.set({
     clearCacheEnabled: clearCacheEnabled ? 'enabled' : 'disabled',
@@ -22,8 +22,8 @@ function restore_options() {
     clearCacheEnabled: 'enabled',
     corsEnabled: 'enabled',
   }, function (result) {
-    document.getElementById('clearCacheEnabled').checked = result.clearCacheEnabled === 'enabled';
-    document.getElementById('corsEnabled').checked = result.corsEnabled === 'enabled';
+    (<HTMLInputElement>document.getElementById('clearCacheEnabled')).checked = result.clearCacheEnabled === 'enabled';
+    (<HTMLInputElement>document.getElementById('corsEnabled')).checked = result.corsEnabled === 'enabled';
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
