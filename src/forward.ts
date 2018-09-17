@@ -1,13 +1,15 @@
-import { UrlType, Enabled } from './enum';
 import {
-  REG,
-  DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
   CORS,
-  DEFAULT_CORS_ORIGIN,
-  DEFAULT_CORS_METHODS,
   DEFAULT_CORS_CREDENTIALS,
-  ORIGIN
+  DEFAULT_CORS_METHODS,
+  DEFAULT_CORS_ORIGIN,
+  ORIGIN,
+  REG,
+  EMPTY_STRING,
+  DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
+  NULL_STRING
 } from './constant';
+import { Enabled, UrlType } from './enum';
 
 interface IFowardConfig {
   proxy?: string[][];
@@ -20,7 +22,6 @@ interface IFowardConfig {
  * @param reg rule
  */
 const matchUrl = (url: string, reg: string): string | boolean => {
-  // support [ ] ( ) \ * ^ $
   if (REG.FORWARD.test(reg)) {
     // support ??
     let r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
@@ -38,7 +39,7 @@ const matchUrl = (url: string, reg: string): string | boolean => {
 };
 
 class Foward {
-  private _lastRequestId: number | null = null;
+  private _lastRequestId: string | null = null;
   private _disabled: Enabled = Enabled.YES;
   private _config: IFowardConfig = {};
   private _originRequest: Map<string, string> = new Map();
@@ -63,7 +64,7 @@ class Foward {
   onHeadersReceivedCallback(
     details: chrome.webRequest.WebResponseHeadersDetails,
     cors: boolean = true
-  ) {
+  ): chrome.webRequest.BlockingResponse {
     // has cors rules
     let corsMap = this.config.cors;
     let corsMatched = false;
@@ -76,7 +77,8 @@ class Foward {
       });
     }
 
-    let disabled: boolean = this.disabled == Enabled.NO || !cors || !corsMatched;
+    let disabled: boolean =
+      this.disabled == Enabled.NO || !cors || !corsMatched;
 
     if (disabled) {
       return {};
@@ -91,26 +93,21 @@ class Foward {
 
     if (details.responseHeaders && details.responseHeaders.filter) {
       let hasCredentials: boolean | string = false;
-      let tempOrigin = '';
+      let tempOrigin = EMPTY_STRING;
       resHeaders = details.responseHeaders.filter(responseHeader => {
         // Already has access-control-allow-origin headers
         if (CORS.ORIGIN === responseHeader.name.toLowerCase()) {
           tempOrigin = responseHeader.value;
         }
 
-        if (
-          CORS.CREDENTIALS === responseHeader.name.toLowerCase()
-        ) {
+        if (CORS.CREDENTIALS === responseHeader.name.toLowerCase()) {
           hasCredentials = responseHeader.value;
         }
 
         if (
-          [
-            CORS.ORIGIN,
-            CORS.CREDENTIALS,
-            CORS.METHODS,
-            CORS.HEADERS
-          ].indexOf(responseHeader.name.toLowerCase()) < 0
+          [CORS.ORIGIN, CORS.CREDENTIALS, CORS.METHODS, CORS.HEADERS].indexOf(
+            responseHeader.name.toLowerCase()
+          ) < 0
         ) {
           return true;
         }
@@ -126,7 +123,7 @@ class Foward {
     // suck point
     if (
       CORSOrigin === DEFAULT_CORS_ORIGIN &&
-      this._originRequest.get(details.requestId) === 'null'
+      this._originRequest.get(details.requestId) === NULL_STRING
     ) {
       CORSOrigin = DEFAULT_CORS_ORIGIN;
     }
@@ -144,7 +141,7 @@ class Foward {
       value: DEFAULT_CORS_METHODS
     });
 
-    let CORSHeader: string = '';
+    let CORSHeader: string = EMPTY_STRING;
 
     if (this._originRequestHeaders.get(details.requestId)) {
       CORSHeader = ',' + this._originRequestHeaders.get(details.requestId);
@@ -160,7 +157,9 @@ class Foward {
     };
   }
 
-  redirectToMatchingRule(details) {
+  redirectToMatchingRule(
+    details: chrome.webRequest.WebRequestHeadersDetails
+  ): chrome.webRequest.BlockingResponse {
     const rules = this.config.proxy;
     let redirectUrl = details.url;
 
@@ -204,7 +203,7 @@ class Foward {
 
   onBeforeSendHeadersCallback(
     details: chrome.webRequest.WebRequestHeadersDetails
-  ) {
+  ): chrome.webRequest.BlockingResponse {
     let headers = [];
     for (var i = 0; i < details.requestHeaders.length; ++i) {
       const requestName = details.requestHeaders[i].name.toLowerCase();
@@ -213,10 +212,7 @@ class Foward {
           details.requestId,
           details.requestHeaders[i].value
         );
-      } else if (
-        requestName === CORS.HEADERS ||
-        /^x-/.test(requestName)
-      ) {
+      } else if (requestName === CORS.HEADERS || /^x-/.test(requestName)) {
         headers.push(requestName);
       }
     }
@@ -226,7 +222,9 @@ class Foward {
     return { requestHeaders: details.requestHeaders };
   }
 
-  onBeforeRequestCallback(details: chrome.webRequest.WebRequestHeadersDetails) {
+  onBeforeRequestCallback(
+    details: chrome.webRequest.WebRequestHeadersDetails
+  ): chrome.webRequest.BlockingResponse {
     return this.redirectToMatchingRule(details);
   }
 }

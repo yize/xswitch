@@ -1,4 +1,5 @@
-import { Enabled, IconBackgroundColor, BadgeText } from './enum';
+import { ALL_URLS, BLOCKING, EMPTY_STRING, JSONC_STORAGE_KEY, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS } from './constant';
+import { BadgeText, Enabled, IconBackgroundColor } from './enum';
 import forward from './forward';
 
 let clearRunning: boolean = false;
@@ -6,9 +7,8 @@ let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
 let parseError: boolean = false;
 
-chrome.storage.sync.get('config', result => {
+chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
   try {
-    1;
     if (result && result.config) {
       forward.config = JSON.parse(result.config);
     } else {
@@ -19,7 +19,6 @@ chrome.storage.sync.get('config', result => {
     }
     parseError = false;
   } catch (e) {
-    console.log('can not parse config');
     forward.config.proxy = [];
     parseError = true;
   }
@@ -45,7 +44,6 @@ chrome.storage.onChanged.addListener(changes => {
       forward.config = JSON.parse(changes.config.newValue);
       parseError = false;
     } catch (e) {
-      console.warn('can not parse fresh config', changes.config.newValue);
       forward.config.proxy = [];
       parseError = true;
     }
@@ -77,30 +75,33 @@ chrome.webRequest.onBeforeRequest.addListener(
     return {};
   },
   {
-    urls: ['<all_urls>']
+    urls: [ALL_URLS]
   },
-  ['blocking']
+  [BLOCKING]
 );
 
 //Breaking the CORS Limitation
 chrome.webRequest.onHeadersReceived.addListener(
   headersReceivedListener,
   {
-    urls: ['<all_urls>']
+    urls: [ALL_URLS]
   },
-  ['blocking', 'responseHeaders']
+  [BLOCKING, RESPONSE_HEADERS]
 );
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
   details => forward.onBeforeSendHeadersCallback(details),
-  { urls: ['<all_urls>'] },
-  ['blocking', 'requestHeaders']
+  { urls: [ALL_URLS] },
+  [BLOCKING, REQUEST_HEADERS]
 );
 
-function setBadgeAndBackgroundColor(text: string | number, color: string) {
+function setBadgeAndBackgroundColor(
+  text: string | number,
+  color: string
+): void {
   const { browserAction } = chrome;
   browserAction.setBadgeText({
-    text: '' + text
+    text: EMPTY_STRING + text
   });
   browserAction.setBadgeBackgroundColor({
     color
@@ -126,14 +127,14 @@ function setIcon(): void {
 
 function headersReceivedListener(
   details: chrome.webRequest.WebResponseHeadersDetails
-) {
+): chrome.webRequest.BlockingResponse {
   return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 
 function clearCache(): void {
   if (!clearRunning) {
     clearRunning = true;
-    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+    const millisecondsPerWeek = MILLISECONDS_PER_WEEK;
     const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
     chrome.browsingData.removeCache(
       {

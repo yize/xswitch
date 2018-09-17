@@ -1,5 +1,5 @@
-import forward from '../src/forward';
 import { Enabled } from '../src/enum';
+import forward from '../src/forward';
 
 beforeEach(() => {
   forward.config = {};
@@ -8,15 +8,18 @@ beforeEach(() => {
 describe('no rules', () => {
   test('no forwarding when no rules', () => {
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 2
       })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 2
@@ -29,9 +32,11 @@ describe('rule[1] is not string', () => {
   test('no forwarding when no rule[1]', () => {
     forward.config.proxy = [['g.alicdn.com']];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 2
@@ -43,9 +48,11 @@ describe('rule[1] is not string', () => {
     // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', ['a', 'b']]];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 2
@@ -57,9 +64,11 @@ describe('rule[1] is not string', () => {
     // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', {}]];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 2
@@ -72,6 +81,7 @@ describe('chrome-extension://', () => {
   test('should not forward', () => {
     forward.config.proxy = [['(.*).js', '$1..js']];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'chrome-extension://xxxxx/a.js',
         requestId: 1
@@ -81,6 +91,7 @@ describe('chrome-extension://', () => {
   test('should not forward', () => {
     forward.config.proxy = [['xxxxx', 'xxxx']];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'chrome-extension://xxxxx/a.js',
         requestId: 2
@@ -92,9 +103,11 @@ describe('chrome-extension://', () => {
 describe('same request id should not forwarding', () => {
   test('no forwarding', () => {
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
         requestId: 1
@@ -107,6 +120,7 @@ describe('string urls', () => {
   test('should forwarding normal url without query', () => {
     forward.config.proxy = [['g.alicdn.com', 'g.alicdn.com?t=2']];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com',
         requestId: 1
@@ -114,6 +128,7 @@ describe('string urls', () => {
     ).toEqual('https://g.alicdn.com?t=2');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
         requestId: 2
@@ -122,6 +137,7 @@ describe('string urls', () => {
       redirectUrl: 'https://g.alicdn.com?t=2#aaaa'
     });
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js,c.js',
         requestId: 3
@@ -134,6 +150,7 @@ describe('string urls', () => {
       ['https://g.alicdn.com?t=1', 'https://g.alicdn.com?t=2']
     ];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1&k=2',
         requestId: 1
@@ -141,6 +158,7 @@ describe('string urls', () => {
     ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
         requestId: 2
@@ -148,6 +166,7 @@ describe('string urls', () => {
     ).toBeFalsy();
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1#aaaa',
         requestId: 3
@@ -159,6 +178,7 @@ describe('string urls', () => {
       ['https://a.com/??a.js,b.js', 'https://b.com/??a.js,b.js']
     ];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://a.com/??a.js,b.js',
         requestId: 1
@@ -166,6 +186,7 @@ describe('string urls', () => {
     ).toEqual('https://b.com/??a.js,b.js');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/#aaaa',
         requestId: 2
@@ -173,6 +194,7 @@ describe('string urls', () => {
     ).toBeFalsy();
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://a.com/??a.js,b.js?t=1#aaa',
         requestId: 3
@@ -186,6 +208,7 @@ describe('reg urls', () => {
     forward.config.proxy = [['g.(\\w+).com', 'g.alicdn.com?t=2']];
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g1.alicdn.com',
         requestId: 1
@@ -193,6 +216,7 @@ describe('reg urls', () => {
     ).toBeFalsy();
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com',
         requestId: 2
@@ -200,12 +224,14 @@ describe('reg urls', () => {
     ).toEqual('https://g.alicdn.com?t=2');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
         requestId: 3
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js,c.js',
         requestId: 4
@@ -218,6 +244,7 @@ describe('reg urls', () => {
       ['(.*)g.(.*).com\\?t=1', 'https://g.alicdn.com?t=2']
     ];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1&k=2',
         requestId: 1
@@ -225,6 +252,7 @@ describe('reg urls', () => {
     ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
         requestId: 2
@@ -232,6 +260,7 @@ describe('reg urls', () => {
     ).toBeFalsy();
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1#aaaa',
         requestId: 3
@@ -244,6 +273,7 @@ describe('reg urls', () => {
       ['(.*)g.alicdn.com/\\?\\?(.*)', '$1alinw.alicdn.com/??$2']
     ];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js?t=1',
         requestId: 1
@@ -251,6 +281,7 @@ describe('reg urls', () => {
     ).toEqual('https://alinw.alicdn.com/??a.js,b.js?t=1');
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/#aaaa',
         requestId: 2
@@ -258,6 +289,7 @@ describe('reg urls', () => {
     ).toBeFalsy();
 
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js?t=1#aaa',
         requestId: 3
@@ -276,6 +308,7 @@ describe('multiple rules', () => {
       ['g.alicdn.com', 'alinw.alicdn.com']
     ];
     expect(
+      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/platform/daily-test/isDaily.js',
         requestId: 1

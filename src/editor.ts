@@ -1,27 +1,35 @@
-import forward from './forward';
 import {
-  DEFAULT_DATA,
-  RULE,
-  LANGUAGE_JSON,
-  SWITCH_DOM_ID,
-  SWITCH_INNER_DOM_ID,
-  DISABLED_STORAGE_KEY,
-  SWITCH_AREA_DOM_ID,
-  SWITCH_CHECKED_CLASSNAME,
-  NEW_TAB_DOM_ID,
-  OPEN_README_DOM_ID,
-  HELP_URL,
-  POPUP_HTML_NAME,
+  ANYTHING,
+  CLICK,
   CONTAINER_DOM_ID,
+  DEFAULT_DATA,
   DEFAULT_FONT_FAMILY,
-  JSONC_STORAGE_KEY,
+  DISABLED_STORAGE_KEY,
+  FORMAT_DOCUMENT_CMD,
+  HELP_URL,
   JSON_STORAGE_KEY,
+  JSONC_STORAGE_KEY,
+  KEY_CODE_S,
+  KEY_DOWN,
+  LANGUAGE_JSON,
   MONACO_CONTRIBUTION_PATH,
   MONACO_VS_PATH,
-  PLATFORM_MAC
+  NEW_TAB_DOM_ID,
+  OPACITY_VISIBLE,
+  OPEN_README_DOM_ID,
+  PLATFORM_MAC,
+  POPUP_HTML_NAME,
+  RULE,
+  RULE_COMPLETION,
+  SHOW_FOLDING_CONTROLS,
+  SWITCH_AREA_DOM_ID,
+  SWITCH_CHECKED_CLASSNAME,
+  SWITCH_DOM_ID,
+  SWITCH_INNER_DOM_ID,
 } from './constant';
-import { JSONC2JSON } from './utils';
 import { BadgeText, Enabled } from './enum';
+import forward from './forward';
+import { JSONC2JSON } from './utils';
 
 window.require.config({ paths: { vs: MONACO_VS_PATH } });
 
@@ -46,7 +54,7 @@ chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
         contextmenu: false,
         scrollBeyondLastLine: false,
         folding: true,
-        showFoldingControls: 'always',
+        showFoldingControls: SHOW_FOLDING_CONTROLS,
 
         useTabStops: true,
         wordBasedSuggestions: true,
@@ -74,10 +82,7 @@ chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
             label: RULE,
             kind: window.monaco.languages.CompletionItemKind.Method,
             insertText: {
-              value: `[
-  "\${1:from}",
-  "\${1:to}",
-],`
+              value: RULE_COMPLETION
             }
           }
         ];
@@ -99,8 +104,8 @@ chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
 });
 
 function setStorage() {
-  const jsonc: string = editor.getValue();
-  const json: string = JSONC2JSON(jsonc);
+  const jsonc = editor.getValue();
+  const json = JSONC2JSON(jsonc);
 
   chrome.storage.sync.set(
     {
@@ -112,17 +117,17 @@ function setStorage() {
 }
 
 function runFormat() {
-  return editor.trigger('anyString', 'editor.action.formatDocument');
+  return editor.trigger(ANYTHING, FORMAT_DOCUMENT_CMD);
 }
 
 function preventSave() {
   document.addEventListener(
-    'keydown',
+    KEY_DOWN,
     e => {
-      let controlKeyDown: boolean = navigator.platform.match(PLATFORM_MAC)
+      const controlKeyDown = navigator.platform.match(PLATFORM_MAC)
         ? e.metaKey
         : e.ctrlKey;
-      if (e.keyCode === 83 && controlKeyDown) {
+      if (e.keyCode === KEY_CODE_S && controlKeyDown) {
         e.preventDefault();
       }
     },
@@ -145,7 +150,7 @@ function turnOff() {
 }
 
 chrome.storage.sync.get(DISABLED_STORAGE_KEY, result => {
-  document.getElementById(SWITCH_AREA_DOM_ID).style.opacity = '1';
+  document.getElementById(SWITCH_AREA_DOM_ID).style.opacity = OPACITY_VISIBLE;
   if (result.disabled === Enabled.NO) {
     turnOff();
   } else {
@@ -153,7 +158,7 @@ chrome.storage.sync.get(DISABLED_STORAGE_KEY, result => {
   }
 });
 
-document.getElementById(SWITCH_DOM_ID).addEventListener('click', ev => {
+document.getElementById(SWITCH_DOM_ID).addEventListener(CLICK, ev => {
   // if disabled
   if (
     (<HTMLSelectElement>ev.currentTarget).classList.contains(
@@ -166,13 +171,13 @@ document.getElementById(SWITCH_DOM_ID).addEventListener('click', ev => {
     });
   } else {
     chrome.storage.sync.set({
-      disabled: ''
+      disabled: Enabled.YES
     });
     turnOn();
   }
 });
 
-document.getElementById(NEW_TAB_DOM_ID).addEventListener('click', ev => {
+document.getElementById(NEW_TAB_DOM_ID).addEventListener(CLICK, ev => {
   chrome.tabs.create(
     { url: chrome.extension.getURL(POPUP_HTML_NAME) },
     function(tab) {
@@ -181,7 +186,7 @@ document.getElementById(NEW_TAB_DOM_ID).addEventListener('click', ev => {
   );
 });
 
-document.getElementById(OPEN_README_DOM_ID).addEventListener('click', ev => {
+document.getElementById(OPEN_README_DOM_ID).addEventListener(CLICK, ev => {
   chrome.tabs.create({ url: HELP_URL }, function(tab) {
     // Tab opened.
   });

@@ -12,7 +12,7 @@
 
 一个用来做请求链接转发的 [Chrome 浏览器插件][link-cws]，因为采用的是浏览器原生 API，安全性和性能能得到保障。
 
-[![xswitch-intro](https://cdn.nlark.com/yuque/0/2018/png/137701/1536999137086-9377abf2-ac97-4ccf-ae71-de178bf7238a.png)](https://www.youtube.com/watch?v=--gQM3ysCzc)
+[![XSwitch-intro](https://cdn.nlark.com/yuque/0/2018/png/137701/1536999137086-9377abf2-ac97-4ccf-ae71-de178bf7238a.png)](https://www.youtube.com/watch?v=--gQM3ysCzc)
 
 ## 功能
 
@@ -33,7 +33,7 @@
 
 ```js
 {
-  // proxyRules
+  // 转发规则
   "proxy": [
     [
       "//alinw.alicdn.com/platform/daily-test/isDaily.js", // 匹配 URL
@@ -54,7 +54,7 @@
     //   "(.*)/platform/daily-test/(.*).js$",
     //   "http://127.0.0.1:3000/daily-test/$1.js"
     // ],
-    // 直接转换成 inline 模式的 JavaScript
+    // 直接转换成 inline 模式的 JavaScript
     // [
     //   "https://alinw.alicdn.com/platform/daily-test/isDaily.js",
     //   "data:text/javascript,window.__isDaily = true;"

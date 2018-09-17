@@ -1,13 +1,23 @@
 import { Enabled } from './enum';
+import {
+  CORS_ENABLED_DOM_ID,
+  CLEAR_CACHE_ENABLED_DOM_ID,
+  STATUS_DOM_ID,
+  CHANGE,
+  DOM_CONTENT_LOADED,
+  OPTIONS_SAVED,
+  EMPTY_STRING
+} from './constant';
 
-const timeout: number = 750;
+const timeout = 750;
 
 function save_options() {
   const clearCacheEnabled = (<HTMLInputElement>(
-    document.getElementById('clearCacheEnabled')
+    document.getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
   )).checked;
-  const corsEnabled = (<HTMLInputElement>document.getElementById('corsEnabled'))
-    .checked;
+  const corsEnabled = (<HTMLInputElement>(
+    document.getElementById(CORS_ENABLED_DOM_ID)
+  )).checked;
 
   chrome.storage.sync.set(
     {
@@ -16,10 +26,10 @@ function save_options() {
     },
     function() {
       // Update status to let user know options were saved.
-      const status = document.getElementById('status');
-      status.textContent = 'Options saved.';
+      const status = document.getElementById(STATUS_DOM_ID);
+      status.textContent = OPTIONS_SAVED;
       setTimeout(function() {
-        status.textContent = '';
+        status.textContent = EMPTY_STRING;
       }, timeout);
     }
   );
@@ -32,16 +42,19 @@ function restore_options(): void {
       corsEnabled: Enabled.YES
     },
     function(result) {
-      (<HTMLInputElement>document.getElementById('clearCacheEnabled')).checked =
-        result.clearCacheEnabled === Enabled.YES;
-      (<HTMLInputElement>document.getElementById('corsEnabled')).checked =
+      (<HTMLInputElement>(
+        document.getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
+      )).checked = result.clearCacheEnabled === Enabled.YES;
+      (<HTMLInputElement>document.getElementById(CORS_ENABLED_DOM_ID)).checked =
         result.corsEnabled === Enabled.YES;
     }
   );
 }
-document.addEventListener('DOMContentLoaded', restore_options);
+document.addEventListener(DOM_CONTENT_LOADED, restore_options);
 
 document
-  .getElementById('clearCacheEnabled')
-  .addEventListener('change', save_options);
-document.getElementById('corsEnabled').addEventListener('change', save_options);
+  .getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
+  .addEventListener(CHANGE, save_options);
+document
+  .getElementById(CORS_ENABLED_DOM_ID)
+  .addEventListener(CHANGE, save_options);

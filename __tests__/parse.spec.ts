@@ -1,17 +1,17 @@
-import { REG } from '../src/constant';
+import { REG, EMPTY_STRING } from '../src/constant';
 import { stripJsonComments } from '../src/strip-json-comments';
 
 const replace = (jsonc: string): string => {
   try {
     return JSON.parse(
       stripJsonComments(jsonc)
-        .replace(REG.WHITESPACE, '')
+        .replace(REG.WHITESPACE, EMPTY_STRING)
         .replace(REG.TRIM_JSON, ($0, $1, $2) => $2)
     );
   } catch (e) {
     console.log(
       stripJsonComments(jsonc)
-        .replace(REG.WHITESPACE, '')
+        .replace(REG.WHITESPACE, EMPTY_STRING)
         .replace(REG.TRIM_JSON, ($0, $1, $2) => $2)
     );
     return 'parsed error';

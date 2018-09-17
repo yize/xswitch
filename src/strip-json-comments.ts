@@ -1,7 +1,9 @@
+import { EMPTY_STRING } from "./constant";
+
 // https://github.com/sindresorhus/strip-json-comments
-const singleComment: number = 1;
-const multiComment: number = 2;
-const stripWithoutWhitespace = (): string => '';
+const singleComment = 1;
+const multiComment = 2;
+const stripWithoutWhitespace = (): string => EMPTY_STRING;
 const stripWithWhitespace = (str: string, start: number, end: number): string =>
   str.slice(start, end).replace(/\S/g, ' ');
 
@@ -18,14 +20,14 @@ export function stripJsonComments(str: string, opts?: IStripOptions): string {
   let insideString: boolean = false;
   let insideComment: number | boolean = false;
   let offset: number = 0;
-  let ret: string = '';
+  let ret: string = EMPTY_STRING;
 
   for (let i = 0; i < str.length; i++) {
-    const currentChar: string = str[i];
-    const nextChar: string = str[i + 1];
+    const currentChar = str[i];
+    const nextChar = str[i + 1];
 
     if (!insideComment && currentChar === '"') {
-      const escaped: boolean = str[i - 1] === '\\' && str[i - 2] !== '\\';
+      const escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
       if (!escaped) {
         insideString = !insideString;
       }
