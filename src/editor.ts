@@ -26,9 +26,8 @@ import {
   SWITCH_CHECKED_CLASSNAME,
   SWITCH_DOM_ID,
   SWITCH_INNER_DOM_ID
-} from './constant';
-import { BadgeText, Enabled } from './enum';
-import forward from './forward';
+} from './constants';
+import { BadgeText, Enabled } from './enums';
 import { JSONC2JSON } from './utils';
 
 window.require.config({ paths: { vs: MONACO_VS_PATH } });
@@ -68,7 +67,7 @@ chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
     window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
       provideCompletionItems: () => {
         const textArr = [];
-        forward.urls.forEach(item => {
+        chrome.extension.getBackgroundPage()._forward.urls.forEach(item => {
           if (item) {
             textArr.push({
               label: item,
@@ -112,7 +111,7 @@ function setStorage() {
       [JSONC_STORAGE_KEY]: jsonc,
       [JSON_STORAGE_KEY]: json
     },
-    () => { }
+    () => {}
   );
 }
 
@@ -180,14 +179,14 @@ document.getElementById(SWITCH_DOM_ID).addEventListener(CLICK, ev => {
 document.getElementById(NEW_TAB_DOM_ID).addEventListener(CLICK, ev => {
   chrome.tabs.create(
     { url: chrome.extension.getURL(POPUP_HTML_NAME) },
-    function (tab) {
+    function(tab) {
       // Tab opened.
     }
   );
 });
 
 document.getElementById(OPEN_README_DOM_ID).addEventListener(CLICK, ev => {
-  chrome.tabs.create({ url: HELP_URL }, function (tab) {
+  chrome.tabs.create({ url: HELP_URL }, function(tab) {
     // Tab opened.
   });
 });

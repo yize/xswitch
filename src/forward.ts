@@ -9,8 +9,8 @@ import {
   DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
   NULL_STRING,
   ACCESS_CONTROL_REQUEST_HEADERS
-} from './constant';
-import { Enabled, UrlType } from './enum';
+} from './constants';
+import { Enabled, UrlType } from './enums';
 
 interface IFowardConfig {
   proxy?: string[][];
@@ -45,12 +45,16 @@ class Foward {
   private _config: IFowardConfig = {};
   private _originRequest: Map<string, string> = new Map();
   private _originRequestHeaders: Map<string, string> = new Map();
+  private _urls: string[] = new Array(200); // for cache
 
-  public urls: string[] = new Array(200); // for cache
+  get urls(): string[] {
+    return this._urls;
+  }
 
   get disabled(): Enabled {
     return this._disabled;
   }
+
   set disabled(newValue: Enabled) {
     this._disabled = newValue;
   }
@@ -162,7 +166,7 @@ class Foward {
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
     const rules = this.config.proxy;
-    let redirectUrl:string = details.url;
+    let redirectUrl: string = details.url;
 
     // in case of chrome-extension downtime
     if (!rules || !rules.length || REG.CHROME_EXTENSION.test(redirectUrl)) {
@@ -171,14 +175,14 @@ class Foward {
 
     if (
       /http(s?):\/\/.*\.(js|css|json|jsonp)/.test(redirectUrl) &&
-      this.urls.indexOf(redirectUrl) < 0
+      this._urls.indexOf(redirectUrl) < 0
     ) {
-      this.urls.shift();
-      this.urls.push(redirectUrl);
+      this._urls.shift();
+      this._urls.push(redirectUrl);
     }
 
     try {
-      for (let i:number = 0; i < rules.length; i++) {
+      for (let i: number = 0; i < rules.length; i++) {
         const rule = rules[i];
         if (rule && rule[0] && typeof rule[1] === 'string') {
           const reg = rule[0];
@@ -206,7 +210,7 @@ class Foward {
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
     let headers: string[] = [];
-    for (let i:number = 0; i < details.requestHeaders.length; ++i) {
+    for (let i: number = 0; i < details.requestHeaders.length; ++i) {
       const requestName = details.requestHeaders[i].name.toLowerCase();
       if (requestName === ORIGIN) {
         this._originRequest.set(

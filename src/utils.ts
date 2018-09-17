@@ -1,5 +1,5 @@
 import { stripJsonComments } from './strip-json-comments';
-import { REG, EMPTY_STRING } from './constant';
+import { REG, EMPTY_STRING } from './constants';
 
 export function JSONC2JSON(jsonc: string): string {
   return stripJsonComments(jsonc)

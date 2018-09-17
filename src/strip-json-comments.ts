@@ -1,4 +1,4 @@
-import { EMPTY_STRING } from "./constant";
+import { EMPTY_STRING } from "./constants";
 
 // https://github.com/sindresorhus/strip-json-comments
 const singleComment = 1;

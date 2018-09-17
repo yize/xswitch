@@ -1,5 +1,5 @@
-import { ALL_URLS, BLOCKING, EMPTY_STRING, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS, JSON_STORAGE_KEY } from './constant';
-import { BadgeText, Enabled, IconBackgroundColor } from './enum';
+import { ALL_URLS, BLOCKING, EMPTY_STRING, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS, JSON_STORAGE_KEY } from './constants';
+import { BadgeText, Enabled, IconBackgroundColor } from './enums';
 import forward from './forward';
 
 let clearRunning: boolean = false;
@@ -146,3 +146,5 @@ function clearCache(): void {
     );
   }
 }
+
+window._forward = forward;

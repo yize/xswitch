@@ -1,4 +1,4 @@
-import { Enabled } from '../src/enum';
+import { Enabled } from '../src/enums';
 import forward from '../src/forward';
 
 beforeEach(() => {

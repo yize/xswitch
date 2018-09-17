@@ -1,4 +1,4 @@
-import { Enabled } from './enum';
+import { Enabled } from './enums';
 import {
   CORS_ENABLED_DOM_ID,
   CLEAR_CACHE_ENABLED_DOM_ID,
@@ -7,7 +7,7 @@ import {
   DOM_CONTENT_LOADED,
   OPTIONS_SAVED,
   EMPTY_STRING
-} from './constant';
+} from './constants';
 
 const timeout = 750;
 

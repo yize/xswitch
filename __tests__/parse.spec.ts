@@ -1,4 +1,4 @@
-import { REG, EMPTY_STRING } from '../src/constant';
+import { REG, EMPTY_STRING } from '../src/constants';
 import { stripJsonComments } from '../src/strip-json-comments';
 
 const replace = (jsonc: string): string => {
