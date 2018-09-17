@@ -25,7 +25,7 @@ import {
   SWITCH_AREA_DOM_ID,
   SWITCH_CHECKED_CLASSNAME,
   SWITCH_DOM_ID,
-  SWITCH_INNER_DOM_ID,
+  SWITCH_INNER_DOM_ID
 } from './constant';
 import { BadgeText, Enabled } from './enum';
 import forward from './forward';
@@ -41,7 +41,7 @@ chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
     editor = window.monaco.editor.create(
       document.getElementById(CONTAINER_DOM_ID),
       {
-        value: result.config_for_shown || DEFAULT_DATA,
+        value: result[JSONC_STORAGE_KEY] || DEFAULT_DATA,
         language: LANGUAGE_JSON,
 
         minimap: {
@@ -112,7 +112,7 @@ function setStorage() {
       [JSONC_STORAGE_KEY]: jsonc,
       [JSON_STORAGE_KEY]: json
     },
-    () => {}
+    () => { }
   );
 }
 
@@ -180,14 +180,14 @@ document.getElementById(SWITCH_DOM_ID).addEventListener(CLICK, ev => {
 document.getElementById(NEW_TAB_DOM_ID).addEventListener(CLICK, ev => {
   chrome.tabs.create(
     { url: chrome.extension.getURL(POPUP_HTML_NAME) },
-    function(tab) {
+    function (tab) {
       // Tab opened.
     }
   );
 });
 
 document.getElementById(OPEN_README_DOM_ID).addEventListener(CLICK, ev => {
-  chrome.tabs.create({ url: HELP_URL }, function(tab) {
+  chrome.tabs.create({ url: HELP_URL }, function (tab) {
     // Tab opened.
   });
 });

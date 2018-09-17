@@ -7,7 +7,8 @@ import {
   REG,
   EMPTY_STRING,
   DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
-  NULL_STRING
+  NULL_STRING,
+  ACCESS_CONTROL_REQUEST_HEADERS
 } from './constant';
 import { Enabled, UrlType } from './enum';
 
@@ -24,13 +25,13 @@ interface IFowardConfig {
 const matchUrl = (url: string, reg: string): string | boolean => {
   if (REG.FORWARD.test(reg)) {
     // support ??
-    let r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
-    let matched = r.test(url);
+    const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+    const matched = r.test(url);
     if (matched) {
       return UrlType.REG;
     }
   } else {
-    let matched = url.indexOf(reg) > -1;
+    const matched = url.indexOf(reg) > -1;
     if (matched) {
       return UrlType.STRING;
     }
@@ -66,8 +67,8 @@ class Foward {
     cors: boolean = true
   ): chrome.webRequest.BlockingResponse {
     // has cors rules
-    let corsMap = this.config.cors;
-    let corsMatched = false;
+    let corsMap: string[] = this.config.cors;
+    let corsMatched: boolean = false;
 
     if (corsMap && corsMap.length) {
       corsMap.forEach(rule => {
@@ -84,16 +85,16 @@ class Foward {
       return {};
     }
 
-    let originUrl = details.url;
-    let resHeaders = [];
-    let CORSOrigin =
+    let originUrl: string = details.url;
+    let resHeaders: chrome.webRequest.HttpHeader[] = [];
+    let CORSOrigin: string =
       (this._originRequest.get(details.requestId)
         ? this._originRequest.get(details.requestId)
         : details.initiator) || DEFAULT_CORS_ORIGIN;
 
     if (details.responseHeaders && details.responseHeaders.filter) {
       let hasCredentials: boolean | string = false;
-      let tempOrigin = EMPTY_STRING;
+      let tempOrigin: string = EMPTY_STRING;
       resHeaders = details.responseHeaders.filter(responseHeader => {
         // Already has access-control-allow-origin headers
         if (CORS.ORIGIN === responseHeader.name.toLowerCase()) {
@@ -161,7 +162,7 @@ class Foward {
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
     const rules = this.config.proxy;
-    let redirectUrl = details.url;
+    let redirectUrl:string = details.url;
 
     // in case of chrome-extension downtime
     if (!rules || !rules.length || REG.CHROME_EXTENSION.test(redirectUrl)) {
@@ -177,15 +178,15 @@ class Foward {
     }
 
     try {
-      for (let i = 0; i < rules.length; i++) {
+      for (let i:number = 0; i < rules.length; i++) {
         const rule = rules[i];
         if (rule && rule[0] && typeof rule[1] === 'string') {
-          let reg = rule[0];
-          let matched = matchUrl(redirectUrl, reg);
+          const reg = rule[0];
+          const matched = matchUrl(redirectUrl, reg);
 
           if (details.requestId !== this._lastRequestId) {
             if (matched === UrlType.REG) {
-              let r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+              const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
               redirectUrl = redirectUrl.replace(r, rule[1]);
             } else if (matched === UrlType.STRING) {
               redirectUrl = redirectUrl.split(rule[0]).join(rule[1]);
@@ -204,15 +205,15 @@ class Foward {
   onBeforeSendHeadersCallback(
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
-    let headers = [];
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
+    let headers: string[] = [];
+    for (let i:number = 0; i < details.requestHeaders.length; ++i) {
       const requestName = details.requestHeaders[i].name.toLowerCase();
       if (requestName === ORIGIN) {
         this._originRequest.set(
           details.requestId,
           details.requestHeaders[i].value
         );
-      } else if (requestName === CORS.HEADERS || /^x-/.test(requestName)) {
+      } else if (requestName === ACCESS_CONTROL_REQUEST_HEADERS || REG.X_HEADER.test(requestName)) {
         headers.push(requestName);
       }
     }

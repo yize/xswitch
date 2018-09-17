@@ -3,7 +3,8 @@ export const REG = {
   CHROME_EXTENSION: /^chrome-extension:\/\//i,
   // support [ ] ( ) \ * ^ $
   FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
-  WHITESPACE: /\s+/g
+  WHITESPACE: /\s+/g,
+  X_HEADER:/^x-/
 };
 
 export const ALL_URLS = '<all_urls>';
@@ -30,11 +31,11 @@ export const DISABLED_STORAGE_KEY = 'disabled';
 /**
  * pure JSON storage key
  */
-export const JSON_STORAGE_KEY = 'config_for_shown';
+export const JSONC_STORAGE_KEY = 'config_for_shown';
 /**
  * JSON with comments storage key
  */
-export const JSONC_STORAGE_KEY = 'config';
+export const JSON_STORAGE_KEY = 'config';
 
 export const MILLISECONDS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
 export const RULE = 'rule';

@@ -324,7 +324,7 @@ describe('CORS without access-control-allow-origin', () => {
     ];
     forward.config.cors = ['dev-c.d.com'];
 
-    var testheaderDetails = {
+    const testheaderDetails = {
       frameId: 0,
       initiator: 'http://dev-a.b.com',
       method: 'GET',
@@ -407,7 +407,7 @@ describe('CORS without access-control-allow-origin', () => {
       type: 'xmlhttprequest',
       url: 'http://dev-c.d.com/overview/type.json?'
     };
-    var expectHeaderDetails = [
+    const expectHeaderDetails = [
       { name: 'Date', value: 'Wed, 11 Jul 2018 12:38:45 GMT' },
       { name: 'Content-Type', value: 'application/json;charset=UTF-8' },
       { name: 'Transfer-Encoding', value: 'chunked' },
@@ -453,7 +453,7 @@ describe('CORS withCredentials', () => {
       ['http://127.0.0.1/(.*).json', 'http://a.b.com/$1.json']
     ];
     forward.config.cors = ['http://a.b.com'];
-    var testheaderDetails = {
+    const testheaderDetails = {
       frameId: 0,
       initiator: 'http://127.0.0.1',
       method: 'GET',
@@ -556,7 +556,7 @@ describe('CORS withCredentials', () => {
       type: 'xmlhttprequest',
       url: 'http://a.b.com/scg/option.json?'
     };
-    var expectHeaderDetails = [
+    const expectHeaderDetails = [
       { name: 'Date', value: 'Thu, 12 Jul 2018 02:32:09 GMT' },
       { name: 'Content-Type', value: 'application/json;charset=UTF-8' },
       { name: 'Transfer-Encoding', value: 'chunked' },

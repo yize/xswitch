@@ -22,7 +22,7 @@ export function stripJsonComments(str: string, opts?: IStripOptions): string {
   let offset: number = 0;
   let ret: string = EMPTY_STRING;
 
-  for (let i = 0; i < str.length; i++) {
+  for (let i:number = 0; i < str.length; i++) {
     const currentChar = str[i];
     const nextChar = str[i + 1];
 

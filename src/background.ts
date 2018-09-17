@@ -1,4 +1,4 @@
-import { ALL_URLS, BLOCKING, EMPTY_STRING, JSONC_STORAGE_KEY, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS } from './constant';
+import { ALL_URLS, BLOCKING, EMPTY_STRING, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS, JSON_STORAGE_KEY } from './constant';
 import { BadgeText, Enabled, IconBackgroundColor } from './enum';
 import forward from './forward';
 
@@ -7,7 +7,7 @@ let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
 let parseError: boolean = false;
 
-chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
+chrome.storage.sync.get(JSON_STORAGE_KEY, result => {
   try {
     if (result && result.config) {
       forward.config = JSON.parse(result.config);
