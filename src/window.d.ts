@@ -3,4 +3,3 @@ interface Window {
   editor: any;
   monaco: any;
 }
-

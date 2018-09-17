@@ -1,12 +1,14 @@
+import { Enabled, IconBackgroundColor, BadgeText } from './enum';
 import forward from './forward';
 
-let clearRunning = false;
-let clearCacheEnabled = true;
-let corsEnabled = true;
-let parseError = false;
+let clearRunning: boolean = false;
+let clearCacheEnabled: boolean = true;
+let corsEnabled: boolean = true;
+let parseError: boolean = false;
 
 chrome.storage.sync.get('config', result => {
   try {
+    1;
     if (result && result.config) {
       forward.config = JSON.parse(result.config);
     } else {
@@ -23,42 +25,19 @@ chrome.storage.sync.get('config', result => {
   }
 });
 
-function setIcon() {
-  let text = 0;
-  const { browserAction } = chrome;
-  text = forward.config.proxy.length;
-
-  if (parseError) {
-    browserAction.setBadgeText({
-      text: '' + 'Error'
-    });
-    browserAction.setBadgeBackgroundColor({
-      color: '#c53929'
-    });
-    return;
+chrome.storage.sync.get(
+  {
+    disabled: Enabled.YES,
+    clearCacheEnabled: Enabled.YES,
+    corsEnabled: Enabled.YES
+  },
+  result => {
+    forward.disabled = result.disabled;
+    clearCacheEnabled = result.clearCacheEnabled === Enabled.YES;
+    corsEnabled = result.corsEnabled === Enabled.YES;
+    setIcon();
   }
-
-  if (forward.disabled !== 'disabled') {
-    browserAction.setBadgeText({
-      text: '' + text
-    });
-    browserAction.setBadgeBackgroundColor({
-      color: '#3367d6'
-    });
-  } else {
-    browserAction.setBadgeText({
-      text: '' + 'OFF'
-    });
-    browserAction.setBadgeBackgroundColor({
-      color: '#bfbfbf'
-    });
-    return;
-  }
-}
-
-function headersReceivedListener(details) {
-  return forward.onHeadersReceivedCallback(details, corsEnabled);
-}
+);
 
 chrome.storage.onChanged.addListener(changes => {
   if (changes.config) {
@@ -76,49 +55,19 @@ chrome.storage.onChanged.addListener(changes => {
   }
 
   if (changes.clearCacheEnabled) {
-    clearCacheEnabled = changes.clearCacheEnabled.newValue === 'enabled';
+    clearCacheEnabled = changes.clearCacheEnabled.newValue === Enabled.YES;
   }
 
   if (changes.corsEnabled) {
-    corsEnabled = changes.corsEnabled.newValue === 'enabled';
+    corsEnabled = changes.corsEnabled.newValue === Enabled.YES;
   }
 
   setIcon();
 });
 
-function clearCache() {
-  if (!clearRunning) {
-    clearRunning = true;
-    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-    const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
-    chrome.browsingData.removeCache(
-      {
-        since: oneWeekAgo
-      },
-      () => {
-        clearRunning = false;
-      }
-    );
-  }
-}
-
-chrome.storage.sync.get(
-  {
-    disabled: 'enabled',
-    clearCacheEnabled: 'enabled',
-    corsEnabled: 'enabled'
-  },
-  result => {
-    forward.disabled = result.disabled;
-    clearCacheEnabled = result.clearCacheEnabled === 'enabled';
-    corsEnabled = result.corsEnabled === 'enabled';
-    setIcon();
-  }
-);
-
 chrome.webRequest.onBeforeRequest.addListener(
   details => {
-    if (forward.disabled !== 'disabled') {
+    if (forward.disabled !== Enabled.NO) {
       if (clearCacheEnabled) {
         clearCache();
       }
@@ -147,3 +96,52 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   { urls: ['<all_urls>'] },
   ['blocking', 'requestHeaders']
 );
+
+function setBadgeAndBackgroundColor(text: string | number, color: string) {
+  const { browserAction } = chrome;
+  browserAction.setBadgeText({
+    text: '' + text
+  });
+  browserAction.setBadgeBackgroundColor({
+    color
+  });
+}
+
+function setIcon(): void {
+  if (parseError) {
+    setBadgeAndBackgroundColor(BadgeText.ERROR, IconBackgroundColor.ERROR);
+    return;
+  }
+
+  if (forward.disabled !== Enabled.NO) {
+    setBadgeAndBackgroundColor(
+      forward.config.proxy.length,
+      IconBackgroundColor.ON
+    );
+  } else {
+    setBadgeAndBackgroundColor(BadgeText.OFF, IconBackgroundColor.OFF);
+    return;
+  }
+}
+
+function headersReceivedListener(
+  details: chrome.webRequest.WebResponseHeadersDetails
+) {
+  return forward.onHeadersReceivedCallback(details, corsEnabled);
+}
+
+function clearCache(): void {
+  if (!clearRunning) {
+    clearRunning = true;
+    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+    const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
+    chrome.browsingData.removeCache(
+      {
+        since: oneWeekAgo
+      },
+      () => {
+        clearRunning = false;
+      }
+    );
+  }
+}

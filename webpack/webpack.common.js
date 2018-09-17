@@ -10,12 +10,11 @@ function newWebpackPlugin(name) {
     minify: {
       removeComments: true,
       collapseWhitespace: true,
-      minifyCSS: true,
+      minifyCSS: true
     },
-    inject: false,
-  })
+    inject: false
+  });
 }
-
 
 module.exports = {
   entry: {
@@ -40,9 +39,5 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js']
   },
-  plugins: [
-    newWebpackPlugin('XSwitch'),
-    newWebpackPlugin('options'),
-  ]
+  plugins: [newWebpackPlugin('XSwitch'), newWebpackPlugin('options')]
 };
-

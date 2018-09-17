@@ -1,5 +1,50 @@
-export const TRIM_JSON_REG = /(,+)([^a-z0-9["])/gi;
-
+export const REG = {
+  TRIM_JSON: /(,+)([^a-z0-9["])/gi,
+  CHROME_EXTENSION: /^chrome-extension:\/\//i,
+  FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
+  WHITESPACE: /\s+/g
+};
+export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS =
+  'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
+export const CORS = {
+  METHODS: 'access-control-allow-methods',
+  CREDENTIALS: 'access-control-allow-credentials',
+  ORIGIN: 'access-control-allow-origin',
+  HEADERS: 'access-control-allow-headers'
+};
+export const ACCESS_CONTROL_REQUEST_HEADERS = 'access-control-request-headers';
+export const DEFAULT_CORS_ORIGIN = '*';
+export const DEFAULT_CORS_METHODS = '*';
+export const DEFAULT_CORS_CREDENTIALS = 'true';
+export const ORIGIN = 'origin';
+/**
+ * Disabled storage key
+ */
+export const DISABLED_STORAGE_KEY = 'disabled';
+/**
+ * pure JSON storage key
+ */
+export const JSON_STORAGE_KEY = 'config_for_shown';
+/**
+ * JSON with comments storage key
+ */
+export const JSONC_STORAGE_KEY = 'config';
+export const RULE = 'rule';
+export const LANGUAGE_JSON = 'json';
+export const SWITCH_DOM_ID = 'J_Switch';
+export const SWITCH_INNER_DOM_ID = 'J_SwitchInner';
+export const SWITCH_AREA_DOM_ID = 'J_SwitchArea';
+export const NEW_TAB_DOM_ID = 'J_OpenInNewTab';
+export const OPEN_README_DOM_ID = 'J_OpenReadme';
+export const CONTAINER_DOM_ID = 'J_Container';
+export const SWITCH_CHECKED_CLASSNAME = 'ant-switch-checked';
+export const POPUP_HTML_NAME = 'XSwitch.html';
+export const MONACO_VS_PATH = '../lib/monaco-editor/min/vs';
+export const MONACO_CONTRIBUTION_PATH = 'vs/language/json/monaco.contribution';
+export const HELP_URL = 'https://yuque.com/jiushen/blog/xswitch-readme';
+export const DEFAULT_FONT_FAMILY =
+  'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';
+export const PLATFORM_MAC = 'Mac';
 export const DEFAULT_DATA = `{
   // Use IntelliSense to learn about possible links.
   // Type \`rule\` to quick insert rule.

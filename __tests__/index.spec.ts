@@ -1,4 +1,5 @@
 import forward from '../src/forward';
+import { Enabled } from '../src/enum';
 
 beforeEach(() => {
   forward.config = {};
@@ -53,7 +54,6 @@ describe('rule[1] is not string', () => {
   });
 
   test('no forwarding when rule[1] is not string', () => {
-    
     // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', {}]];
     expect(
@@ -284,17 +284,12 @@ describe('multiple rules', () => {
   });
 });
 
-describe('CORS without Access-Control-Allow-Origin', () => {
+describe('CORS without access-control-allow-origin', () => {
   test('should support cors', () => {
     forward.config.proxy = [
-      [
-        'http://dev-a.b.com/(.*).json',
-        'http://dev-c.d.com/$1.json'
-      ]
+      ['http://dev-a.b.com/(.*).json', 'http://dev-c.d.com/$1.json']
     ];
-    forward.config.cors = [
-      'dev-c.d.com'
-    ];
+    forward.config.cors = ['dev-c.d.com'];
 
     var testheaderDetails = {
       frameId: 0,
@@ -379,8 +374,41 @@ describe('CORS without Access-Control-Allow-Origin', () => {
       type: 'xmlhttprequest',
       url: 'http://dev-c.d.com/overview/type.json?'
     };
-    var expectHeaderDetails = [{ "name": "Date", "value": "Wed, 11 Jul 2018 12:38:45 GMT" }, { "name": "Content-Type", "value": "application/json;charset=UTF-8" }, { "name": "Transfer-Encoding", "value": "chunked" }, { "name": "Connection", "value": "keep-alive" }, { "name": "Vary", "value": "Accept-Encoding" }, { "name": "X-Application-Context", "value": "a-b-c:7001" }, { "name": "X-Content-Type-Options", "value": "nosniff" }, { "name": "X-XSS-Protection", "value": "1; mode=block" }, { "name": "Cache-Control", "value": "no-cache, no-store, max-age=0, must-revalidate" }, { "name": "Pragma", "value": "no-cache" }, { "name": "Expires", "value": "0" }, { "name": "X-Frame-Options", "value": "DENY" }, { "name": "Strict-Transport-Security", "value": "max-age=31536000 ; includeSubDomains" }, { "name": "Content-Encoding", "value": "gzip" }, { "name": "Server", "value": "Tengine/Aserver" }, { "name": "EagleEye-TraceId", "value": "0a67793015313127251908120e23db" }, { "name": "Timing-Allow-Origin", "value": "*" }, { "name": "Access-Control-Allow-Origin", "value": "http://dev-a.b.com" }, { "name": "Access-Control-Allow-Credentials", "value": "true" }, { "name": "Access-Control-Allow-Methods", "value": "*" }, { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer" }];
+    var expectHeaderDetails = [
+      { name: 'Date', value: 'Wed, 11 Jul 2018 12:38:45 GMT' },
+      { name: 'Content-Type', value: 'application/json;charset=UTF-8' },
+      { name: 'Transfer-Encoding', value: 'chunked' },
+      { name: 'Connection', value: 'keep-alive' },
+      { name: 'Vary', value: 'Accept-Encoding' },
+      { name: 'X-Application-Context', value: 'a-b-c:7001' },
+      { name: 'X-Content-Type-Options', value: 'nosniff' },
+      { name: 'X-XSS-Protection', value: '1; mode=block' },
+      {
+        name: 'Cache-Control',
+        value: 'no-cache, no-store, max-age=0, must-revalidate'
+      },
+      { name: 'Pragma', value: 'no-cache' },
+      { name: 'Expires', value: '0' },
+      { name: 'X-Frame-Options', value: 'DENY' },
+      {
+        name: 'Strict-Transport-Security',
+        value: 'max-age=31536000 ; includeSubDomains'
+      },
+      { name: 'Content-Encoding', value: 'gzip' },
+      { name: 'Server', value: 'Tengine/Aserver' },
+      { name: 'EagleEye-TraceId', value: '0a67793015313127251908120e23db' },
+      { name: 'Timing-Allow-Origin', value: '*' },
+      { name: 'access-control-allow-origin', value: 'http://dev-a.b.com' },
+      { name: 'access-control-allow-credentials', value: 'true' },
+      { name: 'access-control-allow-methods', value: '*' },
+      {
+        name: 'access-control-allow-headers',
+        value:
+          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer'
+      }
+    ];
     expect(
+      // @ts-ignore
       forward.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
   });
@@ -391,9 +419,7 @@ describe('CORS withCredentials', () => {
     forward.config.proxy = [
       ['http://127.0.0.1/(.*).json', 'http://a.b.com/$1.json']
     ];
-    forward.config.cors = [
-      'http://a.b.com'
-    ];
+    forward.config.cors = ['http://a.b.com'];
     var testheaderDetails = {
       frameId: 0,
       initiator: 'http://127.0.0.1',
@@ -450,11 +476,11 @@ describe('CORS withCredentials', () => {
           value: 'max-age=31536000 ; includeSubDomains'
         },
         {
-          name: 'Access-Control-Allow-Credentials',
+          name: 'access-control-allow-credentials',
           value: 'true'
         },
         {
-          name: 'Access-Control-Allow-Origin',
+          name: 'access-control-allow-origin',
           value: 'http://127.0.0.1'
         },
         {
@@ -497,8 +523,44 @@ describe('CORS withCredentials', () => {
       type: 'xmlhttprequest',
       url: 'http://a.b.com/scg/option.json?'
     };
-    var expectHeaderDetails = [{ "name": "Date", "value": "Thu, 12 Jul 2018 02:32:09 GMT" }, { "name": "Content-Type", "value": "application/json;charset=UTF-8" }, { "name": "Transfer-Encoding", "value": "chunked" }, { "name": "Connection", "value": "keep-alive" }, { "name": "Vary", "value": "Accept-Encoding" }, { "name": "X-Content-Type-Options", "value": "nosniff" }, { "name": "X-XSS-Protection", "value": "1; mode=block" }, { "name": "Cache-Control", "value": "no-cache, no-store, max-age=0, must-revalidate" }, { "name": "Pragma", "value": "no-cache" }, { "name": "Expires", "value": "0" }, { "name": "X-Frame-Options", "value": "DENY" }, { "name": "Strict-Transport-Security", "value": "max-age=31536000 ; includeSubDomains" }, { "name": "Vary", "value": "Origin" }, { "name": "Access-Control-Expose-Headers", "value": "Set-Cookie" }, { "name": "X-Application-Context", "value": "ottscgadmin:7001" }, { "name": "EagleEye-TraceId-daily", "value": "1e37823915313627291994023e" }, { "name": "Content-Encoding", "value": "gzip" }, { "name": "Server", "value": "Tengine/Aserver" }, { "name": "EagleEye-TraceId", "value": "0bef992c15313627291782432e3237" }, { "name": "Timing-Allow-Origin", "value": "*" }, { "name": "Access-Control-Allow-Origin", "value": "http://127.0.0.1" }, { "name": "Access-Control-Allow-Credentials", "value": "true" }, { "name": "Access-Control-Allow-Methods", "value": "*" }, { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer" }];
+    var expectHeaderDetails = [
+      { name: 'Date', value: 'Thu, 12 Jul 2018 02:32:09 GMT' },
+      { name: 'Content-Type', value: 'application/json;charset=UTF-8' },
+      { name: 'Transfer-Encoding', value: 'chunked' },
+      { name: 'Connection', value: 'keep-alive' },
+      { name: 'Vary', value: 'Accept-Encoding' },
+      { name: 'X-Content-Type-Options', value: 'nosniff' },
+      { name: 'X-XSS-Protection', value: '1; mode=block' },
+      {
+        name: 'Cache-Control',
+        value: 'no-cache, no-store, max-age=0, must-revalidate'
+      },
+      { name: 'Pragma', value: 'no-cache' },
+      { name: 'Expires', value: '0' },
+      { name: 'X-Frame-Options', value: 'DENY' },
+      {
+        name: 'Strict-Transport-Security',
+        value: 'max-age=31536000 ; includeSubDomains'
+      },
+      { name: 'Vary', value: 'Origin' },
+      { name: 'Access-Control-Expose-Headers', value: 'Set-Cookie' },
+      { name: 'X-Application-Context', value: 'ottscgadmin:7001' },
+      { name: 'EagleEye-TraceId-daily', value: '1e37823915313627291994023e' },
+      { name: 'Content-Encoding', value: 'gzip' },
+      { name: 'Server', value: 'Tengine/Aserver' },
+      { name: 'EagleEye-TraceId', value: '0bef992c15313627291782432e3237' },
+      { name: 'Timing-Allow-Origin', value: '*' },
+      { name: 'access-control-allow-origin', value: 'http://127.0.0.1' },
+      { name: 'access-control-allow-credentials', value: 'true' },
+      { name: 'access-control-allow-methods', value: '*' },
+      {
+        name: 'access-control-allow-headers',
+        value:
+          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer'
+      }
+    ];
     expect(
+      // @ts-ignore
       forward.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
   });
@@ -507,13 +569,19 @@ describe('CORS withCredentials', () => {
 describe('CORS withCredentials and no forwardConfig', () => {
   test('should return {}', () => {
     forward.config.proxy = [];
-    expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(undefined);
+    // @ts-ignore
+    expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(
+      undefined
+    );
   });
 });
 
 describe('CORS withCredentials and forwardConfig is disabled', () => {
   test('should return {}', () => {
-    forward.disabled = 'disabled';
-    expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(undefined);
+    forward.disabled = Enabled.NO;
+    // @ts-ignore
+    expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(
+      undefined
+    );
   });
 });

@@ -16,14 +16,14 @@
 
 ## 功能
 
-* [x] 请求地址转发
-* [x] 全局插件启用开关
-* [x] 可禁用浏览器缓存
-* [x] 可在 JSON 中写注释
-* [x] 自动补全（auto complete）
-* [x] 支持 CORS，并且支持 Access-Control-Allow-Credentials
-* [x] 跨域和缓存禁用键
-* [ ] 分组规则
+- [x] 请求地址转发
+- [x] 全局插件启用开关
+- [x] 可禁用浏览器缓存
+- [x] 可在 JSON 中写注释
+- [x] 自动补全（auto complete）
+- [x] 支持 CORS，并且支持 Access-Control-Allow-Credentials
+- [x] 跨域和缓存禁用键
+- [ ] 分组规则
 
 ## 用法
 
@@ -70,8 +70,8 @@
 
 更多说明：[https://yuque.com/jiushen/blog/xswitch-readme](https://yuque.com/jiushen/blog/xswitch-readme)
 
-* 访问 [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
-* 最终, 你的 URL 会被改写成 [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
+- 访问 [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
+- 最终, 你的 URL 会被改写成 [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
 
 ## License
 

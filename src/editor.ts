@@ -1,23 +1,45 @@
-import { stripJsonComments } from './strip-json-comments';
-import { TRIM_JSON_REG,DEFAULT_DATA } from './constant';
 import forward from './forward';
+import {
+  DEFAULT_DATA,
+  RULE,
+  LANGUAGE_JSON,
+  SWITCH_DOM_ID,
+  SWITCH_INNER_DOM_ID,
+  DISABLED_STORAGE_KEY,
+  SWITCH_AREA_DOM_ID,
+  SWITCH_CHECKED_CLASSNAME,
+  NEW_TAB_DOM_ID,
+  OPEN_README_DOM_ID,
+  HELP_URL,
+  POPUP_HTML_NAME,
+  CONTAINER_DOM_ID,
+  DEFAULT_FONT_FAMILY,
+  JSONC_STORAGE_KEY,
+  JSON_STORAGE_KEY,
+  MONACO_CONTRIBUTION_PATH,
+  MONACO_VS_PATH,
+  PLATFORM_MAC
+} from './constant';
+import { JSONC2JSON } from './utils';
+import { BadgeText, Enabled } from './enum';
 
-window.require.config({ paths: { vs: '../lib/monaco-editor/min/vs' } });
+window.require.config({ paths: { vs: MONACO_VS_PATH } });
 
 let editor;
-chrome.storage.sync.get('config_for_shown', result => {
-  let firstShow = 1;
-  window.require(['vs/language/json/monaco.contribution'], () => {
+chrome.storage.sync.get(JSONC_STORAGE_KEY, result => {
+  let monacoReady: boolean = true;
+
+  window.require([MONACO_CONTRIBUTION_PATH], () => {
     editor = window.monaco.editor.create(
-      document.getElementById('container'),
+      document.getElementById(CONTAINER_DOM_ID),
       {
         value: result.config_for_shown || DEFAULT_DATA,
-        language: 'json',
+        language: LANGUAGE_JSON,
 
         minimap: {
           enabled: false
         },
-        fontFamily: 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace',
+        fontFamily: DEFAULT_FONT_FAMILY,
         fontSize: 13,
         fontLigatures: true,
 
@@ -33,32 +55,9 @@ chrome.storage.sync.get('config_for_shown', result => {
       }
     );
 
-    function setStorage() {
-      const data = editor.getValue();
-      const config = stripJsonComments(data)
-        .replace(/\s+/g, '')
-        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2);
-      try {
-        console.log('=========data');
-        console.log(data);
-        console.log('=========config');
-        console.log(config);
-      } catch (e) {
-        console.error(e);
-      }
-
-      chrome.storage.sync.set(
-        {
-          config_for_shown: data,
-          config
-        },
-        () => { }
-      );
-    }
-
     setStorage();
 
-    window.monaco.languages.registerCompletionItemProvider('json', {
+    window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
       provideCompletionItems: () => {
         const textArr = [];
         forward.urls.forEach(item => {
@@ -72,7 +71,7 @@ chrome.storage.sync.get('config_for_shown', result => {
 
         const extraItems = [
           {
-            label: 'rule',
+            label: RULE,
             kind: window.monaco.languages.CompletionItemKind.Method,
             insertText: {
               value: `[
@@ -89,27 +88,41 @@ chrome.storage.sync.get('config_for_shown', result => {
     editor.onDidChangeModelContent(() => {
       setStorage();
     });
+
     editor.onDidScrollChange(() => {
-      if (firstShow) {
-        firstShow = 0;
+      if (monacoReady) {
         runFormat();
+        monacoReady = false;
       }
-    })
+    });
   });
 });
 
+function setStorage() {
+  const jsonc: string = editor.getValue();
+  const json: string = JSONC2JSON(jsonc);
+
+  chrome.storage.sync.set(
+    {
+      [JSONC_STORAGE_KEY]: jsonc,
+      [JSON_STORAGE_KEY]: json
+    },
+    () => {}
+  );
+}
+
 function runFormat() {
-  return editor.trigger('anyString', 'editor.action.formatDocument')
+  return editor.trigger('anyString', 'editor.action.formatDocument');
 }
 
 function preventSave() {
   document.addEventListener(
     'keydown',
     e => {
-      if (
-        e.keyCode === 83 &&
-        (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)
-      ) {
+      let controlKeyDown: boolean = navigator.platform.match(PLATFORM_MAC)
+        ? e.metaKey
+        : e.ctrlKey;
+      if (e.keyCode === 83 && controlKeyDown) {
         e.preventDefault();
       }
     },
@@ -118,30 +131,38 @@ function preventSave() {
 }
 
 function turnOn() {
-  document.getElementById('J_Switch').classList.add('ant-switch-checked');
-  document.getElementById('J_SwitchInner').innerHTML = 'On';
+  document
+    .getElementById(SWITCH_DOM_ID)
+    .classList.add(SWITCH_CHECKED_CLASSNAME);
+  document.getElementById(SWITCH_INNER_DOM_ID).innerHTML = BadgeText.ON;
 }
 
 function turnOff() {
-  document.getElementById('J_Switch').classList.remove('ant-switch-checked');
-  document.getElementById('J_SwitchInner').innerHTML = 'Off';
+  document
+    .getElementById(SWITCH_DOM_ID)
+    .classList.remove(SWITCH_CHECKED_CLASSNAME);
+  document.getElementById(SWITCH_INNER_DOM_ID).innerHTML = BadgeText.OFF;
 }
 
-chrome.storage.sync.get('disabled', result => {
-  document.getElementById('J_SwitchArea').style.opacity = "1";
-  if (result.disabled === 'disabled') {
+chrome.storage.sync.get(DISABLED_STORAGE_KEY, result => {
+  document.getElementById(SWITCH_AREA_DOM_ID).style.opacity = '1';
+  if (result.disabled === Enabled.NO) {
     turnOff();
   } else {
     turnOn();
   }
 });
 
-document.getElementById('J_Switch').addEventListener('click', ev => {
+document.getElementById(SWITCH_DOM_ID).addEventListener('click', ev => {
   // if disabled
-  if ((<HTMLSelectElement>ev.currentTarget).classList.contains('ant-switch-checked')) {
+  if (
+    (<HTMLSelectElement>ev.currentTarget).classList.contains(
+      SWITCH_CHECKED_CLASSNAME
+    )
+  ) {
     turnOff();
     chrome.storage.sync.set({
-      disabled: 'disabled'
+      disabled: Enabled.NO
     });
   } else {
     chrome.storage.sync.set({
@@ -151,18 +172,17 @@ document.getElementById('J_Switch').addEventListener('click', ev => {
   }
 });
 
-document.getElementById('J_OpenInNewTab').addEventListener('click', ev => {
-  chrome.tabs.create({ url: chrome.extension.getURL('XSwitch.html') }, function (
-    tab
-  ) {
-    // Tab opened.
-  });
+document.getElementById(NEW_TAB_DOM_ID).addEventListener('click', ev => {
+  chrome.tabs.create(
+    { url: chrome.extension.getURL(POPUP_HTML_NAME) },
+    function(tab) {
+      // Tab opened.
+    }
+  );
 });
 
-document.getElementById('J_OpenReadme').addEventListener('click', ev => {
-  chrome.tabs.create({ url: 'https://yuque.com/jiushen/blog/xswitch-readme' }, function (
-    tab
-  ) {
+document.getElementById(OPEN_README_DOM_ID).addEventListener('click', ev => {
+  chrome.tabs.create({ url: HELP_URL }, function(tab) {
     // Tab opened.
   });
 });
