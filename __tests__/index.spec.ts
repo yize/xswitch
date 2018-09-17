@@ -6,7 +6,7 @@ beforeEach(() => {
 });
 
 describe('no rules', () => {
-  test('no forwarding when no rules', () => {
+  test('no forward when no rules', () => {
     expect(
       // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
@@ -29,7 +29,7 @@ describe('no rules', () => {
 });
 
 describe('rule[1] is not string', () => {
-  test('no forwarding when no rule[1]', () => {
+  test('no forward when no rule[1]', () => {
     forward.config.proxy = [['g.alicdn.com']];
     expect(
       // @ts-ignore
@@ -44,7 +44,7 @@ describe('rule[1] is not string', () => {
     ).toEqual({});
   });
 
-  test('no forwarding when rule[1] is not string', () => {
+  test('no forward when rule[1] is not string', () => {
     // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', ['a', 'b']]];
     expect(
@@ -60,7 +60,7 @@ describe('rule[1] is not string', () => {
     ).toEqual({});
   });
 
-  test('no forwarding when rule[1] is not string', () => {
+  test('no forward when rule[1] is not string', () => {
     // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', {}]];
     expect(
@@ -100,8 +100,8 @@ describe('chrome-extension://', () => {
   });
 });
 
-describe('same request id should not forwarding', () => {
-  test('no forwarding', () => {
+describe('same request id should not forward', () => {
+  test('no forward', () => {
     expect(
       // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
@@ -117,7 +117,7 @@ describe('same request id should not forwarding', () => {
 });
 
 describe('string urls', () => {
-  test('should forwarding normal url without query', () => {
+  test('should forward normal url without query', () => {
     forward.config.proxy = [['g.alicdn.com', 'g.alicdn.com?t=2']];
     expect(
       // @ts-ignore
@@ -145,7 +145,7 @@ describe('string urls', () => {
     ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
-  test('should forwarding normal url with query', () => {
+  test('should forward normal url with query', () => {
     forward.config.proxy = [
       ['https://g.alicdn.com?t=1', 'https://g.alicdn.com?t=2']
     ];
@@ -173,7 +173,7 @@ describe('string urls', () => {
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
-  test('should forwarding url with ?? ', () => {
+  test('should forward url with ?? ', () => {
     forward.config.proxy = [
       ['https://a.com/??a.js,b.js', 'https://b.com/??a.js,b.js']
     ];
@@ -204,7 +204,7 @@ describe('string urls', () => {
 });
 
 describe('reg urls', () => {
-  test('should forwarding reg url without query', () => {
+  test('should forward reg url without query', () => {
     forward.config.proxy = [['g.(\\w+).com', 'g.alicdn.com?t=2']];
 
     expect(
@@ -239,7 +239,7 @@ describe('reg urls', () => {
     ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
-  test('should forwarding reg url with query', () => {
+  test('should forward reg url with query', () => {
     forward.config.proxy = [
       ['(.*)g.(.*).com\\?t=1', 'https://g.alicdn.com?t=2']
     ];
@@ -268,7 +268,7 @@ describe('reg urls', () => {
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
 
-  test('should forwarding reg url with ??', () => {
+  test('should forward reg url with ??', () => {
     forward.config.proxy = [
       ['(.*)g.alicdn.com/\\?\\?(.*)', '$1alinw.alicdn.com/??$2']
     ];

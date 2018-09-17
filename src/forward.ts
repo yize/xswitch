@@ -39,7 +39,7 @@ const matchUrl = (url: string, reg: string): string | boolean => {
   return false;
 };
 
-class Foward {
+class Forward {
   private _lastRequestId: string | null = null;
   private _disabled: Enabled = Enabled.YES;
   private _config: IFowardConfig = {};
@@ -234,4 +234,8 @@ class Foward {
   }
 }
 
-export default new Foward();
+if (!window._forward) {
+  window._forward = new Forward();
+}
+
+export default window._forward;

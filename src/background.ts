@@ -146,5 +146,3 @@ function clearCache(): void {
     );
   }
 }
-
-window._forward = forward;
