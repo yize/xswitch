@@ -1,76 +1,79 @@
+import { EMPTY_STRING } from "./constants";
+
 // https://github.com/sindresorhus/strip-json-comments
 const singleComment = 1;
 const multiComment = 2;
-const stripWithoutWhitespace = () => "";
-const stripWithWhitespace = (str, start, end) =>
-    str.slice(start, end).replace(/\S/g, " ");
+const stripWithoutWhitespace = (): string => EMPTY_STRING;
+const stripWithWhitespace = (str: string, start: number, end: number): string =>
+  str.slice(start, end).replace(/\S/g, ' ');
 
-export function stripJsonComments(str, opts?) {
-    opts = opts || {};
+interface IStripOptions {
+  whitespace?: boolean;
+}
 
-    const strip =
-        opts.whitespace === false
-            ? stripWithoutWhitespace
-            : stripWithWhitespace;
+export function stripJsonComments(str: string, opts?: IStripOptions): string {
+  opts = opts || {};
 
-    let insideString = false;
-    let insideComment: number | boolean = false;
-    let offset = 0;
-    let ret = "";
+  const strip =
+    opts.whitespace === false ? stripWithoutWhitespace : stripWithWhitespace;
 
-    for (let i = 0; i < str.length; i++) {
-        const currentChar = str[i];
-        const nextChar = str[i + 1];
+  let insideString: boolean = false;
+  let insideComment: number | boolean = false;
+  let offset: number = 0;
+  let ret: string = EMPTY_STRING;
 
-        if (!insideComment && currentChar === '"') {
-            const escaped = str[i - 1] === "\\" && str[i - 2] !== "\\";
-            if (!escaped) {
-                insideString = !insideString;
-            }
-        }
+  for (let i:number = 0; i < str.length; i++) {
+    const currentChar = str[i];
+    const nextChar = str[i + 1];
 
-        if (insideString) {
-            continue;
-        }
-
-        if (!insideComment && currentChar + nextChar === "//") {
-            ret += str.slice(offset, i);
-            offset = i;
-            insideComment = singleComment;
-            i++;
-        } else if (
-            insideComment === singleComment &&
-            currentChar + nextChar === "\r\n"
-        ) {
-            i++;
-            insideComment = false;
-            ret += strip(str, offset, i);
-            offset = i;
-            continue;
-        } else if (insideComment === singleComment && currentChar === "\n") {
-            insideComment = false;
-            ret += strip(str, offset, i);
-            offset = i;
-        } else if (!insideComment && currentChar + nextChar === "/*") {
-            ret += str.slice(offset, i);
-            offset = i;
-            insideComment = multiComment;
-            i++;
-            continue;
-        } else if (
-            insideComment === multiComment &&
-            currentChar + nextChar === "*/"
-        ) {
-            i++;
-            insideComment = false;
-            ret += strip(str, offset, i + 1);
-            offset = i + 1;
-            continue;
-        }
+    if (!insideComment && currentChar === '"') {
+      const escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
+      if (!escaped) {
+        insideString = !insideString;
+      }
     }
 
-    return (
-        ret + (insideComment ? strip(str.substr(offset), 0, 0) : str.substr(offset))
-    );
-};
+    if (insideString) {
+      continue;
+    }
 
+    if (!insideComment && currentChar + nextChar === '//') {
+      ret += str.slice(offset, i);
+      offset = i;
+      insideComment = singleComment;
+      i++;
+    } else if (
+      insideComment === singleComment &&
+      currentChar + nextChar === '\r\n'
+    ) {
+      i++;
+      insideComment = false;
+      ret += strip(str, offset, i);
+      offset = i;
+      continue;
+    } else if (insideComment === singleComment && currentChar === '\n') {
+      insideComment = false;
+      ret += strip(str, offset, i);
+      offset = i;
+    } else if (!insideComment && currentChar + nextChar === '/*') {
+      ret += str.slice(offset, i);
+      offset = i;
+      insideComment = multiComment;
+      i++;
+      continue;
+    } else if (
+      insideComment === multiComment &&
+      currentChar + nextChar === '*/'
+    ) {
+      i++;
+      insideComment = false;
+      ret += strip(str, offset, i + 1);
+      offset = i + 1;
+      continue;
+    }
+  }
+
+  return (
+    ret + (insideComment ? strip(str.substr(offset), 0, 0) : str.substr(offset))
+  );
+}

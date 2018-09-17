@@ -12,18 +12,18 @@
 
 一个用来做请求链接转发的 [Chrome 浏览器插件][link-cws]，因为采用的是浏览器原生 API，安全性和性能能得到保障。
 
-[![xswitch-intro](https://cdn.nlark.com/yuque/0/2018/png/137701/1536999137086-9377abf2-ac97-4ccf-ae71-de178bf7238a.png)](https://www.youtube.com/watch?v=--gQM3ysCzc)
+[![XSwitch-intro](https://cdn.nlark.com/yuque/0/2018/png/137701/1536999137086-9377abf2-ac97-4ccf-ae71-de178bf7238a.png)](https://www.youtube.com/watch?v=--gQM3ysCzc)
 
 ## 功能
 
-* [x] 请求地址转发
-* [x] 全局插件启用开关
-* [x] 可禁用浏览器缓存
-* [x] 可在 JSON 中写注释
-* [x] 自动补全（auto complete）
-* [x] 支持 CORS，并且支持 Access-Control-Allow-Credentials
-* [x] 跨域和缓存禁用键
-* [ ] 分组规则
+- [x] 请求地址转发
+- [x] 全局插件启用开关
+- [x] 可禁用浏览器缓存
+- [x] 可在 JSON 中写注释
+- [x] 自动补全（auto complete）
+- [x] 支持 CORS，并且支持 Access-Control-Allow-Credentials
+- [x] 跨域和缓存禁用键
+- [ ] 分组规则
 
 ## 用法
 
@@ -33,7 +33,7 @@
 
 ```js
 {
-  // proxyRules
+  // 转发规则
   "proxy": [
     [
       "//alinw.alicdn.com/platform/daily-test/isDaily.js", // 匹配 URL
@@ -54,7 +54,7 @@
     //   "(.*)/platform/daily-test/(.*).js$",
     //   "http://127.0.0.1:3000/daily-test/$1.js"
     // ],
-    // 直接转换成 inline 模式的 JavaScript
+    // 直接转换成 inline 模式的 JavaScript
     // [
     //   "https://alinw.alicdn.com/platform/daily-test/isDaily.js",
     //   "data:text/javascript,window.__isDaily = true;"
@@ -70,8 +70,8 @@
 
 更多说明：[https://yuque.com/jiushen/blog/xswitch-readme](https://yuque.com/jiushen/blog/xswitch-readme)
 
-* 访问 [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
-* 最终, 你的 URL 会被改写成 [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
+- 访问 [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)
+- 最终, 你的 URL 会被改写成 [https://<b>g.alicdn.com</b>/platform/daily-test/isDaily.<b>json</b>](https://g.alicdn.com/platform/daily-test/isDaily.json)
 
 ## License
 

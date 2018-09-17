@@ -1,38 +1,61 @@
+import {
+  CORS,
+  DEFAULT_CORS_CREDENTIALS,
+  DEFAULT_CORS_METHODS,
+  DEFAULT_CORS_ORIGIN,
+  ORIGIN,
+  REG,
+  EMPTY_STRING,
+  DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
+  NULL_STRING,
+  ACCESS_CONTROL_REQUEST_HEADERS
+} from './constants';
+import { Enabled, UrlType } from './enums';
+
 interface IFowardConfig {
-  proxy?: Array<Array<string>>;
-  cors?: Array<string>;
+  proxy?: string[][];
+  cors?: string[];
 }
 
-const matchUrl = (url, reg) => {
-  // support [ ] ( ) \ * ^ $
-  if (/\\|\[|]|\(|\)|\*|\$|\^/i.test(reg)) {
+/**
+ * get url type
+ * @param url urls
+ * @param reg rule
+ */
+const matchUrl = (url: string, reg: string): string | boolean => {
+  if (REG.FORWARD.test(reg)) {
     // support ??
-    let r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
-    let matched = r.test(url);
+    const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+    const matched = r.test(url);
     if (matched) {
-      return 'reg';
+      return UrlType.REG;
     }
   } else {
-    let matched = url.indexOf(reg) > -1;
+    const matched = url.indexOf(reg) > -1;
     if (matched) {
-      return 'string';
+      return UrlType.STRING;
     }
   }
   return false;
 };
-class Foward {
-  private _lastRequestId: number | null = null;
-  private _disabled: string = 'enabled';
+
+class Forward {
+  private _lastRequestId: string | null = null;
+  private _disabled: Enabled = Enabled.YES;
   private _config: IFowardConfig = {};
   private _originRequest: Map<string, string> = new Map();
   private _originRequestHeaders: Map<string, string> = new Map();
+  private _urls: string[] = new Array(200); // for cache
 
-  public urls: Array<string> = new Array(200); // for cache
+  get urls(): string[] {
+    return this._urls;
+  }
 
-  get disabled(): string {
+  get disabled(): Enabled {
     return this._disabled;
   }
-  set disabled(newValue: string) {
+
+  set disabled(newValue: Enabled) {
     this._disabled = newValue;
   }
   get config(): IFowardConfig {
@@ -43,10 +66,13 @@ class Foward {
   }
 
   //Breaking the CORS Limitation
-  onHeadersReceivedCallback(details, cors = true) {
+  onHeadersReceivedCallback(
+    details: chrome.webRequest.WebResponseHeadersDetails,
+    cors: boolean = true
+  ): chrome.webRequest.BlockingResponse {
     // has cors rules
-    let corsMap = this.config.cors;
-    let corsMatched = false;
+    let corsMap: string[] = this.config.cors;
+    let corsMatched: boolean = false;
 
     if (corsMap && corsMap.length) {
       corsMap.forEach(rule => {
@@ -56,42 +82,37 @@ class Foward {
       });
     }
 
-    if (this.disabled == 'disabled' || !cors || !corsMatched) {
+    let disabled: boolean =
+      this.disabled == Enabled.NO || !cors || !corsMatched;
+
+    if (disabled) {
       return {};
     }
 
-    let originUrl = details.url;
-    let resHeaders = [];
-    let CORSOrigin =
+    let originUrl: string = details.url;
+    let resHeaders: chrome.webRequest.HttpHeader[] = [];
+    let CORSOrigin: string =
       (this._originRequest.get(details.requestId)
         ? this._originRequest.get(details.requestId)
-        : details.initiator) || '*';
+        : details.initiator) || DEFAULT_CORS_ORIGIN;
 
     if (details.responseHeaders && details.responseHeaders.filter) {
-      let hasCredentials = false;
-      let tempOrigin = '';
+      let hasCredentials: boolean | string = false;
+      let tempOrigin: string = EMPTY_STRING;
       resHeaders = details.responseHeaders.filter(responseHeader => {
         // Already has access-control-allow-origin headers
-        if (
-          'access-control-allow-origin' === responseHeader.name.toLowerCase()
-        ) {
+        if (CORS.ORIGIN === responseHeader.name.toLowerCase()) {
           tempOrigin = responseHeader.value;
         }
 
-        if (
-          'access-control-allow-credentials' ===
-          responseHeader.name.toLowerCase()
-        ) {
+        if (CORS.CREDENTIALS === responseHeader.name.toLowerCase()) {
           hasCredentials = responseHeader.value;
         }
 
         if (
-          [
-            'access-control-allow-origin',
-            'access-control-allow-credentials',
-            'access-control-allow-methods',
-            'access-control-allow-headers'
-          ].indexOf(responseHeader.name.toLowerCase()) < 0
+          [CORS.ORIGIN, CORS.CREDENTIALS, CORS.METHODS, CORS.HEADERS].indexOf(
+            responseHeader.name.toLowerCase()
+          ) < 0
         ) {
           return true;
         }
@@ -106,32 +127,34 @@ class Foward {
 
     // suck point
     if (
-      CORSOrigin === '*' &&
-      this._originRequest.get(details.requestId) === 'null'
+      CORSOrigin === DEFAULT_CORS_ORIGIN &&
+      this._originRequest.get(details.requestId) === NULL_STRING
     ) {
-      CORSOrigin = '*';
+      CORSOrigin = DEFAULT_CORS_ORIGIN;
     }
 
     resHeaders.push({
-      name: 'Access-Control-Allow-Origin',
+      name: CORS.ORIGIN,
       value: CORSOrigin
     });
     resHeaders.push({
-      name: 'Access-Control-Allow-Credentials',
-      value: 'true'
+      name: CORS.CREDENTIALS,
+      value: DEFAULT_CORS_CREDENTIALS
     });
     resHeaders.push({
-      name: 'Access-Control-Allow-Methods',
-      value: '*'
+      name: CORS.METHODS,
+      value: DEFAULT_CORS_METHODS
     });
-    let CORSHeader = this._originRequestHeaders.get(details.requestId)
-      ? ',' + this._originRequestHeaders.get(details.requestId)
-      : '';
+
+    let CORSHeader: string = EMPTY_STRING;
+
+    if (this._originRequestHeaders.get(details.requestId)) {
+      CORSHeader = ',' + this._originRequestHeaders.get(details.requestId);
+    }
+
     resHeaders.push({
-      name: 'Access-Control-Allow-Headers',
-      value:
-        'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Referer' +
-        CORSHeader
+      name: CORS.HEADERS,
+      value: DEFAULT_CREDENTIALS_RESPONSE_HEADERS + CORSHeader
     });
 
     return {
@@ -139,39 +162,37 @@ class Foward {
     };
   }
 
-  redirectToMatchingRule(details) {
+  redirectToMatchingRule(
+    details: chrome.webRequest.WebRequestHeadersDetails
+  ): chrome.webRequest.BlockingResponse {
     const rules = this.config.proxy;
-    let redirectUrl = details.url;
+    let redirectUrl: string = details.url;
 
     // in case of chrome-extension downtime
-    if (
-      !rules ||
-      !rules.length ||
-      /^chrome-extension:\/\//i.test(redirectUrl)
-    ) {
+    if (!rules || !rules.length || REG.CHROME_EXTENSION.test(redirectUrl)) {
       return {};
     }
 
     if (
       /http(s?):\/\/.*\.(js|css|json|jsonp)/.test(redirectUrl) &&
-      this.urls.indexOf(redirectUrl) < 0
+      this._urls.indexOf(redirectUrl) < 0
     ) {
-      this.urls.shift();
-      this.urls.push(redirectUrl);
+      this._urls.shift();
+      this._urls.push(redirectUrl);
     }
 
     try {
-      for (let i = 0; i < rules.length; i++) {
+      for (let i: number = 0; i < rules.length; i++) {
         const rule = rules[i];
         if (rule && rule[0] && typeof rule[1] === 'string') {
-          let reg = rule[0];
-          let matched = matchUrl(redirectUrl, reg);
+          const reg = rule[0];
+          const matched = matchUrl(redirectUrl, reg);
 
           if (details.requestId !== this._lastRequestId) {
-            if (matched === 'reg') {
-              let r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+            if (matched === UrlType.REG) {
+              const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
               redirectUrl = redirectUrl.replace(r, rule[1]);
-            } else if (matched === 'string') {
+            } else if (matched === UrlType.STRING) {
               redirectUrl = redirectUrl.split(rule[0]).join(rule[1]);
             }
           }
@@ -185,19 +206,18 @@ class Foward {
     return redirectUrl === details.url ? {} : { redirectUrl };
   }
 
-  onBeforeSendHeadersCallback(details) {
-    let headers = [];
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
+  onBeforeSendHeadersCallback(
+    details: chrome.webRequest.WebRequestHeadersDetails
+  ): chrome.webRequest.BlockingResponse {
+    let headers: string[] = [];
+    for (let i: number = 0; i < details.requestHeaders.length; ++i) {
       const requestName = details.requestHeaders[i].name.toLowerCase();
-      if (requestName === 'origin') {
+      if (requestName === ORIGIN) {
         this._originRequest.set(
           details.requestId,
           details.requestHeaders[i].value
         );
-      } else if (
-        requestName === 'access-control-request-headers' ||
-        /^x-/.test(requestName)
-      ) {
+      } else if (requestName === ACCESS_CONTROL_REQUEST_HEADERS || REG.X_HEADER.test(requestName)) {
         headers.push(requestName);
       }
     }
@@ -207,9 +227,15 @@ class Foward {
     return { requestHeaders: details.requestHeaders };
   }
 
-  onBeforeRequestCallback(details) {
+  onBeforeRequestCallback(
+    details: chrome.webRequest.WebRequestHeadersDetails
+  ): chrome.webRequest.BlockingResponse {
     return this.redirectToMatchingRule(details);
   }
 }
 
-export default new Foward;
+if (!window._forward) {
+  window._forward = new Forward();
+}
+
+export default window._forward;

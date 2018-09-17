@@ -1,18 +1,18 @@
-import { TRIM_JSON_REG } from '../src/constant'
+import { REG, EMPTY_STRING } from '../src/constants';
 import { stripJsonComments } from '../src/strip-json-comments';
 
-const replace = (data) => {
+const replace = (jsonc: string): string => {
   try {
     return JSON.parse(
-      stripJsonComments(data)
-        .replace(/\s+/g, '')
-        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2),
+      stripJsonComments(jsonc)
+        .replace(REG.WHITESPACE, EMPTY_STRING)
+        .replace(REG.TRIM_JSON, ($0, $1, $2) => $2)
     );
   } catch (e) {
     console.log(
-      stripJsonComments(data)
-        .replace(/\s+/g, '')
-        .replace(TRIM_JSON_REG, ($0, $1, $2) => $2),
+      stripJsonComments(jsonc)
+        .replace(REG.WHITESPACE, EMPTY_STRING)
+        .replace(REG.TRIM_JSON, ($0, $1, $2) => $2)
     );
     return 'parsed error';
   }
@@ -54,7 +54,9 @@ describe('parse', () => {
   ]
 }`;
 
-    expect(replace(jsonString)).toEqual({ proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']] });
+    expect(replace(jsonString)).toEqual({
+      proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']]
+    });
   });
 
   test('parse urls with ?? with comments,', () => {
@@ -68,7 +70,9 @@ describe('parse', () => {
   ]
 }`;
 
-    expect(replace(jsonString)).toEqual({ proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']] });
+    expect(replace(jsonString)).toEqual({
+      proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js']]
+    });
   });
 
   test('parse urls with ?? with comments,', () => {
@@ -93,7 +97,10 @@ describe('parse', () => {
 }`;
 
     expect(replace(jsonString)).toEqual({
-      proxy: [['a.com??a.js,b.js', 'b.com??a.js,b.js'], ['jQuery', 'jQuery.min.js']],
+      proxy: [
+        ['a.com??a.js,b.js', 'b.com??a.js,b.js'],
+        ['jQuery', 'jQuery.min.js']
+      ]
     });
   });
 
@@ -108,7 +115,7 @@ describe('parse', () => {
 }`;
 
     expect(replace(jsonString)).toEqual({
-      proxy: [['(.*)a.com??a.js,b.js', '$1b.com??a.js,b.js']],
+      proxy: [['(.*)a.com??a.js,b.js', '$1b.com??a.js,b.js']]
     });
   });
 });

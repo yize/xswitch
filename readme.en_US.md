@@ -18,21 +18,21 @@ A [Chrome Extension][link-cws] for redirecting/forwarding request urls.
 
 ## Features
 
-* [x] Redirect `request.url`
-* [x] Global switch control
-* [x] Disable browser cache
-* [x] JSON comments
-* [x] Rule suggestions
-* [x] CORS
-* [x] CORS & browser cache control
-* [ ] Rules Grouping
-
+- [x] Redirect `request.url`
+- [x] Global switch control
+- [x] Disable browser cache
+- [x] JSON comments
+- [x] Rule suggestions
+- [x] CORS
+- [x] CORS & browser cache control
+- [ ] Rules Grouping
 
 ## Usage
 
 更多说明：[https://yuque.com/jiushen/blog/xswitch-readme](https://yuque.com/jiushen/blog/xswitch-readme)
 
 Rules will be executed in order before all requests are initiated.
+
 ```js
 {
   // proxyRules
