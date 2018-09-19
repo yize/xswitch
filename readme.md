@@ -20,8 +20,8 @@
 - [x] 全局插件启用开关
 - [x] 可禁用浏览器缓存
 - [x] 可在 JSON 中写注释
-- [x] 自动补全（auto complete）
-- [x] 支持 CORS，并且支持 Access-Control-Allow-Credentials
+- [x] 自动补全
+- [x] 支持 CORS，支持 withCredentials
 - [x] 跨域和缓存禁用键
 - [ ] 分组规则
 
