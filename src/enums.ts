@@ -9,9 +9,9 @@ export enum Enabled {
 }
 
 export enum IconBackgroundColor {
-  ON = '#3367d6',
+  ON = '#1890ff',
   OFF = '#bfbfbf',
-  ERROR = '#c53929'
+  ERROR = '#f5222d'
 }
 
 export enum BadgeText {

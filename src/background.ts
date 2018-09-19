@@ -1,4 +1,4 @@
-import { ALL_URLS, BLOCKING, EMPTY_STRING, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS, JSON_STORAGE_KEY } from './constants';
+import { ALL_URLS, BLOCKING, EMPTY_STRING, MILLISECONDS_PER_WEEK, REQUEST_HEADERS, RESPONSE_HEADERS, JSON_STORAGE_KEY, DISABLED_STORAGE_KEY, CLEAR_CACHE_ENABLED_STORAGE_KEY, CORS_ENABLED_STORAGE_KEY, PROXY_STORAGE_KEY, CORS_STORAGE_KEY } from './constants';
 import { BadgeText, Enabled, IconBackgroundColor } from './enums';
 import forward from './forward';
 
@@ -8,56 +8,61 @@ let corsEnabled: boolean = true;
 let parseError: boolean = false;
 
 chrome.storage.sync.get(JSON_STORAGE_KEY, result => {
-  try {
-    if (result && result.config) {
-      forward.config = JSON.parse(result.config);
-    } else {
-      forward.config = {
-        proxy: [],
-        cors: []
-      };
-    }
+  if (result && result[JSON_STORAGE_KEY]) {
+    JSON_Parse(result[JSON_STORAGE_KEY], (error, json) => {
+      if (!error) {
+        forward[JSON_STORAGE_KEY] = json;
+        parseError = false;
+      } else {
+        forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY] = [];
+        parseError = true;
+      }
+    })
+  } else {
+    forward[JSON_STORAGE_KEY] = {
+      [PROXY_STORAGE_KEY]: [],
+      [CORS_STORAGE_KEY]: []
+    };
     parseError = false;
-  } catch (e) {
-    forward.config.proxy = [];
-    parseError = true;
   }
 });
 
 chrome.storage.sync.get(
   {
-    disabled: Enabled.YES,
-    clearCacheEnabled: Enabled.YES,
-    corsEnabled: Enabled.YES
+    [DISABLED_STORAGE_KEY]: Enabled.YES,
+    [CLEAR_CACHE_ENABLED_STORAGE_KEY]: Enabled.YES,
+    [CORS_ENABLED_STORAGE_KEY]: Enabled.YES
   },
   result => {
-    forward.disabled = result.disabled;
-    clearCacheEnabled = result.clearCacheEnabled === Enabled.YES;
-    corsEnabled = result.corsEnabled === Enabled.YES;
+    forward[DISABLED_STORAGE_KEY] = result[DISABLED_STORAGE_KEY];
+    clearCacheEnabled = result[CLEAR_CACHE_ENABLED_STORAGE_KEY] === Enabled.YES;
+    corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
     setIcon();
   }
 );
 
 chrome.storage.onChanged.addListener(changes => {
-  if (changes.config) {
-    try {
-      forward.config = JSON.parse(changes.config.newValue);
-      parseError = false;
-    } catch (e) {
-      forward.config.proxy = [];
-      parseError = true;
-    }
+  if (changes[JSON_STORAGE_KEY]) {
+    JSON_Parse(changes[JSON_STORAGE_KEY].newValue, (error, json) => {
+      if (!error) {
+        forward[JSON_STORAGE_KEY] = json;
+        parseError = false;
+      } else {
+        forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY] = [];
+        parseError = true;
+      }
+    })
   }
-  if (changes.disabled) {
-    forward.disabled = changes.disabled.newValue;
-  }
-
-  if (changes.clearCacheEnabled) {
-    clearCacheEnabled = changes.clearCacheEnabled.newValue === Enabled.YES;
+  if (changes[DISABLED_STORAGE_KEY]) {
+    forward[DISABLED_STORAGE_KEY] = changes[DISABLED_STORAGE_KEY].newValue;
   }
 
-  if (changes.corsEnabled) {
-    corsEnabled = changes.corsEnabled.newValue === Enabled.YES;
+  if (changes[CLEAR_CACHE_ENABLED_STORAGE_KEY]) {
+    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
+  }
+
+  if (changes[CORS_ENABLED_STORAGE_KEY]) {
+    corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
   setIcon();
@@ -65,7 +70,7 @@ chrome.storage.onChanged.addListener(changes => {
 
 chrome.webRequest.onBeforeRequest.addListener(
   details => {
-    if (forward.disabled !== Enabled.NO) {
+    if (forward[DISABLED_STORAGE_KEY] !== Enabled.NO) {
       if (clearCacheEnabled) {
         clearCache();
       }
@@ -95,6 +100,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   [BLOCKING, REQUEST_HEADERS]
 );
 
+function JSON_Parse(json: string, cb: (error: object | boolean, json?: object) => void): void {
+  try {
+    cb(false, JSON.parse(json));
+  } catch (e) {
+    cb(e)
+  }
+}
+
 function setBadgeAndBackgroundColor(
   text: string | number,
   color: string
@@ -114,9 +127,9 @@ function setIcon(): void {
     return;
   }
 
-  if (forward.disabled !== Enabled.NO) {
+  if (forward[DISABLED_STORAGE_KEY] !== Enabled.NO) {
     setBadgeAndBackgroundColor(
-      forward.config.proxy.length,
+      forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY]['length'],
       IconBackgroundColor.ON
     );
   } else {
@@ -125,9 +138,7 @@ function setIcon(): void {
   }
 }
 
-function headersReceivedListener(
-  details: chrome.webRequest.WebResponseHeadersDetails
-): chrome.webRequest.BlockingResponse {
+function headersReceivedListener(details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
   return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 

@@ -4,15 +4,14 @@ export const REG = {
   // support [ ] ( ) \ * ^ $
   FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
   WHITESPACE: /\s+/g,
-  X_HEADER:/^x-/
+  X_HEADER: /^x-/
 };
 
 export const ALL_URLS = '<all_urls>';
 export const BLOCKING = 'blocking';
 export const REQUEST_HEADERS = 'requestHeaders';
 export const RESPONSE_HEADERS = 'responseHeaders';
-export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS =
-  'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
+export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS = 'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
 export const CORS = {
   METHODS: 'access-control-allow-methods',
   CREDENTIALS: 'access-control-allow-credentials',
@@ -36,7 +35,10 @@ export const JSONC_STORAGE_KEY = 'config_for_shown';
  * JSON with comments storage key
  */
 export const JSON_STORAGE_KEY = 'config';
-
+export const CLEAR_CACHE_ENABLED_STORAGE_KEY = 'clearCacheEnabled';
+export const CORS_STORAGE_KEY = 'cors';
+export const CORS_ENABLED_STORAGE_KEY = 'corsEnabled';
+export const PROXY_STORAGE_KEY = 'proxy';
 export const MILLISECONDS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
 export const RULE = 'rule';
 export const LANGUAGE_JSON = 'json';
@@ -52,12 +54,11 @@ export const STATUS_DOM_ID = 'J_Status';
 export const CLEAR_CACHE_ENABLED_DOM_ID = 'J_ClearCacheEnabled';
 export const CORS_ENABLED_DOM_ID = 'J_CorsEnabled';
 export const SWITCH_CHECKED_CLASSNAME = 'ant-switch-checked';
-export const POPUP_HTML_NAME = 'XSwitch.html';
+export const POPUP_HTML_PATH = 'output/XSwitch.html';
 export const MONACO_VS_PATH = '../lib/monaco-editor/min/vs';
 export const MONACO_CONTRIBUTION_PATH = 'vs/language/json/monaco.contribution';
 export const HELP_URL = 'https://yuque.com/jiushen/blog/xswitch-readme';
-export const DEFAULT_FONT_FAMILY =
-  'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';
+export const DEFAULT_FONT_FAMILY = 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';
 export const PLATFORM_MAC = 'Mac';
 export const OPTIONS_SAVED = 'Options saved.';
 export const EMPTY_STRING = '';

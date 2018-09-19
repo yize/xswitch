@@ -18,7 +18,7 @@ import {
   OPACITY_VISIBLE,
   OPEN_README_DOM_ID,
   PLATFORM_MAC,
-  POPUP_HTML_NAME,
+  POPUP_HTML_PATH,
   RULE,
   RULE_COMPLETION,
   SHOW_FOLDING_CONTROLS,
@@ -178,7 +178,7 @@ document.getElementById(SWITCH_DOM_ID).addEventListener(CLICK, ev => {
 
 document.getElementById(NEW_TAB_DOM_ID).addEventListener(CLICK, ev => {
   chrome.tabs.create(
-    { url: chrome.extension.getURL(POPUP_HTML_NAME) },
+    { url: chrome.extension.getURL(POPUP_HTML_PATH) },
     function(tab) {
       // Tab opened.
     }
