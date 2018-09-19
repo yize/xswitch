@@ -1,10 +1,35 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "noImplicitAny": false,
-    "sourceMap": false,
-    "outDir": "dist/js",
-    "noEmitOnError": true
+    "module": "esnext",
+    "target": "esnext",
+    "lib": [
+      "dom",
+      "es5",
+      "es2015",
+      "es2016",
+      "es2017"
+    ],
+    "sourceMap": true,
+    "jsx": "react",
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./src/",
+    "./typings/",
+    "./test"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ],
+  "awesomeTypescriptLoaderOptions": {
+    "transpileOnly" : true
   }
 }

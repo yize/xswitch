@@ -2,14 +2,13 @@
   "name": "xswitch",
   "description": "A proxy tool based on Chrome.extensions",
   "author": "yize",
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:yize/xswitch.git"
   },
   "scripts": {
-    "start": "webpack --config webpack/webpack.dev.js --watch",
-    "build": "webpack --config webpack/webpack.prod.js",
+    "start": "nowa2 start",
+    "build": "nowa2 build",
     "pub": "npm run build && npm t && rm xswitch.zip &&zip -r xswitch.zip dist && open https://chrome.google.com/webstore/developer/dashboard",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
@@ -37,7 +36,11 @@
     "typescript": "~3.0.3",
     "webpack": "~4.17.2",
     "webpack-cli": "~3.1.0",
-    "webpack-merge": "~4.1.4"
+    "webpack-merge": "~4.1.4",
+    "@ali/recore-loader": "beta",
+    "@types/react": "^16",
+    "@ali/nowa-recore-solution": "beta",
+    "@nowa/cli": "^0.6.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -56,5 +59,8 @@
     "testMatch": [
       "**/__tests__/*.+(ts|tsx|js)"
     ]
+  },
+  "nowa": {
+    "solution": "@ali/nowa-recore-solution"
   }
 }

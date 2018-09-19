@@ -1,0 +1,14 @@
+<div className="container" ref="shell"></div>
+<div className="toolbar-area">
+    <div className="switch-control" title="control">
+        <span className="ant-switch" className.ant-switch-checked={checked} id="J_Switch" @click="toggleButton">
+        <span className="ant-switch-inner" id="J_SwitchInner">{checkedLabel}</span>
+        </span>
+    </div>
+    <a className="open-readme" title="Open help page" href="javascript:;">
+        <img className="new-tab-icon" src={`${prefix}/images/info.svg`} />
+    </a>
+    <a className="new-tab-control" title="Open in new tab">
+        <img className="new-tab-icon" src={`${prefix}/images/new-tab.svg`} />
+    </a>
+</div>
