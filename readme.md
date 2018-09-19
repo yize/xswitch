@@ -10,9 +10,11 @@
 
 [![Chrome version][badge-cws]][link-cws] [![Chrome version][badge-cws-count]][link-cws] [![Build Status][badge-travis]][link-travis] [![Coverage Status][badge-coverage]][link-coverage] [![license][badge-license]][link-xswitch]
 
-一个用来做请求链接转发的 [Chrome 浏览器插件][link-cws]，因为采用的是浏览器原生 API，安全性和性能能得到保障。
+一个用来做请求链接转发的 [Chrome 浏览器插件][link-cws]，因为采用的是浏览器原生 `API`，安全性和性能能得到保障。
 
 [![XSwitch-intro](https://cdn.nlark.com/yuque/0/2018/png/137701/1536999137086-9377abf2-ac97-4ccf-ae71-de178bf7238a.png)](https://www.youtube.com/watch?v=--gQM3ysCzc)
+
+[优酷视频介绍](https://v.youku.com/v_show/id_XMzgyNDgwODAwNA==.html)
 
 ## 功能
 
@@ -75,10 +77,10 @@
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://ithans.com)
+[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://nsole.co)
 
 [link-xswitch]: https://github.com/yize/xswitch
-[link-cws]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
+[link-cws]: https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg
 [link-me]: https://github.com/Microsoft/monaco-editor
 [link-travis]: https://travis-ci.org/yize/xswitch
 [link-coverage]: https://coveralls.io/github/yize/xswitch?branch=master

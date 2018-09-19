@@ -72,10 +72,10 @@ Rules will be executed in order before all requests are initiated.
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://ithans.com)
+[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://nsole.co)
 
 [link-xswitch]: https://github.com/yize/xswitch
-[link-cws]: https://chrome.google.com/webstore/detail/idkjhjggpffolpidfkikidcokdkdaogg
+[link-cws]: https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg
 [link-me]: https://github.com/Microsoft/monaco-editor
 [link-travis]: https://travis-ci.org/yize/xswitch
 [link-coverage]: https://coveralls.io/github/yize/xswitch?branch=master
