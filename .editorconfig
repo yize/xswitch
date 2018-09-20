@@ -1,7 +1,9 @@
-# editorconfig.org
+# EditorConfig is awesome: http://EditorConfig.org
 
+# top-most EditorConfig file
 root = true
 
+# Tab indentation
 [*]
 charset = utf-8
 end_of_line = lf
@@ -12,4 +14,3 @@ trim_trailing_whitespace = true
 
 [*.md]
 trim_trailing_whitespace = false
-
