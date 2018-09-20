@@ -8,7 +8,7 @@ import {
   EMPTY_STRING,
   DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
   NULL_STRING,
-  ACCESS_CONTROL_REQUEST_HEADERS
+  ACCESS_CONTROL_REQUEST_HEADERS,
 } from './constants';
 import { Enabled, UrlType } from './enums';
 
@@ -65,31 +65,31 @@ class Forward {
     this._config = { ...newValue };
   }
 
-  //Breaking the CORS Limitation
+  // Breaking the CORS Limitation
   onHeadersReceivedCallback(
     details: chrome.webRequest.WebResponseHeadersDetails,
     cors: boolean = true
   ): chrome.webRequest.BlockingResponse {
     // has cors rules
-    let corsMap: string[] = this.config.cors;
+    const corsMap: string[] = this.config.cors!;
     let corsMatched: boolean = false;
 
     if (corsMap && corsMap.length) {
-      corsMap.forEach(rule => {
+      corsMap.forEach((rule) => {
         if (matchUrl(details.url, rule)) {
           corsMatched = true;
         }
       });
     }
 
-    let disabled: boolean =
-      this.disabled == Enabled.NO || !cors || !corsMatched;
+    const disabled: boolean =
+      this.disabled === Enabled.NO || !cors || !corsMatched;
 
     if (disabled) {
       return {};
     }
 
-    let originUrl: string = details.url;
+    const originUrl: string = details.url;
     let resHeaders: chrome.webRequest.HttpHeader[] = [];
     let CORSOrigin: string =
       (this._originRequest.get(details.requestId)
@@ -99,14 +99,14 @@ class Forward {
     if (details.responseHeaders && details.responseHeaders.filter) {
       let hasCredentials: boolean | string = false;
       let tempOrigin: string = EMPTY_STRING;
-      resHeaders = details.responseHeaders.filter(responseHeader => {
+      resHeaders = details.responseHeaders.filter((responseHeader) => {
         // Already has access-control-allow-origin headers
         if (CORS.ORIGIN === responseHeader.name.toLowerCase()) {
-          tempOrigin = responseHeader.value;
+          tempOrigin = responseHeader.value!;
         }
 
         if (CORS.CREDENTIALS === responseHeader.name.toLowerCase()) {
-          hasCredentials = responseHeader.value;
+          hasCredentials = responseHeader.value!;
         }
 
         if (
@@ -135,15 +135,15 @@ class Forward {
 
     resHeaders.push({
       name: CORS.ORIGIN,
-      value: CORSOrigin
+      value: CORSOrigin,
     });
     resHeaders.push({
       name: CORS.CREDENTIALS,
-      value: DEFAULT_CORS_CREDENTIALS
+      value: DEFAULT_CORS_CREDENTIALS,
     });
     resHeaders.push({
       name: CORS.METHODS,
-      value: DEFAULT_CORS_METHODS
+      value: DEFAULT_CORS_METHODS,
     });
 
     let CORSHeader: string = EMPTY_STRING;
@@ -154,11 +154,11 @@ class Forward {
 
     resHeaders.push({
       name: CORS.HEADERS,
-      value: DEFAULT_CREDENTIALS_RESPONSE_HEADERS + CORSHeader
+      value: DEFAULT_CREDENTIALS_RESPONSE_HEADERS + CORSHeader,
     });
 
     return {
-      responseHeaders: resHeaders
+      responseHeaders: resHeaders,
     };
   }
 
@@ -209,13 +209,13 @@ class Forward {
   onBeforeSendHeadersCallback(
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
-    let headers: string[] = [];
-    for (let i: number = 0; i < details.requestHeaders.length; ++i) {
-      const requestName = details.requestHeaders[i].name.toLowerCase();
+    const headers: string[] = [];
+    for (let i: number = 0; i < details.requestHeaders!.length; ++i) {
+      const requestName = details.requestHeaders![i].name.toLowerCase();
       if (requestName === ORIGIN) {
         this._originRequest.set(
           details.requestId,
-          details.requestHeaders[i].value
+          details.requestHeaders![i].value!
         );
       } else if (requestName === ACCESS_CONTROL_REQUEST_HEADERS || REG.X_HEADER.test(requestName)) {
         headers.push(requestName);

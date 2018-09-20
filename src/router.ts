@@ -4,15 +4,15 @@ export default {
   routes: [
     {
       path: '/options.html',
-      main: './options'
+      main: './options',
     },
     {
       path: '/XSwitch.html',
-      main: './xswitch'
+      main: './xswitch',
     },
     {
       path: '/',
-      main: './xswitch'
-    }
-  ]
-}
+      main: './xswitch',
+    },
+  ],
+};

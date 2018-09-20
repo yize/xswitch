@@ -9,7 +9,7 @@
   "scripts": {
     "start": "nowa2 start",
     "build": "nowa2 build",
-    "pub": "npm run build && npm t && rm xswitch.zip &&zip -r xswitch.zip dist && open https://chrome.google.com/webstore/developer/dashboard",
+    "pub": "npm run build && npm t && sh pub.sh",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
@@ -21,10 +21,18 @@
     "xproxy"
   ],
   "license": "MIT",
+  "dependencies": {
+    "@ali/recore": "^0.3.4",
+    "antd": "^3.9.2"
+  },
   "devDependencies": {
+    "@ali/nowa-recore-solution": "beta",
+    "@ali/recore-loader": "beta",
+    "@nowa/cli": "^0.6.0",
     "@types/chrome": "^0.0.73",
     "@types/jest": "^23.3.2",
     "@types/node": "^10.9.4",
+    "@types/react": "^16",
     "coveralls": "^3.0.2",
     "css-loader": "^1.0.0",
     "html-webpack-plugin": "^3.2.0",
@@ -36,11 +44,7 @@
     "typescript": "~3.0.3",
     "webpack": "~4.17.2",
     "webpack-cli": "~3.1.0",
-    "webpack-merge": "~4.1.4",
-    "@ali/recore-loader": "beta",
-    "@types/react": "^16",
-    "@ali/nowa-recore-solution": "beta",
-    "@nowa/cli": "^0.6.0"
+    "webpack-merge": "~4.1.4"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -53,7 +57,7 @@
     },
     "globals": {
       "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
+        "tsConfig": "tsconfig.json"
       }
     },
     "testMatch": [

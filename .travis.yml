@@ -1,7 +1,16 @@
 language: node_js
 node_js:
   - '8'
+install: 
+  - npm i jest
+  - npm i ts-jest
+  - npm i typescript
+  - npm i @types/jest
+  - npm i @types/chrome
+  - npm i @types/node
+  - npm i @types/react
+  - npm i coveralls
 script:
-  - npm test
+  - NODE_ENV=production npm test
 after_script:
-  - npm run ci
+  - NODE_ENV=production npm run ci

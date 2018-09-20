@@ -29,6 +29,12 @@
     "build",
     "dist"
   ],
+  "types": [
+    "jest",
+    "node",
+    "chrome",
+    "react"
+  ],
   "awesomeTypescriptLoaderOptions": {
     "transpileOnly" : true
   }

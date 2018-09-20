@@ -1,60 +1,37 @@
-import { Enabled } from './enums';
-import {
-  CORS_ENABLED_DOM_ID,
-  CLEAR_CACHE_ENABLED_DOM_ID,
-  STATUS_DOM_ID,
-  CHANGE,
-  DOM_CONTENT_LOADED,
-  OPTIONS_SAVED,
-  EMPTY_STRING
-} from './constants';
+import { ViewController, observable, inject } from "@ali/recore";
+import { Checkbox } from "antd";
+import { getOptions, setOptions } from "../../chrome-storage";
+import { Enabled } from "../../enums";
+import "./options.less";
+@inject({
+  components: { Checkbox }
+})
+export default class Options extends ViewController {
+  @observable
+  clearCacheEnabled = false;
 
-const timeout = 750;
+  @observable
+  corsEnabled = false;
 
-function save_options() {
-  const clearCacheEnabled = (<HTMLInputElement>(
-    document.getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
-  )).checked;
-  const corsEnabled = (<HTMLInputElement>(
-    document.getElementById(CORS_ENABLED_DOM_ID)
-  )).checked;
+  setOptionStorage() {
+    setOptions({
+      clearCacheEnabled: this.clearCacheEnabled,
+      corsEnabled: this.corsEnabled
+    });
+  }
 
-  chrome.storage.sync.set(
-    {
-      clearCacheEnabled: clearCacheEnabled ? Enabled.YES : Enabled.NO,
-      corsEnabled: corsEnabled ? Enabled.YES : Enabled.NO
-    },
-    function() {
-      // Update status to let user know options were saved.
-      const status = document.getElementById(STATUS_DOM_ID);
-      status.textContent = OPTIONS_SAVED;
-      setTimeout(function() {
-        status.textContent = EMPTY_STRING;
-      }, timeout);
-    }
-  );
+  async $init() {
+    this.clearCacheEnabled = (await getOptions()).clearCacheEnabled !== Enabled.NO;
+    this.corsEnabled = (await getOptions()).corsEnabled !== Enabled.NO;
+  }
+
+  setClearCacheEnabled() {
+    this.clearCacheEnabled = !this.clearCacheEnabled;
+    this.setOptionStorage();
+  }
+
+  setCorsEnabled() {
+    this.corsEnabled = !this.corsEnabled;
+    this.setOptionStorage();
+  }
 }
-
-function restore_options(): void {
-  chrome.storage.sync.get(
-    {
-      clearCacheEnabled: Enabled.YES,
-      corsEnabled: Enabled.YES
-    },
-    function(result) {
-      (<HTMLInputElement>(
-        document.getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
-      )).checked = result.clearCacheEnabled === Enabled.YES;
-      (<HTMLInputElement>document.getElementById(CORS_ENABLED_DOM_ID)).checked =
-        result.corsEnabled === Enabled.YES;
-    }
-  );
-}
-document.addEventListener(DOM_CONTENT_LOADED, restore_options);
-
-document
-  .getElementById(CLEAR_CACHE_ENABLED_DOM_ID)
-  .addEventListener(CHANGE, save_options);
-document
-  .getElementById(CORS_ENABLED_DOM_ID)
-  .addEventListener(CHANGE, save_options);

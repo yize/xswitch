@@ -1,0 +1,6 @@
+<div class="options-container">
+  <ul>
+    <li><Checkbox checked={clearCacheEnabled} @change="setClearCacheEnabled">Enable Clear Cache</Checkbox></li>
+    <li><Checkbox checked={corsEnabled} @change="setCorsEnabled">Enable CORS</Checkbox></li>
+  </ul>
+</div>

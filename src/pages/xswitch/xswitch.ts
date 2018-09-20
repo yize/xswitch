@@ -1,64 +1,46 @@
-import { ViewController, observable } from '@ali/recore';
-import './xswitch.css';
+import { ViewController, observable, inject } from '@ali/recore';
+import { Switch, Icon } from 'antd';
+
+import './xswitch.less';
+
 import {
   ANYTHING,
-  CLICK,
-  CONTAINER_DOM_ID,
-  DEFAULT_DATA,
-  DEFAULT_FONT_FAMILY,
-  DISABLED_STORAGE_KEY,
   FORMAT_DOCUMENT_CMD,
-  HELP_URL,
-  JSON_STORAGE_KEY,
-  JSONC_STORAGE_KEY,
   KEY_CODE_S,
   KEY_DOWN,
   LANGUAGE_JSON,
   MONACO_CONTRIBUTION_PATH,
   MONACO_VS_PATH,
-  NEW_TAB_DOM_ID,
-  OPACITY_VISIBLE,
-  OPEN_README_DOM_ID,
   PLATFORM_MAC,
-  POPUP_HTML_PATH,
   RULE,
   RULE_COMPLETION,
-  SHOW_FOLDING_CONTROLS,
-  SWITCH_AREA_DOM_ID,
-  SWITCH_CHECKED_CLASSNAME,
-  SWITCH_DOM_ID,
-  SWITCH_INNER_DOM_ID
+  JSONC_STORAGE_KEY,
+  POPUP_HTML_PATH,
+  HELP_URL,
 } from '../../constants';
 import { BadgeText, Enabled } from '../../enums';
-import { JSONC2JSON } from '../../utils';
-import { getConfig, saveConfig } from '../../chrome-storage';
+import {
+  getConfig,
+  saveConfig,
+  setChecked,
+  getChecked,
+} from '../../chrome-storage';
+import { getEditorConfig } from '../../editor-config';
 
-function preventSave() {
-  document.addEventListener(
-    KEY_DOWN,
-    e => {
-      const controlKeyDown = navigator.platform.match(PLATFORM_MAC)
-        ? e.metaKey
-        : e.ctrlKey;
-      if (e.keyCode === KEY_CODE_S && controlKeyDown) {
-        e.preventDefault();
-      }
-    },
-    false
-  );
-}
-
-
+@inject({
+  components: { Switch, Icon },
+})
 export default class XSwitch extends ViewController {
-  @observable on = false;
-  @observable checked = false;
-  @observable get checkedLabel() {
-    return this.checked ? 'ON' : 'OFF';
+  @observable
+  checked = true;
+
+  async $init() {
+    this.checked = (await getChecked()) !== Enabled.NO;
   }
 
   async $didMount() {
-
     window.require.config({ paths: { vs: MONACO_VS_PATH } });
+
     const result: any = await getConfig();
     let monacoReady: boolean = true;
     let editor: any;
@@ -66,27 +48,7 @@ export default class XSwitch extends ViewController {
     window.require([MONACO_CONTRIBUTION_PATH], () => {
       editor = window.monaco.editor.create(
         this.$refs.shell,
-        {
-          value: result[JSONC_STORAGE_KEY] || DEFAULT_DATA,
-          language: LANGUAGE_JSON,
-
-          minimap: {
-            enabled: false
-          },
-          fontFamily: DEFAULT_FONT_FAMILY,
-          fontSize: 13,
-          fontLigatures: true,
-
-          contextmenu: false,
-          scrollBeyondLastLine: false,
-          folding: true,
-          showFoldingControls: SHOW_FOLDING_CONTROLS,
-
-          useTabStops: true,
-          wordBasedSuggestions: true,
-          quickSuggestions: true,
-          suggestOnTriggerCharacters: true
-        }
+        getEditorConfig(result[JSONC_STORAGE_KEY])
       );
 
       saveConfig(editor.getValue());
@@ -94,26 +56,28 @@ export default class XSwitch extends ViewController {
       window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
         provideCompletionItems: () => {
           const textArr: any[] = [];
-          chrome.extension.getBackgroundPage()!._forward.urls.forEach((item: any) => {
-            if (item) {
-              textArr.push({
-                label: item,
-                kind: window.monaco.languages.CompletionItemKind.Text
-              });
-            }
-          });
+          chrome.extension
+            .getBackgroundPage()!
+            ._forward.urls.forEach((item: any) => {
+              if (item) {
+                textArr.push({
+                  label: item,
+                  kind: window.monaco.languages.CompletionItemKind.Text,
+                });
+              }
+            });
 
           const extraItems = [
             {
               label: RULE,
               kind: window.monaco.languages.CompletionItemKind.Method,
               insertText: {
-                value: RULE_COMPLETION
-              }
-            }
+                value: RULE_COMPLETION,
+              },
+            },
           ];
           return [...textArr, ...extraItems];
-        }
+        },
       });
 
       editor.onDidChangeModelContent(() => {
@@ -127,11 +91,40 @@ export default class XSwitch extends ViewController {
         }
       });
     });
+
+    function preventSave() {
+      document.addEventListener(
+        KEY_DOWN,
+        (e) => {
+          const controlKeyDown = navigator.platform.match(PLATFORM_MAC)
+            ? e.metaKey
+            : e.ctrlKey;
+          if (e.keyCode === KEY_CODE_S && controlKeyDown) {
+            e.preventDefault();
+          }
+        },
+        false
+      );
+    }
     preventSave();
   }
 
-
   toggleButton() {
     this.checked = !this.checked;
+    setChecked(this.checked);
+  }
+
+  openNewTab() {
+    chrome.tabs.create(
+      { url: chrome.extension.getURL(POPUP_HTML_PATH) },
+      (tab) => {
+        // Tab opened.
+      }
+    );
+  }
+  openReadme() {
+    chrome.tabs.create({ url: HELP_URL }, (tab) => {
+      // Tab opened.
+    });
   }
 }

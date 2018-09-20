@@ -54,9 +54,11 @@ export const STATUS_DOM_ID = 'J_Status';
 export const CLEAR_CACHE_ENABLED_DOM_ID = 'J_ClearCacheEnabled';
 export const CORS_ENABLED_DOM_ID = 'J_CorsEnabled';
 export const SWITCH_CHECKED_CLASSNAME = 'ant-switch-checked';
-export const POPUP_HTML_PATH = 'output/XSwitch.html';
-export const PREFIX = process.env.NODE_ENV !== 'production' ? 'http://127.0.0.1:8000/dist/' : './';
-export const MONACO_VS_PATH = `${PREFIX}lib/monaco-editor/min/vs`;
+export const POPUP_HTML_PATH = 'XSwitch.html';
+export const PREFIX = process.env.NODE_ENV !== 'production' ? '/build/' : './';
+export const MONACO_VS_PATH = process.env.NODE_ENV !== 'production'
+  ? '/build/lib/monaco-editor/min/vs'
+  : './lib/monaco-editor/min/vs';
 export const MONACO_CONTRIBUTION_PATH = 'vs/language/json/monaco.contribution';
 export const HELP_URL = 'https://yuque.com/jiushen/blog/xswitch-readme';
 export const DEFAULT_FONT_FAMILY = 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';

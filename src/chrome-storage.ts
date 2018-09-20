@@ -1,51 +1,110 @@
 import {
-    JSONC_STORAGE_KEY,
-    KEY_CODE_S,
-    KEY_DOWN,
-    LANGUAGE_JSON,
-    MONACO_CONTRIBUTION_PATH,
-    MONACO_VS_PATH,
-    NEW_TAB_DOM_ID,
-    OPACITY_VISIBLE,
-    OPEN_README_DOM_ID,
-    PLATFORM_MAC,
-    POPUP_HTML_PATH,
-    RULE,
-    RULE_COMPLETION,
-    SHOW_FOLDING_CONTROLS,
-    SWITCH_AREA_DOM_ID,
-    SWITCH_CHECKED_CLASSNAME,
-    SWITCH_DOM_ID,
-    SWITCH_INNER_DOM_ID,
-    JSON_STORAGE_KEY
-} from './constants';
-import { JSONC2JSON } from './utils';
+  JSONC_STORAGE_KEY,
+  JSON_STORAGE_KEY,
+  DISABLED_STORAGE_KEY,
+  CLEAR_CACHE_ENABLED_STORAGE_KEY,
+  CORS_ENABLED_STORAGE_KEY
+} from "./constants";
+import { JSONC2JSON } from "./utils";
+import { Enabled } from "./enums";
 
-export function getConfig() {
-    return new Promise((resolve) => {
-        if (process.env.NODE_ENV !== 'production') {
-            resolve({
-                proxy: [],
-                cors: [],
-            });
-        } else {
-            window.chrome.storage.sync.get(JSONC_STORAGE_KEY, resolve);
-        }
-    });
+interface ConfigStorage{
+  [JSONC_STORAGE_KEY]: string,
+}
+interface OptionsStorage {
+  [CLEAR_CACHE_ENABLED_STORAGE_KEY]: string,
+  [CORS_ENABLED_STORAGE_KEY]: string,
 }
 
-export function saveConfig(jsonc: string) {
-    const json = JSONC2JSON(jsonc);
-
-    return new Promise((resolve) => {
-        if (process.env.NODE_ENV === 'production') {
-            window.chrome.storage.sync.set(
-                {
-                    [JSONC_STORAGE_KEY]: jsonc,
-                    [JSON_STORAGE_KEY]: json
-                },
-                resolve
-            );
-        }
+export function getConfig(): Promise<ConfigStorage> {
+  return new Promise(resolve => {
+    if (process.env.NODE_ENV !== "production") {
+      return resolve({
+        [JSONC_STORAGE_KEY]: ""
+      });
+    }
+    window.chrome.storage.sync.get(JSONC_STORAGE_KEY, (result: ConfigStorage) => {
+      resolve(result);
     });
+  });
+}
+
+export function saveConfig(jsonc: string): Promise<any> | void {
+  const json = JSONC2JSON(jsonc);
+
+  if (process.env.NODE_ENV === "production") {
+    return new Promise(resolve => {
+      window.chrome.storage.sync.set(
+        {
+          [JSONC_STORAGE_KEY]: jsonc,
+          [JSON_STORAGE_KEY]: json
+        },
+        resolve
+      );
+    });
+  }
+}
+
+export function getChecked(): Promise<string> {
+  return new Promise(resolve => {
+    if (process.env.NODE_ENV !== "production") {
+      return resolve(Enabled.YES);
+    }
+    window.chrome.storage.sync.get(DISABLED_STORAGE_KEY, (result: any) => {
+      resolve(result[DISABLED_STORAGE_KEY]);
+    });
+  });
+}
+
+export function setChecked(checked?: boolean): Promise<object> | void {
+  if (process.env.NODE_ENV === "production") {
+    return new Promise(resolve => {
+      window.chrome.storage.sync.set(
+        {
+          [DISABLED_STORAGE_KEY]: checked ? Enabled.YES : Enabled.NO
+        },
+        resolve
+      );
+    });
+  }
+}
+
+
+export function getOptions(): Promise<OptionsStorage> {
+  return new Promise(resolve => {
+    if (process.env.NODE_ENV !== "production") {
+      return resolve({
+        [CLEAR_CACHE_ENABLED_STORAGE_KEY]: Enabled.YES,
+        [CORS_ENABLED_STORAGE_KEY]: Enabled.YES
+      });
+    }
+    window.chrome.storage.sync.get(
+      {
+        [CLEAR_CACHE_ENABLED_STORAGE_KEY]: Enabled.YES,
+        [CORS_ENABLED_STORAGE_KEY]: Enabled.YES
+      },
+      result => {
+        resolve({
+          [CLEAR_CACHE_ENABLED_STORAGE_KEY]: result.clearCacheEnabled,
+          [CORS_ENABLED_STORAGE_KEY]: result.corsEnabled
+        });
+      }
+    );
+  });
+}
+
+export function setOptions(options: any): Promise<OptionsStorage> | void {
+  if (process.env.NODE_ENV === "production") {
+    return new Promise(resolve => {
+      window.chrome.storage.sync.set(
+        {
+          clearCacheEnabled: options.clearCacheEnabled
+            ? Enabled.YES
+            : Enabled.NO,
+          corsEnabled: options.corsEnabled ? Enabled.YES : Enabled.NO
+        },
+        resolve
+      );
+    });
+  }
 }
