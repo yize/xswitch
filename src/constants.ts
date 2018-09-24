@@ -4,19 +4,20 @@ export const REG = {
   // support [ ] ( ) \ * ^ $
   FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
   WHITESPACE: /\s+/g,
-  X_HEADER: /^x-/
+  X_HEADER: /^x-/,
 };
 
 export const ALL_URLS = '<all_urls>';
 export const BLOCKING = 'blocking';
 export const REQUEST_HEADERS = 'requestHeaders';
 export const RESPONSE_HEADERS = 'responseHeaders';
-export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS = 'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
+export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS =
+  'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
 export const CORS = {
   METHODS: 'access-control-allow-methods',
   CREDENTIALS: 'access-control-allow-credentials',
   ORIGIN: 'access-control-allow-origin',
-  HEADERS: 'access-control-allow-headers'
+  HEADERS: 'access-control-allow-headers',
 };
 export const ACCESS_CONTROL_REQUEST_HEADERS = 'access-control-request-headers';
 export const DEFAULT_CORS_ORIGIN = '*';
@@ -26,17 +27,21 @@ export const ORIGIN = 'origin';
 /**
  * Disabled storage key
  */
-export const DISABLED_STORAGE_KEY = 'disabled';
+export const DISABLED = 'disabled';
 /**
  * pure JSON storage key
  */
-export const JSONC_STORAGE_KEY = 'config_for_shown';
+export const JSON_CONFIG = 'config';
 /**
  * JSON with comments storage key
  */
-export const JSON_STORAGE_KEY = 'config';
-export const CLEAR_CACHE_ENABLED_STORAGE_KEY = 'clearCacheEnabled';
-export const CORS_STORAGE_KEY = 'cors';
+export const JSONC_CONFIG = 'config_for_shown';
+
+export const EDITING_CONFIG_KEY = 'config_editing_key';
+export const TAB_LIST = 'tab_list';
+export const ACTIVE_KEYS = 'active_keys';
+export const CLEAR_CACHE_ENABLED = 'clearCacheEnabled';
+export const CORS_STORAGE = 'cors';
 export const CORS_ENABLED_STORAGE_KEY = 'corsEnabled';
 export const PROXY_STORAGE_KEY = 'proxy';
 export const MILLISECONDS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
@@ -90,16 +95,20 @@ export const DEFAULT_DATA = `{
       ".development.js"
       // "react.development.js",
     ],
-    [
-      "16.4.1",
-      "16.4.0",
-    ]
     // then try visit https://unpkg.com/react@16.4.1/umd/react.production.min.js
   ],
   // urls that want CORS
   "cors": [
     "mocks.a.com",
     "mocks.b.com"
+  ]
+}
+`;
+
+export const DEFAULT_DUP_DATA = `{
+  "proxy": [
+  ],
+  "cors": [
   ]
 }
 `;

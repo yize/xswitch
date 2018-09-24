@@ -1,10 +1,10 @@
-import { ViewController, observable, inject } from "@ali/recore";
-import { Checkbox } from "antd";
-import { getOptions, setOptions } from "../../chrome-storage";
-import { Enabled } from "../../enums";
-import "./options.less";
+import { ViewController, observable, inject } from '@ali/recore';
+import { Checkbox } from 'antd';
+import { getOptions, setOptions } from '../../chrome-storage';
+import { Enabled } from '../../enums';
+import './options.less';
 @inject({
-  components: { Checkbox }
+  components: { Checkbox },
 })
 export default class Options extends ViewController {
   @observable
@@ -16,7 +16,7 @@ export default class Options extends ViewController {
   setOptionStorage() {
     setOptions({
       clearCacheEnabled: this.clearCacheEnabled,
-      corsEnabled: this.corsEnabled
+      corsEnabled: this.corsEnabled,
     });
   }
 

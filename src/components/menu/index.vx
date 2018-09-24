@@ -1,0 +1,17 @@
+<ul>
+  <li>
+    <div class="view">
+      <label>1</label>
+    </div>
+  </li>
+  <li>
+    <div class="view">
+      <label>2</label>
+    </div>
+  </li>
+  <li>
+    <div class="view">
+      <label>3</label>
+    </div>
+  </li>
+</ul>

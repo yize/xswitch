@@ -25,7 +25,7 @@ A [Chrome Extension][link-cws] for redirecting/forwarding request urls.
 - [x] Rule suggestions
 - [x] CORS
 - [x] CORS & browser cache control
-- [ ] Rules Grouping
+- [x] Rules Grouping
 
 ## Usage
 
