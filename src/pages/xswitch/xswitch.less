@@ -1,12 +1,65 @@
-body {
-  padding: 14px 0;
+.xswitch-wrapper {
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  .xswitch-tabs {
+    padding: 0;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-right: -1px;
+    z-index: 2;
+    li {
+      padding: 5px 10px;
+      line-height: 40px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      .delete-icon{
+        display: none;
+        opacity: 0;
+      }
+      .label {
+        flex: 1;
+        overflow: hidden;
+      }
+      &:hover {
+        background: #efefef;
+        .delete-icon{
+          display: inline-block;
+          opacity: 0.5;
+          &:hover{
+            opacity: 1;
+          }
+        }
+      }
+      &:first-of-type {
+        border-top: 0;
+        .delete-icon{
+          display: none !important;
+        }
+      }
+      &.editing {
+        border-color: #bfbfbf #fff #bfbfbf transparent;
+      }
+    }
+  }
+  .new-item {
+    bottom: 10px;
+    left: 10px;
+    position: absolute;
+    width: 139px;
+    z-index: 3;
+  }
 }
 
 .xswitch-container {
   width: 100%;
-  min-width: 800px;
-  min-height: 580px;
+  min-width: 600px;
+  min-height: 600px;
   height: 100%;
+  border-left: 1px solid #bfbfbf;
 }
 
 .toolbar-area {

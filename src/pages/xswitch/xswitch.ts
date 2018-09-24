@@ -1,5 +1,5 @@
 import { ViewController, observable, inject } from '@ali/recore';
-import { Switch, Icon } from 'antd';
+import { Switch, Icon, Checkbox, Input, Popconfirm } from 'antd';
 
 import './xswitch.less';
 
@@ -14,25 +14,40 @@ import {
   PLATFORM_MAC,
   RULE,
   RULE_COMPLETION,
-  JSONC_STORAGE_KEY,
   POPUP_HTML_PATH,
   HELP_URL,
+  DEFAULT_DUP_DATA,
 } from '../../constants';
-import { BadgeText, Enabled } from '../../enums';
+import { Enabled } from '../../enums';
 import {
   getConfig,
   saveConfig,
   setChecked,
   getChecked,
+  openLink,
+  getEditingConfigKey,
+  setEditingConfigKey,
+  setConfigItems,
+  getConfigItems,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
+let editor: any;
 @inject({
-  components: { Switch, Icon },
+  components: { Switch, Icon, Checkbox, Input, Popconfirm },
 })
 export default class XSwitch extends ViewController {
   @observable
   checked = true;
+
+  @observable
+  editingKey = '0';
+
+  @observable
+  newItem = '';
+
+  @observable
+  items: any = [];
 
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
@@ -40,18 +55,20 @@ export default class XSwitch extends ViewController {
 
   async $didMount() {
     window.require.config({ paths: { vs: MONACO_VS_PATH } });
+    const editingConfigKey: string = await getEditingConfigKey();
+    this.editingKey = editingConfigKey;
+    const config: any = await getConfig(editingConfigKey);
+    this.items = await getConfigItems();
 
-    const result: any = await getConfig();
     let monacoReady: boolean = true;
-    let editor: any;
 
     window.require([MONACO_CONTRIBUTION_PATH], () => {
       editor = window.monaco.editor.create(
         this.$refs.shell,
-        getEditorConfig(result[JSONC_STORAGE_KEY])
+        getEditorConfig(config)
       );
 
-      saveConfig(editor.getValue());
+      saveConfig(editor.getValue(), this.editingKey);
 
       window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
         provideCompletionItems: () => {
@@ -81,7 +98,7 @@ export default class XSwitch extends ViewController {
       });
 
       editor.onDidChangeModelContent(() => {
-        saveConfig(editor.getValue());
+        saveConfig(editor.getValue(), this.editingKey);
       });
 
       editor.onDidScrollChange(() => {
@@ -109,22 +126,51 @@ export default class XSwitch extends ViewController {
     preventSave();
   }
 
+  setEditorValue(value: string) {
+    editor.setValue(value);
+  }
+
   toggleButton() {
     this.checked = !this.checked;
     setChecked(this.checked);
   }
 
   openNewTab() {
-    chrome.tabs.create(
-      { url: chrome.extension.getURL(POPUP_HTML_PATH) },
-      (tab) => {
-        // Tab opened.
-      }
-    );
+    openLink(POPUP_HTML_PATH, true);
   }
   openReadme() {
-    chrome.tabs.create({ url: HELP_URL }, (tab) => {
-      // Tab opened.
-    });
+    openLink(HELP_URL);
+  }
+
+  async setEditingKey(ctx: any) {
+    this.editingKey = ctx.scope.item.id;
+    const config: any = await getConfig(this.editingKey);
+    this.setEditorValue(config || DEFAULT_DUP_DATA);
+    setEditingConfigKey(this.editingKey);
+  }
+
+  setActive(ctx: any) {
+    ctx.scope.item.active = !ctx.scope.item.active;
+    setConfigItems(this.items);
+  }
+
+  add() {
+    if (this.newItem) {
+      this.items.push({
+        id: new Date().getTime(),
+        name: this.newItem,
+        active: true,
+      });
+    }
+    setConfigItems(this.items);
+    this.newItem = '';
+  }
+
+  remove(ctx: any) {
+    const i = this.items.indexOf(ctx.scope.item);
+    if (i > -1) {
+      this.items.splice(i, 1);
+    }
+    setConfigItems(this.items);
   }
 }

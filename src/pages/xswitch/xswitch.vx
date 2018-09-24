@@ -1,10 +1,28 @@
-<div className="xswitch-container" ref="shell"></div>
+<div class="xswitch-wrapper">
+  <ul class="xswitch-tabs">
+    <li x-for={items} x-each='item' @click='setEditingKey' className.editing={item.id === editingKey}>
+      <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span className="label">&nbsp;{item.name}</span>
+      <Popconfirm title="Are you sure delte this rule?" @confirm={remove} okText="Yes" cancelText="No" placement="rightTop">
+        <Icon className="delete-icon" type="delete" theme="outlined" style={{ color: '#f5222d' }}/>
+      </Popconfirm>
+    </li>
+  </ul>
+  <Input
+    size="small"
+    autoComplete="off"
+    placeholder="Add a rule"
+    class="new-item"
+    x-model={newItem}
+    @keyUp.enter="add"
+    />
+  <div className="xswitch-container" ref="shell"></div>
+</div>
 <div className="toolbar-area">
-    <Switch checkedChildren={<Icon type="check" />} unCheckedChildren={<Icon type="close" />} checked={checked} @change="toggleButton"/>
-    <a className="open-readme" title="Open help page" href="javascript:;" @click="openReadme">
-        <img className="xswitch-icon" src={`${prefix}/images/info.svg`} />
-    </a>
-    <a className="new-tab-control" title="Open in new tab" href="javascript:;" @click="openNewTab">
-        <img className="xswitch-icon" src={`${prefix}/images/new-tab.svg`} />
-    </a>
+  <Switch checkedChildren={<Icon type="check" />} unCheckedChildren={<Icon type="close" />} checked={checked} @change="toggleButton"/>
+  <a className="open-readme" title="Open help page" href="javascript:;" @click="openReadme">
+    <img className="xswitch-icon" src={`${prefix}/images/info.svg`} />
+  </a>
+  <a className="new-tab-control" title="Open in new tab" href="javascript:;" @click="openNewTab">
+    <img className="xswitch-icon" src={`${prefix}/images/new-tab.svg`} />
+  </a>
 </div>

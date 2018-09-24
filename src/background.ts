@@ -5,12 +5,14 @@ import {
   MILLISECONDS_PER_WEEK,
   REQUEST_HEADERS,
   RESPONSE_HEADERS,
-  JSON_STORAGE_KEY,
-  DISABLED_STORAGE_KEY,
-  CLEAR_CACHE_ENABLED_STORAGE_KEY,
+  JSON_CONFIG,
+  DISABLED,
+  CLEAR_CACHE_ENABLED,
   CORS_ENABLED_STORAGE_KEY,
   PROXY_STORAGE_KEY,
-  CORS_STORAGE_KEY,
+  CORS_STORAGE,
+  ACTIVE_KEYS,
+  TAB_LIST,
 } from './constants';
 import {
   BadgeText,
@@ -23,71 +25,126 @@ let clearRunning: boolean = false;
 let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
 let parseError: boolean = false;
+let jsonActiveKeys = ['0'];
+let conf: StorageJSON = {
+  0: {
+    [PROXY_STORAGE_KEY]: [],
+    [CORS_STORAGE]: [],
+  },
+};
 
-chrome.storage.sync.get(JSON_STORAGE_KEY, (result) => {
-  if (result && result[JSON_STORAGE_KEY]) {
-    JSON_Parse(result[JSON_STORAGE_KEY], (error, json) => {
-      if (!error) {
-        forward[JSON_STORAGE_KEY] = json;
-        parseError = false;
-      } else {
-        forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY] = [];
-        parseError = true;
-      }
-    });
-  } else {
-    forward[JSON_STORAGE_KEY] = {
+interface SingleConfig {
+  [PROXY_STORAGE_KEY]: Array<[]>;
+  [CORS_STORAGE]: string[];
+}
+
+interface StorageJSON {
+  0: SingleConfig;
+  [key: string]: any;
+}
+
+chrome.storage.sync.get({
+  [JSON_CONFIG]: {
+    0: {
       [PROXY_STORAGE_KEY]: [],
-      [CORS_STORAGE_KEY]: [],
+      [CORS_STORAGE]: [],
+    },
+  },
+  [ACTIVE_KEYS]: ['0'],
+}, (result) => {
+  jsonActiveKeys = result[ACTIVE_KEYS];
+  if (result && result[JSON_CONFIG]) {
+    conf = result[JSON_CONFIG];
+    const config = getActiveConfig(conf);
+    forward[JSON_CONFIG] = { ...config };
+  } else {
+    forward[JSON_CONFIG] = {
+      [PROXY_STORAGE_KEY]: [],
+      [CORS_STORAGE]: [],
     };
     parseError = false;
   }
 });
 
+function getActiveConfig(config: StorageJSON): object {
+  const activeKeys = [...jsonActiveKeys];
+  const json = config['0'];
+  activeKeys.forEach((key: string) => {
+    if (config[key] && key !== '0') {
+      if (config[key][PROXY_STORAGE_KEY]) {
+        if (!json[PROXY_STORAGE_KEY]) {
+          json[PROXY_STORAGE_KEY] = [];
+        }
+        json[PROXY_STORAGE_KEY] = [...json[PROXY_STORAGE_KEY], ...config[key][PROXY_STORAGE_KEY]];
+      }
+
+      if (config[key][CORS_STORAGE]) {
+        if (!json[CORS_STORAGE]) {
+          json[CORS_STORAGE] = [];
+        }
+        json[CORS_STORAGE] = [...json[CORS_STORAGE], ...config[key][CORS_STORAGE]];
+      }
+    }
+  });
+  return json;
+}
+
 chrome.storage.sync.get(
   {
-    [DISABLED_STORAGE_KEY]: Enabled.YES,
-    [CLEAR_CACHE_ENABLED_STORAGE_KEY]: Enabled.YES,
+    [DISABLED]: Enabled.YES,
+    [CLEAR_CACHE_ENABLED]: Enabled.YES,
     [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
   },
   (result) => {
-    forward[DISABLED_STORAGE_KEY] = result[DISABLED_STORAGE_KEY];
-    clearCacheEnabled = result[CLEAR_CACHE_ENABLED_STORAGE_KEY] === Enabled.YES;
+    forward[DISABLED] = result[DISABLED];
+    clearCacheEnabled = result[CLEAR_CACHE_ENABLED] === Enabled.YES;
     corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
     setIcon();
   }
 );
 
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes[JSON_STORAGE_KEY]) {
-    JSON_Parse(changes[JSON_STORAGE_KEY].newValue, (error, json) => {
-      if (!error) {
-        forward[JSON_STORAGE_KEY] = json;
-        parseError = false;
-      } else {
-        forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY] = [];
-        parseError = true;
-      }
-    });
-  }
-  if (changes[DISABLED_STORAGE_KEY]) {
-    forward[DISABLED_STORAGE_KEY] = changes[DISABLED_STORAGE_KEY].newValue;
+  if (changes[ACTIVE_KEYS]) {
+    jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }
 
-  if (changes[CLEAR_CACHE_ENABLED_STORAGE_KEY]) {
-    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
+  if (changes[JSON_CONFIG]) {
+    const config = getActiveConfig(changes[JSON_CONFIG].newValue);
+    forward[JSON_CONFIG] = { ...config };
+  }
+
+  if (changes[DISABLED]) {
+    forward[DISABLED] = changes[DISABLED].newValue;
+  }
+
+  if (changes[CLEAR_CACHE_ENABLED]) {
+    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED].newValue === Enabled.YES;
   }
 
   if (changes[CORS_ENABLED_STORAGE_KEY]) {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
-  setIcon();
+  chrome.storage.sync.get({
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
+    },
+  }, (result) => {
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      const config = getActiveConfig(conf);
+      forward[JSON_CONFIG] = { ...config };
+    }
+    setIcon();
+  });
 });
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
-    if (forward[DISABLED_STORAGE_KEY] !== Enabled.NO) {
+    if (forward[DISABLED] !== Enabled.NO) {
       if (clearCacheEnabled) {
         clearCache();
       }
@@ -117,14 +174,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   [BLOCKING, REQUEST_HEADERS]
 );
 
-function JSON_Parse(json: string, cb: (error: object | boolean, json?: object) => void): void {
-  try {
-    cb(false, JSON.parse(json));
-  } catch (e) {
-    cb(e);
-  }
-}
-
 function setBadgeAndBackgroundColor(
   text: string | number,
   color: string
@@ -144,9 +193,9 @@ function setIcon(): void {
     return;
   }
 
-  if (forward[DISABLED_STORAGE_KEY] !== Enabled.NO) {
+  if (forward[DISABLED] !== Enabled.NO) {
     setBadgeAndBackgroundColor(
-      forward[JSON_STORAGE_KEY][PROXY_STORAGE_KEY].length,
+      forward[JSON_CONFIG][PROXY_STORAGE_KEY].length,
       IconBackgroundColor.ON
     );
   } else {
@@ -155,7 +204,8 @@ function setIcon(): void {
   }
 }
 
-function headersReceivedListener(details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
+function headersReceivedListener(
+  details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
   return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 
