@@ -1,10 +1,8 @@
 <div class="xswitch-wrapper">
-  <Menu items1={
-    [{
+  <Menu items1={[{
       label: '你好',
       active: true
-    }]
-  }>
+    }]}>
   </Menu>
   <div className="xswitch-container" ref="shell"></div>
 </div>
