@@ -155,7 +155,8 @@ function setIcon(): void {
   }
 }
 
-function headersReceivedListener(details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
+function headersReceivedListener(
+  details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
   return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 

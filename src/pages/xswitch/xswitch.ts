@@ -1,5 +1,6 @@
 import { ViewController, observable, inject } from '@ali/recore';
 import { Switch, Icon } from 'antd';
+import Menu from '../../components/menu';
 
 import './xswitch.less';
 
@@ -24,11 +25,12 @@ import {
   saveConfig,
   setChecked,
   getChecked,
+  openLink,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
 @inject({
-  components: { Switch, Icon },
+  components: { Switch, Icon, Menu },
 })
 export default class XSwitch extends ViewController {
   @observable
@@ -115,16 +117,9 @@ export default class XSwitch extends ViewController {
   }
 
   openNewTab() {
-    chrome.tabs.create(
-      { url: chrome.extension.getURL(POPUP_HTML_PATH) },
-      (tab) => {
-        // Tab opened.
-      }
-    );
+    openLink(POPUP_HTML_PATH, true);
   }
   openReadme() {
-    chrome.tabs.create({ url: HELP_URL }, (tab) => {
-      // Tab opened.
-    });
+    openLink(HELP_URL);
   }
 }

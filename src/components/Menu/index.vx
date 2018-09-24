@@ -1,0 +1,7 @@
+<ul>
+  <li x-for={items} x-each="item" x-area>
+  <div class="view">
+    <label>{item.label}</label>
+  </div>
+  </li>
+</ul>

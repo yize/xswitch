@@ -4,19 +4,20 @@ export const REG = {
   // support [ ] ( ) \ * ^ $
   FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
   WHITESPACE: /\s+/g,
-  X_HEADER: /^x-/
+  X_HEADER: /^x-/,
 };
 
 export const ALL_URLS = '<all_urls>';
 export const BLOCKING = 'blocking';
 export const REQUEST_HEADERS = 'requestHeaders';
 export const RESPONSE_HEADERS = 'responseHeaders';
-export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS = 'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
+export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS =
+  'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
 export const CORS = {
   METHODS: 'access-control-allow-methods',
   CREDENTIALS: 'access-control-allow-credentials',
   ORIGIN: 'access-control-allow-origin',
-  HEADERS: 'access-control-allow-headers'
+  HEADERS: 'access-control-allow-headers',
 };
 export const ACCESS_CONTROL_REQUEST_HEADERS = 'access-control-request-headers';
 export const DEFAULT_CORS_ORIGIN = '*';
