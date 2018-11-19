@@ -44,6 +44,9 @@ export default class XSwitch extends ViewController {
   editingKey = '0';
 
   @observable
+  deletingKey = '0';
+
+  @observable
   newItem = '';
 
   @observable
@@ -142,11 +145,17 @@ export default class XSwitch extends ViewController {
     openLink(HELP_URL);
   }
 
-  async setEditingKey(ctx: any) {
-    this.editingKey = ctx.scope.item.id;
+  async setEditingKeyHandler(id: string) {
+    this.editingKey = id;
     const config: any = await getConfig(this.editingKey);
     this.setEditorValue(config || DEFAULT_DUP_DATA);
     setEditingConfigKey(this.editingKey);
+    // reset
+    this.deletingKey = '0';
+  }
+
+  async setEditingKey(ctx: any) {
+    await this.setEditingKeyHandler(ctx.scope.item.id);
   }
 
   setActive(ctx: any) {
@@ -154,23 +163,36 @@ export default class XSwitch extends ViewController {
     setConfigItems(this.items);
   }
 
-  add() {
+  async add() {
+    const id = '' + new Date().getTime();
+    const self = this;
     if (this.newItem) {
       this.items.push({
-        id: new Date().getTime(),
+        id,
         name: this.newItem,
         active: true,
       });
     }
     setConfigItems(this.items);
+    this.editingKey = id;
+    setEditingConfigKey(this.editingKey);
+    await this.setEditingKeyHandler(id);
+    setTimeout(function () {
+      self.$refs.tabs.scrollTop = self.$refs.tabs.scrollHeight;
+    }, 0)
     this.newItem = '';
   }
 
-  remove(ctx: any) {
-    const i = this.items.indexOf(ctx.scope.item);
-    if (i > -1) {
-      this.items.splice(i, 1);
+  remove(ctx: any, ev: EventTarget) {
+    ev.stopPropagation();
+    if(this.deletingKey === ctx.scope.item.id){
+      const i = this.items.indexOf(ctx.scope.item);
+      if (i > -1) {
+        this.items.splice(i, 1);
+      }
+      setConfigItems(this.items);
+    }else{
+      this.deletingKey = ctx.scope.item.id;
     }
-    setConfigItems(this.items);
   }
 }

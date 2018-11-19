@@ -106,9 +106,19 @@ export const DEFAULT_DATA = `{
 `;
 
 export const DEFAULT_DUP_DATA = `{
+  // Use IntelliSense to learn about possible links.
+  // Type \`rule\` to quick insert rule.
+  // 输入 rule 来快速插入规则
+  // For more information, visit: https://github.com/yize/xswitch
   "proxy": [
+    [
+      // ".production(.min)?.js",
+      // "react.development.js",
+    ],
   ],
   "cors": [
+    // "mocks.a.com",
+    // "mocks.b.com"
   ]
 }
 `;

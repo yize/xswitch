@@ -1,20 +1,22 @@
 <div class="xswitch-wrapper">
-  <ul class="xswitch-tabs">
-    <li x-for={items} x-each='item' @click='setEditingKey' className.editing={item.id === editingKey}>
-      <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span className="label">&nbsp;{item.name}</span>
-      <Popconfirm title="Are you sure delte this rule?" @confirm={remove} okText="Yes" cancelText="No" placement="rightTop">
-        <Icon className="delete-icon" type="delete" theme="outlined" style={{ color: '#f5222d' }}/>
-      </Popconfirm>
-    </li>
-  </ul>
-  <Input
-    size="small"
-    autoComplete="off"
-    placeholder="Add a rule"
-    class="new-item"
-    x-model={newItem}
-    @keyUp.enter="add"
-    />
+  <div class="xswitch-left-area">
+    <ul class="xswitch-tabs" ref="tabs">
+      <li x-for={items} x-each='item' @click='setEditingKey' className.editing={item.id === editingKey}>
+        <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span className="label">&nbsp;{item.name}</span>
+        <Icon className="delete-icon" className.deleting={item.id === deletingKey} type="delete" theme="outlined" style.color={item.id === deletingKey? "#f5222d": "#ccc"} title={item.id === deletingKey? "Are you sure to delete?":"Click to delete"} @click="remove"/>
+      </li>
+    </ul>
+    <div class="xswitch-new-item-container">
+      <Input
+        size="small"
+        autoComplete="off"
+        placeholder="Add a rule"
+        class="new-item"
+        x-model={newItem}
+        @keyUp.enter="add"
+        />
+    </div>
+  </div>
   <div className="xswitch-container" ref="shell"></div>
 </div>
 <div className="toolbar-area">
