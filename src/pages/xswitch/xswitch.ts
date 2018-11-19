@@ -183,12 +183,17 @@ export default class XSwitch extends ViewController {
     this.newItem = '';
   }
 
-  remove(ctx: any, ev: EventTarget) {
+  async remove(ctx: any, ev: EventTarget) {
     ev.stopPropagation();
     if(this.deletingKey === ctx.scope.item.id){
       const i = this.items.indexOf(ctx.scope.item);
       if (i > -1) {
         this.items.splice(i, 1);
+      }
+      // i will not be 0
+      if(this.items[i-1].hasOwnProperty('id')){
+        this.editingKey = this.items[i-1].id;
+        await this.setEditingKeyHandler(this.editingKey);
       }
       setConfigItems(this.items);
     }else{
