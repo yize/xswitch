@@ -154,12 +154,12 @@ export default class XSwitch extends ViewController {
     this.deletingKey = '0';
   }
 
-  async setEditingKey(ctx: any) {
-    await this.setEditingKeyHandler(ctx.scope.item.id);
+  async setEditingKey(event: EventTarget, ctx: any) {
+    await this.setEditingKeyHandler(ctx.item.id);
   }
 
-  setActive(ctx: any) {
-    ctx.scope.item.active = !ctx.scope.item.active;
+  setActive(event: EventTarget, ctx: any) {
+    ctx.item.active = !ctx.item.active;
     setConfigItems(this.items);
   }
 
@@ -183,10 +183,10 @@ export default class XSwitch extends ViewController {
     this.newItem = '';
   }
 
-  async remove(ctx: any, ev: EventTarget) {
+  async remove(ev: EventTarget, ctx: any) {
     ev.stopPropagation();
-    if(this.deletingKey === ctx.scope.item.id){
-      const i = this.items.indexOf(ctx.scope.item);
+    if(this.deletingKey === ctx.item.id){
+      const i = this.items.indexOf(ctx.item);
       if (i > -1) {
         this.items.splice(i, 1);
       }
@@ -197,7 +197,7 @@ export default class XSwitch extends ViewController {
       }
       setConfigItems(this.items);
     }else{
-      this.deletingKey = ctx.scope.item.id;
+      this.deletingKey = ctx.item.id;
     }
   }
 }
