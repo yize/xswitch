@@ -11,32 +11,21 @@ import {
 import { JSONC2JSON, JSON_Parse } from './utils';
 import { Enabled } from './enums';
 
-interface ConfigStorage {
-  [JSONC_CONFIG]: object;
-}
 interface OptionsStorage {
   [CLEAR_CACHE_ENABLED]: string;
   [CORS_ENABLED_STORAGE_KEY]: string;
 }
 
-export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
+export function getConfig(editingConfigKey: string): Promise<string> {
+  const JSONC_KEY = `${JSONC_CONFIG}_${editingConfigKey}`;
   return new Promise((resolve) => {
     if (process.env.NODE_ENV !== 'production') {
-      return resolve({
-        [JSONC_CONFIG]: {
-          0: '',
-        },
-      });
+      return resolve('');
     }
     window.chrome.storage.sync.get({
-      [JSONC_CONFIG]: {
-        0: '',
-      },
+      [JSONC_KEY]: '',
     }, (result: any) => {
-      if (typeof result[JSONC_CONFIG] === 'string') {
-        return resolve(result[JSONC_CONFIG]);
-      }
-      resolve(result[JSONC_CONFIG][editingConfigKey]);
+      resolve(result[JSONC_KEY]);
     });
   });
 }
@@ -141,27 +130,22 @@ export function setEditingConfigKey(key: string): Promise<object> | void {
 
 export function saveConfig(jsonc: string, editingConfigKey: string): Promise<any> | void {
   const json = JSONC2JSON(jsonc);
+  const JSONC_KEY = `${JSONC_CONFIG}_${editingConfigKey}`;
 
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
       window.chrome.storage.sync.get({
-        [JSONC_CONFIG]: {},
-        [JSON_CONFIG]: {},
+        [JSONC_KEY]: '',
+        [editingConfigKey]: '',
       }, (result) => {
-        // migrate
-        if (typeof result[JSONC_CONFIG] === 'string') {
-          result[JSONC_CONFIG] = {};
-          result[JSON_CONFIG] = {};
-        }
-
-        result[JSONC_CONFIG][editingConfigKey] = jsonc;
+        result[JSONC_KEY] = jsonc;
 
         JSON_Parse(json, (error, parsedJSON) => {
           if (!error) {
-            result[JSON_CONFIG][editingConfigKey] = parsedJSON;
+            result[editingConfigKey] = parsedJSON;
             return;
           }
-          result[JSON_CONFIG][editingConfigKey] = '';
+          result[editingConfigKey] = '';
         });
 
         window.chrome.storage.sync.set(
