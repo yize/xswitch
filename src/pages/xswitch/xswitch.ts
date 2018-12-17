@@ -61,7 +61,7 @@ export default class XSwitch extends ViewController {
     const editingConfigKey: string = await getEditingConfigKey();
     this.editingKey = editingConfigKey;
     const config: any = await getConfig(editingConfigKey);
-    this.items = await getConfigItems();
+    this.items = Array.from(await getConfigItems());
 
     let monacoReady: boolean = true;
 

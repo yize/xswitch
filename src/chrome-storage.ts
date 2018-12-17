@@ -99,7 +99,7 @@ export function setConfigItems(items?: any): Promise<object> | void {
     return new Promise((resolve) => {
       window.chrome.storage.sync.set(
         {
-          [TAB_LIST]: items,
+          [TAB_LIST]: items.slice(),
           [ACTIVE_KEYS]: items.map((item: any) => {
             if (item.active) {
               return item.id;
