@@ -8,21 +8,18 @@ beforeEach(() => {
 describe('no rules', () => {
   test('no forward when no rules', () => {
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
   });
@@ -32,46 +29,38 @@ describe('rule[1] is not string', () => {
   test('no forward when no rule[1]', () => {
     forward.config.proxy = [['g.alicdn.com']];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
   });
 
   test('no forward when rule[1] is not string', () => {
-    // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', ['a', 'b']]];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
   });
 
   test('no forward when rule[1] is not string', () => {
-    // @ts-ignore
     forward.config.proxy = [['g.alicdn.com', {}]];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
   });
@@ -81,20 +70,18 @@ describe('chrome-extension://', () => {
   test('should not forward', () => {
     forward.config.proxy = [['(.*).js', '$1..js']];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'chrome-extension://xxxxx/a.js',
-        requestId: 1
+        requestId: 1,
       })
     ).toEqual({});
   });
   test('should not forward', () => {
     forward.config.proxy = [['xxxxx', 'xxxx']];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'chrome-extension://xxxxx/a.js',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({});
   });
@@ -103,14 +90,12 @@ describe('chrome-extension://', () => {
 describe('same request id should not forward', () => {
   test('no forward', () => {
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({ url: 'g.alicdn.com', requestId: 1 })
     ).toEqual({});
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com??a.js,b.js,c.js',
-        requestId: 1
+        requestId: 1,
       })
     ).toEqual({});
   });
@@ -120,84 +105,75 @@ describe('string urls', () => {
   test('should forward normal url without query', () => {
     forward.config.proxy = [['g.alicdn.com', 'g.alicdn.com?t=2']];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
-        requestId: 2
+        requestId: 2,
       })
     ).toEqual({
-      redirectUrl: 'https://g.alicdn.com?t=2#aaaa'
+      redirectUrl: 'https://g.alicdn.com?t=2#aaaa',
     });
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js,c.js',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
   test('should forward normal url with query', () => {
     forward.config.proxy = [
-      ['https://g.alicdn.com?t=1', 'https://g.alicdn.com?t=2']
+      ['https://g.alicdn.com?t=1', 'https://g.alicdn.com?t=2'],
     ];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1&k=2',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
-        requestId: 2
+        requestId: 2,
       }).redirectUrl
     ).toBeFalsy();
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1#aaaa',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
   test('should forward url with ?? ', () => {
     forward.config.proxy = [
-      ['https://a.com/??a.js,b.js', 'https://b.com/??a.js,b.js']
+      ['https://a.com/??a.js,b.js', 'https://b.com/??a.js,b.js'],
     ];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://a.com/??a.js,b.js',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://b.com/??a.js,b.js');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/#aaaa',
-        requestId: 2
+        requestId: 2,
       }).redirectUrl
     ).toBeFalsy();
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://a.com/??a.js,b.js?t=1#aaa',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://b.com/??a.js,b.js?t=1#aaa');
   });
@@ -208,91 +184,81 @@ describe('reg urls', () => {
     forward.config.proxy = [['g.(\\w+).com', 'g.alicdn.com?t=2']];
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g1.alicdn.com',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toBeFalsy();
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com',
-        requestId: 2
+        requestId: 2,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js,c.js',
-        requestId: 4
+        requestId: 4,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2/??a.js,b.js,c.js');
   });
 
   test('should forward reg url with query', () => {
     forward.config.proxy = [
-      ['(.*)g.(.*).com\\?t=1', 'https://g.alicdn.com?t=2']
+      ['(.*)g.(.*).com\\?t=1', 'https://g.alicdn.com?t=2'],
     ];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1&k=2',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2&k=2');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com#aaaa',
-        requestId: 2
+        requestId: 2,
       }).redirectUrl
     ).toBeFalsy();
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com?t=1#aaaa',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://g.alicdn.com?t=2#aaaa');
   });
 
   test('should forward reg url with ??', () => {
     forward.config.proxy = [
-      ['(.*)g.alicdn.com/\\?\\?(.*)', '$1alinw.alicdn.com/??$2']
+      ['(.*)g.alicdn.com/\\?\\?(.*)', '$1alinw.alicdn.com/??$2'],
     ];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js?t=1',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://alinw.alicdn.com/??a.js,b.js?t=1');
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/#aaaa',
-        requestId: 2
+        requestId: 2,
       }).redirectUrl
     ).toBeFalsy();
 
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/??a.js,b.js?t=1#aaa',
-        requestId: 3
+        requestId: 3,
       }).redirectUrl
     ).toEqual('https://alinw.alicdn.com/??a.js,b.js?t=1#aaa');
   });
@@ -303,15 +269,14 @@ describe('multiple rules', () => {
     forward.config.proxy = [
       [
         '//g.alicdn.com/platform/daily-test/(.*).js$',
-        '//g.alicdn.com/platform/daily-test/$1.json'
+        '//g.alicdn.com/platform/daily-test/$1.json',
       ],
-      ['g.alicdn.com', 'alinw.alicdn.com']
+      ['g.alicdn.com', 'alinw.alicdn.com'],
     ];
     expect(
-      // @ts-ignore
       forward.redirectToMatchingRule({
         url: 'https://g.alicdn.com/platform/daily-test/isDaily.js',
-        requestId: 1
+        requestId: 1,
       }).redirectUrl
     ).toEqual('https://alinw.alicdn.com/platform/daily-test/isDaily.json');
   });
@@ -320,7 +285,7 @@ describe('multiple rules', () => {
 describe('CORS without access-control-allow-origin', () => {
   test('should support cors', () => {
     forward.config.proxy = [
-      ['http://dev-a.b.com/(.*).json', 'http://dev-c.d.com/$1.json']
+      ['http://dev-a.b.com/(.*).json', 'http://dev-c.d.com/$1.json'],
     ];
     forward.config.cors = ['dev-c.d.com'];
 
@@ -333,79 +298,79 @@ describe('CORS without access-control-allow-origin', () => {
       responseHeaders: [
         {
           name: 'Date',
-          value: 'Wed, 11 Jul 2018 12:38:45 GMT'
+          value: 'Wed, 11 Jul 2018 12:38:45 GMT',
         },
         {
           name: 'Content-Type',
-          value: 'application/json;charset=UTF-8'
+          value: 'application/json;charset=UTF-8',
         },
         {
           name: 'Transfer-Encoding',
-          value: 'chunked'
+          value: 'chunked',
         },
         {
           name: 'Connection',
-          value: 'keep-alive'
+          value: 'keep-alive',
         },
         {
           name: 'Vary',
-          value: 'Accept-Encoding'
+          value: 'Accept-Encoding',
         },
         {
           name: 'X-Application-Context',
-          value: 'a-b-c:7001'
+          value: 'a-b-c:7001',
         },
         {
           name: 'X-Content-Type-Options',
-          value: 'nosniff'
+          value: 'nosniff',
         },
         {
           name: 'X-XSS-Protection',
-          value: '1; mode=block'
+          value: '1; mode=block',
         },
         {
           name: 'Cache-Control',
-          value: 'no-cache, no-store, max-age=0, must-revalidate'
+          value: 'no-cache, no-store, max-age=0, must-revalidate',
         },
         {
           name: 'Pragma',
-          value: 'no-cache'
+          value: 'no-cache',
         },
         {
           name: 'Expires',
-          value: '0'
+          value: '0',
         },
         {
           name: 'X-Frame-Options',
-          value: 'DENY'
+          value: 'DENY',
         },
         {
           name: 'Strict-Transport-Security',
-          value: 'max-age=31536000 ; includeSubDomains'
+          value: 'max-age=31536000 ; includeSubDomains',
         },
         {
           name: 'Content-Encoding',
-          value: 'gzip'
+          value: 'gzip',
         },
         {
           name: 'Server',
-          value: 'Tengine/Aserver'
+          value: 'Tengine/Aserver',
         },
         {
           name: 'EagleEye-TraceId',
-          value: '0a67793015313127251908120e23db'
+          value: '0a67793015313127251908120e23db',
         },
         {
           name: 'Timing-Allow-Origin',
-          value: '*'
-        }
+          value: '*',
+        },
       ],
       statusCode: 200,
       statusLine: 'HTTP/1.1 200',
       tabId: 2988,
       timeStamp: 1531312725294.728,
       type: 'xmlhttprequest',
-      url: 'http://dev-c.d.com/overview/type.json?'
+      url: 'http://dev-c.d.com/overview/type.json?',
     };
     const expectHeaderDetails = [
       { name: 'Date', value: 'Wed, 11 Jul 2018 12:38:45 GMT' },
@@ -418,14 +383,14 @@ describe('CORS without access-control-allow-origin', () => {
       { name: 'X-XSS-Protection', value: '1; mode=block' },
       {
         name: 'Cache-Control',
-        value: 'no-cache, no-store, max-age=0, must-revalidate'
+        value: 'no-cache, no-store, max-age=0, must-revalidate',
       },
       { name: 'Pragma', value: 'no-cache' },
       { name: 'Expires', value: '0' },
       { name: 'X-Frame-Options', value: 'DENY' },
       {
         name: 'Strict-Transport-Security',
-        value: 'max-age=31536000 ; includeSubDomains'
+        value: 'max-age=31536000 ; includeSubDomains',
       },
       { name: 'Content-Encoding', value: 'gzip' },
       { name: 'Server', value: 'Tengine/Aserver' },
@@ -437,11 +402,10 @@ describe('CORS without access-control-allow-origin', () => {
       {
         name: 'access-control-allow-headers',
         value:
-          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer'
-      }
+          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer',
+      },
     ];
     expect(
-      // @ts-ignore
       forward.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
   });
@@ -450,7 +414,7 @@ describe('CORS without access-control-allow-origin', () => {
 describe('CORS withCredentials', () => {
   test('should support cors', () => {
     forward.config.proxy = [
-      ['http://127.0.0.1/(.*).json', 'http://a.b.com/$1.json']
+      ['http://127.0.0.1/(.*).json', 'http://a.b.com/$1.json'],
     ];
     forward.config.cors = ['http://a.b.com'];
     const testheaderDetails = {
@@ -462,99 +426,99 @@ describe('CORS withCredentials', () => {
       responseHeaders: [
         {
           name: 'Date',
-          value: 'Thu, 12 Jul 2018 02:32:09 GMT'
+          value: 'Thu, 12 Jul 2018 02:32:09 GMT',
         },
         {
           name: 'Content-Type',
-          value: 'application/json;charset=UTF-8'
+          value: 'application/json;charset=UTF-8',
         },
         {
           name: 'Transfer-Encoding',
-          value: 'chunked'
+          value: 'chunked',
         },
         {
           name: 'Connection',
-          value: 'keep-alive'
+          value: 'keep-alive',
         },
         {
           name: 'Vary',
-          value: 'Accept-Encoding'
+          value: 'Accept-Encoding',
         },
         {
           name: 'X-Content-Type-Options',
-          value: 'nosniff'
+          value: 'nosniff',
         },
         {
           name: 'X-XSS-Protection',
-          value: '1; mode=block'
+          value: '1; mode=block',
         },
         {
           name: 'Cache-Control',
-          value: 'no-cache, no-store, max-age=0, must-revalidate'
+          value: 'no-cache, no-store, max-age=0, must-revalidate',
         },
         {
           name: 'Pragma',
-          value: 'no-cache'
+          value: 'no-cache',
         },
         {
           name: 'Expires',
-          value: '0'
+          value: '0',
         },
         {
           name: 'X-Frame-Options',
-          value: 'DENY'
+          value: 'DENY',
         },
         {
           name: 'Strict-Transport-Security',
-          value: 'max-age=31536000 ; includeSubDomains'
+          value: 'max-age=31536000 ; includeSubDomains',
         },
         {
           name: 'access-control-allow-credentials',
-          value: 'true'
+          value: 'true',
         },
         {
           name: 'access-control-allow-origin',
-          value: 'http://127.0.0.1'
+          value: 'http://127.0.0.1',
         },
         {
           name: 'Vary',
-          value: 'Origin'
+          value: 'Origin',
         },
         {
           name: 'Access-Control-Expose-Headers',
-          value: 'Set-Cookie'
+          value: 'Set-Cookie',
         },
         {
           name: 'X-Application-Context',
-          value: 'ottscgadmin:7001'
+          value: 'ottscgadmin:7001',
         },
         {
           name: 'EagleEye-TraceId-daily',
-          value: '1e37823915313627291994023e'
+          value: '1e37823915313627291994023e',
         },
         {
           name: 'Content-Encoding',
-          value: 'gzip'
+          value: 'gzip',
         },
         {
           name: 'Server',
-          value: 'Tengine/Aserver'
+          value: 'Tengine/Aserver',
         },
         {
           name: 'EagleEye-TraceId',
-          value: '0bef992c15313627291782432e3237'
+          value: '0bef992c15313627291782432e3237',
         },
         {
           name: 'Timing-Allow-Origin',
-          value: '*'
-        }
+          value: '*',
+        },
       ],
       statusCode: 200,
       statusLine: 'HTTP/1.1 200',
       tabId: 3055,
       timeStamp: 1531362729284.772,
       type: 'xmlhttprequest',
-      url: 'http://a.b.com/scg/option.json?'
+      url: 'http://a.b.com/scg/option.json?',
     };
     const expectHeaderDetails = [
       { name: 'Date', value: 'Thu, 12 Jul 2018 02:32:09 GMT' },
@@ -566,14 +530,14 @@ describe('CORS withCredentials', () => {
       { name: 'X-XSS-Protection', value: '1; mode=block' },
       {
         name: 'Cache-Control',
-        value: 'no-cache, no-store, max-age=0, must-revalidate'
+        value: 'no-cache, no-store, max-age=0, must-revalidate',
       },
       { name: 'Pragma', value: 'no-cache' },
       { name: 'Expires', value: '0' },
       { name: 'X-Frame-Options', value: 'DENY' },
       {
         name: 'Strict-Transport-Security',
-        value: 'max-age=31536000 ; includeSubDomains'
+        value: 'max-age=31536000 ; includeSubDomains',
       },
       { name: 'Vary', value: 'Origin' },
       { name: 'Access-Control-Expose-Headers', value: 'Set-Cookie' },
@@ -589,11 +553,10 @@ describe('CORS withCredentials', () => {
       {
         name: 'access-control-allow-headers',
         value:
-          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer'
-      }
+          'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer',
+      },
     ];
     expect(
-      // @ts-ignore
       forward.onHeadersReceivedCallback(testheaderDetails).responseHeaders
     ).toEqual(expectHeaderDetails);
   });
@@ -602,7 +565,6 @@ describe('CORS withCredentials', () => {
 describe('CORS withCredentials and no forwardConfig', () => {
   test('should return {}', () => {
     forward.config.proxy = [];
-    // @ts-ignore
     expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(
       undefined
     );
@@ -612,7 +574,6 @@ describe('CORS withCredentials and no forwardConfig', () => {
 describe('CORS withCredentials and forwardConfig is disabled', () => {
   test('should return {}', () => {
     forward.disabled = Enabled.NO;
-    // @ts-ignore
     expect(forward.onHeadersReceivedCallback({}).responseHeaders).toEqual(
       undefined
     );

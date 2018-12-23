@@ -29,6 +29,7 @@ import {
   setEditingConfigKey,
   setConfigItems,
   getConfigItems,
+  migrate,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
@@ -57,6 +58,9 @@ export default class XSwitch extends ViewController {
   }
 
   async $didMount() {
+    // migrate
+    migrate();
+
     window.require.config({ paths: { vs: MONACO_VS_PATH } });
     const editingConfigKey: string = await getEditingConfigKey();
     this.editingKey = editingConfigKey;
@@ -127,6 +131,7 @@ export default class XSwitch extends ViewController {
       );
     }
     preventSave();
+
   }
 
   setEditorValue(value: string) {
