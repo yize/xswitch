@@ -244,3 +244,29 @@ export function openLink(url: string, isInner: boolean = false): void {
     }
   );
 }
+
+
+export function removeUnusedItems(){
+  window.chrome.storage.sync.get({
+    [JSONC_CONFIG]: {},
+    [JSON_CONFIG]: {},
+    [TAB_LIST]: [{
+      id: '0',
+      name: 'Current',
+      active: true,
+    }],
+  }, (result) => {
+    let stash: any = {
+      [JSONC_CONFIG]: {},
+      [JSON_CONFIG]: {},
+    };
+    result[TAB_LIST].forEach((tab: any)=>{
+      stash[JSONC_CONFIG][tab.id] = result[JSONC_CONFIG][tab.id];
+      stash[JSON_CONFIG][tab.id] = result[JSON_CONFIG][tab.id];
+    })
+    window.chrome.storage.sync.set(
+      stash,
+      ()=>{}
+    );
+  });
+}

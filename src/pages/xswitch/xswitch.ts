@@ -29,6 +29,7 @@ import {
   setEditingConfigKey,
   setConfigItems,
   getConfigItems,
+  removeUnusedItems,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
@@ -62,6 +63,7 @@ export default class XSwitch extends ViewController {
     this.editingKey = editingConfigKey;
     const config: any = await getConfig(editingConfigKey);
     this.items = Array.from(await getConfigItems());
+    await removeUnusedItems()
 
     let monacoReady: boolean = true;
 
