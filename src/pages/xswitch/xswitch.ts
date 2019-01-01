@@ -29,7 +29,6 @@ import {
   setEditingConfigKey,
   setConfigItems,
   getConfigItems,
-  migrate,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
@@ -58,9 +57,6 @@ export default class XSwitch extends ViewController {
   }
 
   async $didMount() {
-    // migrate
-    migrate();
-
     window.require.config({ paths: { vs: MONACO_VS_PATH } });
     const editingConfigKey: string = await getEditingConfigKey();
     this.editingKey = editingConfigKey;
@@ -131,7 +127,6 @@ export default class XSwitch extends ViewController {
       );
     }
     preventSave();
-
   }
 
   setEditorValue(value: string) {
@@ -190,18 +185,18 @@ export default class XSwitch extends ViewController {
 
   async remove(ev: EventTarget, ctx: any) {
     ev.stopPropagation();
-    if (this.deletingKey === ctx.item.id) {
+    if(this.deletingKey === ctx.item.id){
       const i = this.items.indexOf(ctx.item);
       if (i > -1) {
         this.items.splice(i, 1);
       }
       // i will not be 0
-      if (this.items[i - 1].hasOwnProperty('id')) {
-        this.editingKey = this.items[i - 1].id;
+      if(this.items[i-1].hasOwnProperty('id')){
+        this.editingKey = this.items[i-1].id;
         await this.setEditingKeyHandler(this.editingKey);
       }
       setConfigItems(this.items);
-    } else {
+    }else{
       this.deletingKey = ctx.item.id;
     }
   }
