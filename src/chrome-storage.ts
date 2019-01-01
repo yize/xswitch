@@ -11,62 +11,105 @@ import {
 import { JSONC2JSON, JSON_Parse } from './utils';
 import { Enabled } from './enums';
 
+interface ConfigStorage {
+  [JSONC_CONFIG]: object;
+}
 interface OptionsStorage {
   [CLEAR_CACHE_ENABLED]: string;
   [CORS_ENABLED_STORAGE_KEY]: string;
 }
 
-function getChromeStorageSyncValue(key: string, defaultValue: any): any {
+export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
   return new Promise((resolve) => {
+    if (process.env.NODE_ENV !== 'production') {
+      return resolve({
+        [JSONC_CONFIG]: {
+          0: '',
+        },
+      });
+    }
     window.chrome.storage.sync.get({
-      [key]: defaultValue,
+      [JSONC_CONFIG]: {
+        0: '',
+      },
     }, (result: any) => {
-      resolve(result[key]);
+      if (typeof result[JSONC_CONFIG] === 'string') {
+        return resolve(result[JSONC_CONFIG]);
+      }
+      resolve(result[JSONC_CONFIG][editingConfigKey]);
     });
   });
 }
 
-export async function getConfig(editingConfigKey: string): Promise<string> {
-  const key = `${JSONC_CONFIG}_${editingConfigKey}`;
-  return getChromeStorageSyncValue(key, '');
-}
-
-export async function getActiveKeys(): Promise<string> {
-  return getChromeStorageSyncValue(ACTIVE_KEYS, ['0']);
-}
-
-export function getTabList(): Promise<any> {
-  return getChromeStorageSyncValue(TAB_LIST, [{
-    id: '0',
-    name: 'Current',
-  }]);
+export function getActiveKeys(): Promise<any> {
+  return new Promise((resolve) => {
+    if (process.env.NODE_ENV !== 'production') {
+      return resolve({
+        [ACTIVE_KEYS]: ['0'],
+      });
+    }
+    window.chrome.storage.sync.get(
+      {
+        [ACTIVE_KEYS]: ['0'],
+      }, (result: any) => {
+        resolve(result[ACTIVE_KEYS]);
+      });
+  });
 }
 
 export function setActiveKeys(keys?: string[]): Promise<object> | void {
+  if (process.env.NODE_ENV === 'production') {
+    return new Promise((resolve) => {
+      window.chrome.storage.sync.set(
+        {
+          [ACTIVE_KEYS]: keys,
+        },
+        resolve
+      );
+    });
+  }
+}
+
+export function getConfigItems(): Promise<any> {
   return new Promise((resolve) => {
-    window.chrome.storage.sync.set(
+    if (process.env.NODE_ENV !== 'production') {
+      return resolve({
+        [TAB_LIST]: [{
+          id: '0',
+          name: 'Current',
+          active: true,
+        }],
+      });
+    }
+    window.chrome.storage.sync.get(
       {
-        [ACTIVE_KEYS]: keys,
-      },
-      resolve
-    );
+        [TAB_LIST]: [{
+          id: '0',
+          name: 'Current',
+          active: true,
+        }],
+      }, (result: any) => {
+        resolve(result[TAB_LIST]);
+      });
   });
 }
 
 export function setConfigItems(items?: any): Promise<object> | void {
-  return new Promise((resolve) => {
-    window.chrome.storage.sync.set(
-      {
-        [TAB_LIST]: items.slice(),
-        [ACTIVE_KEYS]: items.map((item: any) => {
-          if (item.active) {
-            return item.id;
-          }
-        }),
-      },
-      resolve
-    );
-  });
+  if (process.env.NODE_ENV === 'production') {
+    return new Promise((resolve) => {
+      window.chrome.storage.sync.set(
+        {
+          [TAB_LIST]: items.slice(),
+          [ACTIVE_KEYS]: items.map((item: any) => {
+            if (item.active) {
+              return item.id;
+            }
+          }),
+        },
+        resolve
+      );
+    });
+  }
 }
 
 export function getEditingConfigKey(): Promise<string> {
@@ -98,33 +141,43 @@ export function setEditingConfigKey(key: string): Promise<object> | void {
 
 export function saveConfig(jsonc: string, editingConfigKey: string): Promise<any> | void {
   const json = JSONC2JSON(jsonc);
-  const JSONC_KEY = `${JSONC_CONFIG}_${editingConfigKey}`;
 
-  return new Promise((resolve) => {
-    window.chrome.storage.sync.get({
-      [JSONC_KEY]: '',
-      [editingConfigKey]: '',
-    }, (result) => {
-      result[JSONC_KEY] = jsonc;
-
-      JSON_Parse(json, (error, parsedJSON) => {
-        if (!error) {
-          result[editingConfigKey] = parsedJSON;
-          return;
+  if (process.env.NODE_ENV === 'production') {
+    return new Promise((resolve) => {
+      window.chrome.storage.sync.get({
+        [JSONC_CONFIG]: {},
+        [JSON_CONFIG]: {},
+      }, (result) => {
+        // migrate
+        if (typeof result[JSONC_CONFIG] === 'string') {
+          result[JSONC_CONFIG] = {};
+          result[JSON_CONFIG] = {};
         }
-        result[editingConfigKey] = '';
-      });
 
-      window.chrome.storage.sync.set(
-        result,
-        resolve
-      );
+        result[JSONC_CONFIG][editingConfigKey] = jsonc;
+
+        JSON_Parse(json, (error, parsedJSON) => {
+          if (!error) {
+            result[JSON_CONFIG][editingConfigKey] = parsedJSON;
+            return;
+          }
+          result[JSON_CONFIG][editingConfigKey] = '';
+        });
+
+        window.chrome.storage.sync.set(
+          result,
+          resolve
+        );
+      });
     });
-  });
+  }
 }
 
 export function getChecked(): Promise<string> {
   return new Promise((resolve) => {
+    if (process.env.NODE_ENV !== 'production') {
+      return resolve(Enabled.YES);
+    }
     window.chrome.storage.sync.get(DISABLED, (result: any) => {
       resolve(result[DISABLED]);
     });
@@ -132,14 +185,16 @@ export function getChecked(): Promise<string> {
 }
 
 export function setChecked(checked?: boolean): Promise<object> | void {
-  return new Promise((resolve) => {
-    window.chrome.storage.sync.set(
-      {
-        [DISABLED]: checked ? Enabled.YES : Enabled.NO,
-      },
-      resolve
-    );
-  });
+  if (process.env.NODE_ENV === 'production') {
+    return new Promise((resolve) => {
+      window.chrome.storage.sync.set(
+        {
+          [DISABLED]: checked ? Enabled.YES : Enabled.NO,
+        },
+        resolve
+      );
+    });
+  }
 }
 
 export function getOptions(): Promise<OptionsStorage> {
@@ -170,36 +225,15 @@ export function setOptions(options: any): Promise<OptionsStorage> | void {
     return new Promise((resolve) => {
       window.chrome.storage.sync.set(
         {
-          clearCacheEnabled: options.clearCacheEnabled ? Enabled.YES : Enabled.NO,
+          clearCacheEnabled: options.clearCacheEnabled
+            ? Enabled.YES
+            : Enabled.NO,
           corsEnabled: options.corsEnabled ? Enabled.YES : Enabled.NO,
         },
         resolve
       );
     });
   }
-}
-
-export function migrate(): any {
-  return new Promise((resolve) => {
-    window.chrome.storage.sync.get({
-      [TAB_LIST]: [],
-      [JSON_CONFIG]: {},
-      [JSONC_CONFIG]: {},
-    }, (oldItems) => {
-      const newItems = {};
-      oldItems.tab_list.forEach((item: any) => {
-        const { id } = item;
-        // @ts-ignore
-        newItems[`config_${id}`] = oldItems.config[id];
-        // @ts-ignore
-        newItems[`config_for_shown_${id}`] = oldItems.config_for_shown[id];
-      });
-      window.chrome.storage.sync.set(
-        newItems,
-        resolve
-      );
-    });
-  });
 }
 
 export function openLink(url: string, isInner: boolean = false): void {

@@ -26,7 +26,7 @@ let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
 let parseError: boolean = false;
 let jsonActiveKeys = ['0'];
-let conf: StorageJSON | any = {
+let conf: StorageJSON = {
   0: {
     [PROXY_STORAGE_KEY]: [],
     [CORS_STORAGE]: [],
@@ -44,26 +44,26 @@ interface StorageJSON {
 }
 
 chrome.storage.sync.get({
+  [JSON_CONFIG]: {
+    0: {
+      [PROXY_STORAGE_KEY]: [],
+      [CORS_STORAGE]: [],
+    },
+  },
   [ACTIVE_KEYS]: ['0'],
 }, (result) => {
   jsonActiveKeys = result[ACTIVE_KEYS];
-  const obj: any = {};
-  jsonActiveKeys.forEach((item) => {
-    obj[item] = '';
-  });
-  chrome.storage.sync.get(obj, (res) => {
-    if (res) {
-      conf = { ...res };
-      const config = getActiveConfig(conf);
-      forward[JSON_CONFIG] = { ...config };
-    } else {
-      forward[JSON_CONFIG] = {
-        [PROXY_STORAGE_KEY]: [],
-        [CORS_STORAGE]: [],
-      };
-      parseError = false;
-    }
-  });
+  if (result && result[JSON_CONFIG]) {
+    conf = result[JSON_CONFIG];
+    const config = getActiveConfig(conf);
+    forward[JSON_CONFIG] = { ...config };
+  } else {
+    forward[JSON_CONFIG] = {
+      [PROXY_STORAGE_KEY]: [],
+      [CORS_STORAGE]: [],
+    };
+    parseError = false;
+  }
 });
 
 function getActiveConfig(config: StorageJSON): object {
@@ -89,11 +89,6 @@ function getActiveConfig(config: StorageJSON): object {
   return json;
 }
 
-function mergeActiveConfig(config: SingleConfig, key: string): object {
-  conf[key] = { ...config };
-  return getActiveConfig(conf);
-}
-
 chrome.storage.sync.get(
   {
     [DISABLED]: Enabled.YES,
@@ -113,16 +108,10 @@ chrome.storage.onChanged.addListener((changes) => {
     jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }
 
-  // const keys = Object.keys(changes);
-  // // if it's edtingKey
-  // keys.forEach((item) => {
-  //   if (/^[0-9]+$/.test(item)) {
-  //     if (changes[item].newValue) {
-  //       const config = mergeActiveConfig(changes[item].newValue, item);
-  //       forward[JSON_CONFIG] = { ...config };
-  //     }
-  //   }
-  // });
+  if (changes[JSON_CONFIG]) {
+    const config = getActiveConfig(changes[JSON_CONFIG].newValue);
+    forward[JSON_CONFIG] = { ...config };
+  }
 
   if (changes[DISABLED]) {
     forward[DISABLED] = changes[DISABLED].newValue;
@@ -136,21 +125,21 @@ chrome.storage.onChanged.addListener((changes) => {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
-  // chrome.storage.sync.get({
-  //   [JSON_CONFIG]: {
-  //     0: {
-  //       [PROXY_STORAGE_KEY]: [],
-  //       [CORS_STORAGE]: [],
-  //     },
-  //   },
-  // }, (result) => {
-  //   if (result && result[JSON_CONFIG]) {
-  //     conf = result[JSON_CONFIG];
-  //     const config = getActiveConfig(conf);
-  //     forward[JSON_CONFIG] = { ...config };
-  //   }
-  //   setIcon();
-  // });
+  chrome.storage.sync.get({
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
+    },
+  }, (result) => {
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      const config = getActiveConfig(conf);
+      forward[JSON_CONFIG] = { ...config };
+    }
+    setIcon();
+  });
 });
 
 chrome.webRequest.onBeforeRequest.addListener(
