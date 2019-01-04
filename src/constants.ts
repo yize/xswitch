@@ -66,7 +66,7 @@ export const MONACO_VS_PATH = process.env.NODE_ENV !== 'production'
   : './lib/monaco-editor/min/vs';
 export const MONACO_CONTRIBUTION_PATH = 'vs/language/json/monaco.contribution';
 export const HELP_URL = 'https://yuque.com/jiushen/blog/xswitch-readme';
-export const DEFAULT_FONT_FAMILY = 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';
+export const DEFAULT_FONT_FAMILY = 'Menlo, Monaco, "Courier New", monospace';
 export const PLATFORM_MAC = 'Mac';
 export const OPTIONS_SAVED = 'Options saved.';
 export const EMPTY_STRING = '';
