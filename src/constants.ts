@@ -95,7 +95,12 @@ export const DEFAULT_DATA = `{
       ".development.js"
       // "react.development.js",
     ],
-    // then try visit https://unpkg.com/react@16.4.1/umd/react.production.min.js
+    // \`Command/Ctrl + click\` to visit:
+    // https://unpkg.com/react@16.4.1/umd/react.production.min.js
+    [
+      "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
+      "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
+    ],
   ],
   // urls that want CORS
   "cors": [
@@ -108,8 +113,8 @@ export const DEFAULT_DATA = `{
 export const DEFAULT_DUP_DATA = `{
   "proxy": [
     [
-      ".production(.min)?.js",
-      "react.development.js",
+      "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
+      "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
     ],
   ],
 }

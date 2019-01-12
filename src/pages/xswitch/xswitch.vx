@@ -1,9 +1,9 @@
 <div class="xswitch-wrapper">
   <div class="xswitch-left-area">
     <ul class="xswitch-tabs" ref="tabs">
-      <li x-for={items} x-each='item' @click='setEditingKey' className.editing={item.id === editingKey}>
-        <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span className="label">&nbsp;{item.name}</span>
-        <Icon className="delete-icon" className.deleting={item.id === deletingKey} type="delete" theme="outlined" style.color={item.id === deletingKey? "#f5222d": "#ccc"} title={item.id === deletingKey? "Are you sure to delete?":"Click to delete"} @click="remove"/>
+      <li x-for={items} x-each='item' @click='setEditingKey' class.editing={item.id === editingKey}>
+        <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span class="label">&nbsp;{item.name}</span>
+        <Icon class="delete-icon" class.deleting={item.id === deletingKey} type="delete" theme="outlined" style.color={item.id === deletingKey? "#f5222d": "#ccc"} title={item.id === deletingKey? "Are you sure to delete?":"Click to delete"} @click="remove"/>
       </li>
     </ul>
     <div class="xswitch-new-item-container">
@@ -15,16 +15,17 @@
         x-model={newItem}
         @keyUp.enter="add"
         />
+        <Icon class="confirm-button" type="edit" theme="twoTone" @click="add" />
     </div>
   </div>
-  <div className="xswitch-container" ref="shell"></div>
+  <div class="xswitch-container" ref="shell"></div>
 </div>
-<div className="toolbar-area">
+<div class="toolbar-area">
   <Switch checkedChildren={<Icon type="check" />} unCheckedChildren={<Icon type="close" />} checked={checked} @change="toggleButton"/>
-  <a className="open-readme" title="Open help page" href="javascript:;" @click="openReadme">
-    <img className="xswitch-icon" src={`${prefix}/images/info.svg`} />
+  <a class="open-readme" title="Open help page" href="javascript:;" @click="openReadme">
+    <Icon type="question-circle" theme="twoTone" style={{ fontSize: '22px'}}/>
   </a>
-  <a className="new-tab-control" title="Open in new tab" href="javascript:;" @click="openNewTab">
-    <img className="xswitch-icon" src={`${prefix}/images/new-tab.svg`} />
+  <a class="new-tab-control" title="Open in new tab" href="javascript:;" @click="openNewTab">
+    <Icon type="code" theme="twoTone" style={{ fontSize: '22px'}}/>
   </a>
 </div>
