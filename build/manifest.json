@@ -24,7 +24,8 @@
     "_execute_browser_action": {
       "suggested_key": {
         "windows": "Ctrl+Shift+X",
-        "mac": "Command+Shift+X"
+        "mac": "Command+Shift+X",
+        "default": "Ctrl+Shift+X"
       }
     }
   },
