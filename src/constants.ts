@@ -90,23 +90,21 @@ export const DEFAULT_DATA = `{
   // For more information, visit: https://github.com/yize/xswitch
   "proxy": [
     [
-      ".production.min.js",
-      // ".production(.min)?.js",
-      ".development.js"
-      // "react.development.js",
+      "https://unpkg.com/react@16.4.1/umd/react.production.min.js",
+      "https://unpkg.com/react@16.4.1/umd/react.development.js"
     ],
     // \`Command/Ctrl + click\` to visit:
     // https://unpkg.com/react@16.4.1/umd/react.production.min.js
-    [
-      "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
-      "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
-    ],
+    // [
+      // "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
+      // "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
+    // ],
   ],
   // urls that want CORS
-  "cors": [
-    "mocks.a.com",
-    "mocks.b.com"
-  ]
+  // "cors": [
+    // "mocks.a.com",
+    // "mocks.b.com"
+  // ]
 }
 `;
 
