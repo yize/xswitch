@@ -4,19 +4,20 @@ export const REG = {
   // support [ ] ( ) \ * ^ $
   FORWARD: /\\|\[|]|\(|\)|\*|\$|\^/i,
   WHITESPACE: /\s+/g,
-  X_HEADER: /^x-/
+  X_HEADER: /^x-/,
 };
 
 export const ALL_URLS = '<all_urls>';
 export const BLOCKING = 'blocking';
 export const REQUEST_HEADERS = 'requestHeaders';
 export const RESPONSE_HEADERS = 'responseHeaders';
-export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS = 'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
+export const DEFAULT_CREDENTIALS_RESPONSE_HEADERS =
+  'Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer';
 export const CORS = {
   METHODS: 'access-control-allow-methods',
   CREDENTIALS: 'access-control-allow-credentials',
   ORIGIN: 'access-control-allow-origin',
-  HEADERS: 'access-control-allow-headers'
+  HEADERS: 'access-control-allow-headers',
 };
 export const ACCESS_CONTROL_REQUEST_HEADERS = 'access-control-request-headers';
 export const DEFAULT_CORS_ORIGIN = '*';
@@ -26,17 +27,21 @@ export const ORIGIN = 'origin';
 /**
  * Disabled storage key
  */
-export const DISABLED_STORAGE_KEY = 'disabled';
+export const DISABLED = 'disabled';
 /**
  * pure JSON storage key
  */
-export const JSONC_STORAGE_KEY = 'config_for_shown';
+export const JSON_CONFIG = 'config';
 /**
  * JSON with comments storage key
  */
-export const JSON_STORAGE_KEY = 'config';
-export const CLEAR_CACHE_ENABLED_STORAGE_KEY = 'clearCacheEnabled';
-export const CORS_STORAGE_KEY = 'cors';
+export const JSONC_CONFIG = 'config_for_shown';
+
+export const EDITING_CONFIG_KEY = 'config_editing_key';
+export const TAB_LIST = 'tab_list';
+export const ACTIVE_KEYS = 'active_keys';
+export const CLEAR_CACHE_ENABLED = 'clearCacheEnabled';
+export const CORS_STORAGE = 'cors';
 export const CORS_ENABLED_STORAGE_KEY = 'corsEnabled';
 export const PROXY_STORAGE_KEY = 'proxy';
 export const MILLISECONDS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
@@ -61,7 +66,7 @@ export const MONACO_VS_PATH = process.env.NODE_ENV !== 'production'
   : './lib/monaco-editor/min/vs';
 export const MONACO_CONTRIBUTION_PATH = 'vs/language/json/monaco.contribution';
 export const HELP_URL = 'https://yuque.com/jiushen/blog/xswitch-readme';
-export const DEFAULT_FONT_FAMILY = 'source-code-pro,Menlo,Monaco,Consolas,Courier New,monospace';
+export const DEFAULT_FONT_FAMILY = 'Menlo, Monaco, "Courier New", monospace';
 export const PLATFORM_MAC = 'Mac';
 export const OPTIONS_SAVED = 'Options saved.';
 export const EMPTY_STRING = '';
@@ -85,21 +90,30 @@ export const DEFAULT_DATA = `{
   // For more information, visit: https://github.com/yize/xswitch
   "proxy": [
     [
-      ".production.min.js",
-      // ".production(.min)?.js",
-      ".development.js"
-      // "react.development.js",
+      "https://unpkg.com/react@16.4.1/umd/react.production.min.js",
+      "https://unpkg.com/react@16.4.1/umd/react.development.js"
     ],
-    [
-      "16.4.1",
-      "16.4.0",
-    ]
-    // then try visit https://unpkg.com/react@16.4.1/umd/react.production.min.js
+    // \`Command/Ctrl + click\` to visit:
+    // https://unpkg.com/react@16.4.1/umd/react.production.min.js
+    // [
+      // "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
+      // "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
+    // ],
   ],
   // urls that want CORS
-  "cors": [
-    "mocks.a.com",
-    "mocks.b.com"
-  ]
+  // "cors": [
+    // "mocks.a.com",
+    // "mocks.b.com"
+  // ]
+}
+`;
+
+export const DEFAULT_DUP_DATA = `{
+  "proxy": [
+    [
+      "(.*)/path1/path2/(.*)", // https://www.sample.com/path1/path2/index.js
+      "http://127.0.0.1:3000/$2", // http://127.0.0.1:3000/index.js
+    ],
+  ],
 }
 `;

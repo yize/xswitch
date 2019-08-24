@@ -1,5 +1,5 @@
 import { ViewController, observable, inject } from '@ali/recore';
-import { Switch, Icon } from 'antd';
+import { Switch, Icon, Checkbox, Input, Popconfirm, Button } from 'antd';
 
 import './xswitch.less';
 
@@ -14,25 +14,44 @@ import {
   PLATFORM_MAC,
   RULE,
   RULE_COMPLETION,
-  JSONC_STORAGE_KEY,
   POPUP_HTML_PATH,
   HELP_URL,
+  DEFAULT_DUP_DATA,
 } from '../../constants';
-import { BadgeText, Enabled } from '../../enums';
+import { Enabled } from '../../enums';
 import {
   getConfig,
   saveConfig,
   setChecked,
   getChecked,
+  openLink,
+  getEditingConfigKey,
+  setEditingConfigKey,
+  setConfigItems,
+  getConfigItems,
+  removeUnusedItems,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
 
+let editor: any;
 @inject({
-  components: { Switch, Icon },
+  components: { Switch, Icon, Checkbox, Input, Popconfirm, Button },
 })
 export default class XSwitch extends ViewController {
   @observable
   checked = true;
+
+  @observable
+  editingKey = '0';
+
+  @observable
+  deletingKey = '0';
+
+  @observable
+  newItem = '';
+
+  @observable
+  items: any = [];
 
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
@@ -40,18 +59,21 @@ export default class XSwitch extends ViewController {
 
   async $didMount() {
     window.require.config({ paths: { vs: MONACO_VS_PATH } });
+    const editingConfigKey: string = await getEditingConfigKey();
+    this.editingKey = editingConfigKey;
+    const config: any = await getConfig(editingConfigKey);
+    this.items = Array.from(await getConfigItems());
+    await removeUnusedItems()
 
-    const result: any = await getConfig();
     let monacoReady: boolean = true;
-    let editor: any;
 
     window.require([MONACO_CONTRIBUTION_PATH], () => {
       editor = window.monaco.editor.create(
         this.$refs.shell,
-        getEditorConfig(result[JSONC_STORAGE_KEY])
+        getEditorConfig(config)
       );
 
-      saveConfig(editor.getValue());
+      saveConfig(editor.getValue(), this.editingKey);
 
       window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
         provideCompletionItems: () => {
@@ -81,7 +103,7 @@ export default class XSwitch extends ViewController {
       });
 
       editor.onDidChangeModelContent(() => {
-        saveConfig(editor.getValue());
+        saveConfig(editor.getValue(), this.editingKey);
       });
 
       editor.onDidScrollChange(() => {
@@ -109,22 +131,75 @@ export default class XSwitch extends ViewController {
     preventSave();
   }
 
+  setEditorValue(value: string) {
+    editor.setValue(value);
+  }
+
   toggleButton() {
     this.checked = !this.checked;
     setChecked(this.checked);
   }
 
   openNewTab() {
-    chrome.tabs.create(
-      { url: chrome.extension.getURL(POPUP_HTML_PATH) },
-      (tab) => {
-        // Tab opened.
-      }
-    );
+    openLink(POPUP_HTML_PATH, true);
   }
   openReadme() {
-    chrome.tabs.create({ url: HELP_URL }, (tab) => {
-      // Tab opened.
-    });
+    openLink(HELP_URL);
+  }
+
+  async setEditingKeyHandler(id: string) {
+    this.editingKey = id;
+    const config: any = await getConfig(this.editingKey);
+    this.setEditorValue(config || DEFAULT_DUP_DATA);
+    setEditingConfigKey(this.editingKey);
+    // reset
+    this.deletingKey = '0';
+  }
+
+  async setEditingKey(event: EventTarget, ctx: any) {
+    await this.setEditingKeyHandler(ctx.item.id);
+  }
+
+  setActive(event: EventTarget, ctx: any) {
+    ctx.item.active = !ctx.item.active;
+    setConfigItems(this.items);
+  }
+
+  async add() {
+    const id = '' + new Date().getTime();
+    const self = this;
+    if (this.newItem) {
+      this.items.push({
+        id,
+        name: this.newItem,
+        active: true,
+      });
+    }
+    setConfigItems(this.items);
+    this.editingKey = id;
+    setEditingConfigKey(this.editingKey);
+    await this.setEditingKeyHandler(id);
+    setTimeout(function () {
+      self.$refs.tabs.scrollTop = self.$refs.tabs.scrollHeight;
+    }, 0)
+    this.newItem = '';
+  }
+
+  async remove(ev: EventTarget, ctx: any) {
+    ev.stopPropagation();
+    if(this.deletingKey === ctx.item.id){
+      const i = this.items.indexOf(ctx.item);
+      if (i > -1) {
+        this.items.splice(i, 1);
+      }
+      // i will not be 0
+      if(this.items[i-1].hasOwnProperty('id')){
+        this.editingKey = this.items[i-1].id;
+        await this.setEditingKeyHandler(this.editingKey);
+      }
+      setConfigItems(this.items);
+    }else{
+      this.deletingKey = ctx.item.id;
+    }
   }
 }

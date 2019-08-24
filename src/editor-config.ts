@@ -15,7 +15,6 @@ export function getEditorConfig(value: string): object {
     },
     fontFamily: DEFAULT_FONT_FAMILY,
     fontSize: 13,
-    fontLigatures: true,
 
     contextmenu: false,
     scrollBeyondLastLine: false,
