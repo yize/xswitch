@@ -1,5 +1,5 @@
 import { ViewController, observable, inject } from '@ali/recore';
-import { Switch, Icon, Checkbox, Input, Popconfirm, Button } from 'antd';
+import { Switch, Icon, Checkbox, Input, Popconfirm, Button, message } from 'antd';
 
 import './xswitch.less';
 
@@ -66,6 +66,13 @@ export default class XSwitch extends ViewController {
     await removeUnusedItems()
 
     let monacoReady: boolean = true;
+
+    chrome.storage.onChanged.addListener(() => {
+      if(chrome.runtime.lastError) {
+        message.error('本地 storage 承载数据量过大，更新失败');
+        return;
+      }
+    });
 
     window.require([MONACO_CONTRIBUTION_PATH], () => {
       editor = window.monaco.editor.create(
