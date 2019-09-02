@@ -19,6 +19,42 @@ interface OptionsStorage {
   [CORS_ENABLED_STORAGE_KEY]: string;
 }
 
+interface ChromeStorageManagerProps {
+  useStorageSyncFn: boolean;
+}
+class ChromeStorageManager {
+  private storageFn: any;
+  
+  constructor(props: ChromeStorageManagerProps) {
+    /** 
+    **  More details: https://developer.chrome.com/extensions/storage
+    **
+    **  Property limit between storage.sync and storage.local in QUOTA_BYTES: 
+    **  QUOTA_BYTES_PER_ITEM prop in storage.sync is 8,192 and
+    **  QUOTA_BYTES prop in storage.sync is 102,400,
+    **  which indicates the maximum total amount (in bytes) of data that can be stored in sync storage.sync.
+    **  Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError.  
+    **
+    **  QUOTA_BYTES prop in storage.local is 5,242,880, 
+    **  which indicates the maximum amount (in bytes) of data that can be stored in local storage, 
+    **  as measured by the JSON stringification of every value plus every key's length.
+    */
+    this.storageFn = props.useStorageSyncFn ? window.chrome.storage.sync : window.chrome.storage.local;
+  }
+
+  get(keyOrObj: any, callback: Function = (args: any): any => {}) {
+    this.storageFn.get(keyOrObj, callback);
+  }
+
+  set(obj: any, callback: Function = (args: any): any => {}) {
+    this.storageFn.set(obj, callback);
+  }
+}
+
+const csmInstance = new ChromeStorageManager({
+  useStorageSyncFn: false, // we can also make this option configurable
+});
+
 export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
   return new Promise((resolve) => {
     if (process.env.NODE_ENV !== 'production') {
@@ -28,7 +64,7 @@ export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
         },
       });
     }
-    window.chrome.storage.sync.get({
+    csmInstance.get({
       [JSONC_CONFIG]: {
         0: '',
       },
@@ -48,7 +84,7 @@ export function getActiveKeys(): Promise<any> {
         [ACTIVE_KEYS]: ['0'],
       });
     }
-    window.chrome.storage.sync.get(
+    csmInstance.get(
       {
         [ACTIVE_KEYS]: ['0'],
       }, (result: any) => {
@@ -60,7 +96,7 @@ export function getActiveKeys(): Promise<any> {
 export function setActiveKeys(keys?: string[]): Promise<object> | void {
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.set(
+      csmInstance.set(
         {
           [ACTIVE_KEYS]: keys,
         },
@@ -81,7 +117,7 @@ export function getConfigItems(): Promise<any> {
         }],
       });
     }
-    window.chrome.storage.sync.get(
+    csmInstance.get(
       {
         [TAB_LIST]: [{
           id: '0',
@@ -97,7 +133,7 @@ export function getConfigItems(): Promise<any> {
 export function setConfigItems(items?: any): Promise<object> | void {
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.set(
+      csmInstance.set(
         {
           [TAB_LIST]: items.slice(),
           [ACTIVE_KEYS]: items.map((item: any) => {
@@ -117,10 +153,10 @@ export function getEditingConfigKey(): Promise<string> {
     if (process.env.NODE_ENV !== 'production') {
       return resolve('0');
     }
-    window.chrome.storage.sync.get(
+    csmInstance.get(
       {
         [EDITING_CONFIG_KEY]: '0',
-      }, (result) => {
+      }, (result: any) => {
         resolve(result[EDITING_CONFIG_KEY]);
       });
   });
@@ -129,7 +165,7 @@ export function getEditingConfigKey(): Promise<string> {
 export function setEditingConfigKey(key: string): Promise<object> | void {
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.set(
+      csmInstance.set(
         {
           [EDITING_CONFIG_KEY]: key,
         },
@@ -144,10 +180,10 @@ export function saveConfig(jsonc: string, editingConfigKey: string): Promise<any
 
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.get({
+      csmInstance.get({
         [JSONC_CONFIG]: {},
         [JSON_CONFIG]: {},
-      }, (result) => {
+      }, (result: any) => {
         // migrate
         if (typeof result[JSONC_CONFIG] === 'string') {
           result[JSONC_CONFIG] = {};
@@ -164,7 +200,7 @@ export function saveConfig(jsonc: string, editingConfigKey: string): Promise<any
           result[JSON_CONFIG][editingConfigKey] = '';
         });
 
-        window.chrome.storage.sync.set(
+        csmInstance.set(
           result,
           resolve
         );
@@ -178,7 +214,7 @@ export function getChecked(): Promise<string> {
     if (process.env.NODE_ENV !== 'production') {
       return resolve(Enabled.YES);
     }
-    window.chrome.storage.sync.get(DISABLED, (result: any) => {
+    csmInstance.get(DISABLED, (result: any) => {
       resolve(result[DISABLED]);
     });
   });
@@ -187,7 +223,7 @@ export function getChecked(): Promise<string> {
 export function setChecked(checked?: boolean): Promise<object> | void {
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.set(
+      csmInstance.set(
         {
           [DISABLED]: checked ? Enabled.YES : Enabled.NO,
         },
@@ -205,12 +241,12 @@ export function getOptions(): Promise<OptionsStorage> {
         [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
       });
     }
-    window.chrome.storage.sync.get(
+    csmInstance.get(
       {
         [CLEAR_CACHE_ENABLED]: Enabled.YES,
         [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
       },
-      (result) => {
+      (result: any) => {
         resolve({
           [CLEAR_CACHE_ENABLED]: result.clearCacheEnabled,
           [CORS_ENABLED_STORAGE_KEY]: result.corsEnabled,
@@ -223,7 +259,7 @@ export function getOptions(): Promise<OptionsStorage> {
 export function setOptions(options: any): Promise<OptionsStorage> | void {
   if (process.env.NODE_ENV === 'production') {
     return new Promise((resolve) => {
-      window.chrome.storage.sync.set(
+      csmInstance.set(
         {
           clearCacheEnabled: options.clearCacheEnabled
             ? Enabled.YES
@@ -246,8 +282,9 @@ export function openLink(url: string, isInner: boolean = false): void {
 }
 
 
+
 export function removeUnusedItems(){
-  window.chrome.storage.sync.get({
+  csmInstance.get({
     [JSONC_CONFIG]: {},
     [JSON_CONFIG]: {},
     [TAB_LIST]: [{
@@ -255,7 +292,7 @@ export function removeUnusedItems(){
       name: 'Current',
       active: true,
     }],
-  }, (result) => {
+  }, (result: any) => {
     let stash: any = {
       [JSONC_CONFIG]: {},
       [JSON_CONFIG]: {},
@@ -264,7 +301,7 @@ export function removeUnusedItems(){
       stash[JSONC_CONFIG][tab.id] = result[JSONC_CONFIG][tab.id];
       stash[JSON_CONFIG][tab.id] = result[JSON_CONFIG][tab.id];
     })
-    window.chrome.storage.sync.set(
+    csmInstance.set(
       stash,
       ()=>{}
     );
