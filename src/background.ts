@@ -23,7 +23,7 @@ import {
 import forward from './forward';
 import { ChromeStorageManager } from './chrome-storage';
 
-const cmsInstance = new ChromeStorageManager({
+const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
 });
 
@@ -49,7 +49,7 @@ interface StorageJSON {
   [key: string]: any;
 }
 
-cmsInstance.get({
+csmInstance.get({
   [JSON_CONFIG]: {
     0: {
       [PROXY_STORAGE_KEY]: [],
@@ -95,7 +95,7 @@ function getActiveConfig(config: StorageJSON): object {
   return json;
 }
 
-cmsInstance.get(
+csmInstance.get(
   {
     [DISABLED]: Enabled.YES,
     [CLEAR_CACHE_ENABLED]: Enabled.YES,
@@ -131,7 +131,7 @@ chrome.storage.onChanged.addListener((changes) => {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
-  cmsInstance.get({
+  csmInstance.get({
     [JSON_CONFIG]: {
       0: {
         [PROXY_STORAGE_KEY]: [],
