@@ -8,6 +8,7 @@ import {
   EDITING_CONFIG_KEY,
   ACTIVE_KEYS,
   USE_CHROME_STORAGE_SYNC_FN,
+  SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL,
 } from './constants';
 import { JSONC2JSON, JSON_Parse } from './utils';
 import { Enabled } from './enums';
@@ -55,6 +56,65 @@ export class ChromeStorageManager {
 const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN, // we can also make this option configurable
 });
+
+/**
+ * 兼容chrome.storage.sync 历史数据的逻辑
+ */
+function checkAndSyncHistorialSyncStorageDataToLocal() {
+  const historyStorageKeyOrObj = {
+    [JSONC_CONFIG]: {
+      0: '',
+    },
+    [JSON_CONFIG]: {},
+    [TAB_LIST]: [{
+      id: '0',
+      name: 'Current',
+      active: true,
+    }],
+    [ACTIVE_KEYS]: ['0'],
+  };
+  const migaratedFlag = {
+    [SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL]: {
+      migarated: false,
+    },
+  };
+
+  // Code below is only for migaration testing
+  // 
+  // csmInstance.set({
+  //   [SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL]: {
+  //     migarated: false,
+  //   },
+  // });
+
+  csmInstance.get(migaratedFlag, (result: any) => {
+    if (!result[SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL].migarated) {
+      chrome.storage.sync.get(historyStorageKeyOrObj, (hisData: any) => {
+        const stash: any = {
+          [JSONC_CONFIG]: {},
+          [JSON_CONFIG]: {},
+        };
+        hisData[TAB_LIST].forEach((tab: any)=>{
+          stash[JSONC_CONFIG][tab.id] = hisData[JSONC_CONFIG][tab.id];
+          stash[JSON_CONFIG][tab.id] = hisData[JSON_CONFIG][tab.id];
+        })
+
+        csmInstance.set({
+          [SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL]: {
+            migarated: true,
+          },
+          ...hisData,
+          ...stash,
+        });
+      })
+    } else {
+      console.log('SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL');
+    }
+  })
+}
+
+checkAndSyncHistorialSyncStorageDataToLocal();
+
 
 export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
   return new Promise((resolve) => {
