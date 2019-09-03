@@ -13,6 +13,7 @@ import {
   CORS_STORAGE,
   ACTIVE_KEYS,
   TAB_LIST,
+  USE_CHROME_STORAGE_SYNC_FN,
 } from './constants';
 import {
   BadgeText,
@@ -20,6 +21,11 @@ import {
   IconBackgroundColor,
 } from './enums';
 import forward from './forward';
+import { ChromeStorageManager } from './chrome-storage';
+
+const cmsInstance = new ChromeStorageManager({
+  useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
+});
 
 let clearRunning: boolean = false;
 let clearCacheEnabled: boolean = true;
@@ -43,7 +49,7 @@ interface StorageJSON {
   [key: string]: any;
 }
 
-chrome.storage.sync.get({
+cmsInstance.get({
   [JSON_CONFIG]: {
     0: {
       [PROXY_STORAGE_KEY]: [],
@@ -51,7 +57,7 @@ chrome.storage.sync.get({
     },
   },
   [ACTIVE_KEYS]: ['0'],
-}, (result) => {
+}, (result: any) => {
   jsonActiveKeys = result[ACTIVE_KEYS];
   if (result && result[JSON_CONFIG]) {
     conf = result[JSON_CONFIG];
@@ -89,13 +95,13 @@ function getActiveConfig(config: StorageJSON): object {
   return json;
 }
 
-chrome.storage.sync.get(
+cmsInstance.get(
   {
     [DISABLED]: Enabled.YES,
     [CLEAR_CACHE_ENABLED]: Enabled.YES,
     [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
   },
-  (result) => {
+  (result: any) => {
     forward[DISABLED] = result[DISABLED];
     clearCacheEnabled = result[CLEAR_CACHE_ENABLED] === Enabled.YES;
     corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
@@ -125,14 +131,14 @@ chrome.storage.onChanged.addListener((changes) => {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
-  chrome.storage.sync.get({
+  cmsInstance.get({
     [JSON_CONFIG]: {
       0: {
         [PROXY_STORAGE_KEY]: [],
         [CORS_STORAGE]: [],
       },
     },
-  }, (result) => {
+  }, (result: any) => {
     if (result && result[JSON_CONFIG]) {
       conf = result[JSON_CONFIG];
       const config = getActiveConfig(conf);

@@ -7,6 +7,7 @@ import {
   TAB_LIST,
   EDITING_CONFIG_KEY,
   ACTIVE_KEYS,
+  USE_CHROME_STORAGE_SYNC_FN,
 } from './constants';
 import { JSONC2JSON, JSON_Parse } from './utils';
 import { Enabled } from './enums';
@@ -20,9 +21,9 @@ interface OptionsStorage {
 }
 
 interface ChromeStorageManagerProps {
-  useStorageSyncFn: boolean;
+  useChromeStorageSyncFn: boolean;
 }
-class ChromeStorageManager {
+export class ChromeStorageManager {
   private storageFn: any;
   
   constructor(props: ChromeStorageManagerProps) {
@@ -39,7 +40,7 @@ class ChromeStorageManager {
     **  which indicates the maximum amount (in bytes) of data that can be stored in local storage, 
     **  as measured by the JSON stringification of every value plus every key's length.
     */
-    this.storageFn = props.useStorageSyncFn ? window.chrome.storage.sync : window.chrome.storage.local;
+    this.storageFn = props.useChromeStorageSyncFn ? window.chrome.storage.sync : window.chrome.storage.local;
   }
 
   get(keyOrObj: any, callback: Function = (args: any): any => {}) {
@@ -52,7 +53,7 @@ class ChromeStorageManager {
 }
 
 const csmInstance = new ChromeStorageManager({
-  useStorageSyncFn: false, // we can also make this option configurable
+  useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN, // we can also make this option configurable
 });
 
 export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {

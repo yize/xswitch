@@ -117,3 +117,7 @@ export const DEFAULT_DUP_DATA = `{
   ],
 }
 `;
+
+// false: 使用chrome.storage.sync.get/set
+// true:  使用chrome.storage.local.get/set
+export const USE_CHROME_STORAGE_SYNC_FN = false;
