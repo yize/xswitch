@@ -1,6 +1,6 @@
 {
   "name": "XSwitch",
-  "description": "XSwitch tools for proxy web request url, support reg",
+  "description": "A tool for redirecting URLs and allowing CORS to make the local development experience easy and happy.",
   "short_name": "xs",
   "version": "1.15.11",
   "manifest_version": 2,
