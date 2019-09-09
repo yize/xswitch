@@ -1,5 +1,5 @@
 import { ViewController, observable, inject } from '@ali/recore';
-import { Switch, Icon, Checkbox, Input, Popconfirm, Button } from 'antd';
+import { Switch, Icon, Checkbox, Input, Popconfirm, Button, message } from 'antd';
 
 import './xswitch.less';
 
@@ -35,7 +35,7 @@ import { getEditorConfig } from '../../editor-config';
 
 let editor: any;
 @inject({
-  components: { Switch, Icon, Checkbox, Input, Popconfirm, Button },
+  components: { Switch, Icon, Checkbox, Input, Popconfirm, Button, message },
 })
 export default class XSwitch extends ViewController {
   @observable
@@ -43,9 +43,6 @@ export default class XSwitch extends ViewController {
 
   @observable
   editingKey = '0';
-
-  @observable
-  deletingKey = '0';
 
   @observable
   newItem = '';
@@ -153,7 +150,7 @@ export default class XSwitch extends ViewController {
     this.setEditorValue(config || DEFAULT_DUP_DATA);
     setEditingConfigKey(this.editingKey);
     // reset
-    this.deletingKey = '0';
+    // this.deletingKey = '0';
   }
 
   async setEditingKey(event: EventTarget, ctx: any) {
@@ -166,15 +163,17 @@ export default class XSwitch extends ViewController {
   }
 
   async add() {
+    if (this.newItem.trim() === '') {
+      message.error('Rule name should not be an empty string!');
+      return;
+    }
     const id = '' + new Date().getTime();
     const self = this;
-    if (this.newItem) {
-      this.items.push({
-        id,
-        name: this.newItem,
-        active: true,
-      });
-    }
+    this.items.push({
+      id,
+      name: this.newItem,
+      active: true,
+    });
     setConfigItems(this.items);
     this.editingKey = id;
     setEditingConfigKey(this.editingKey);
@@ -187,19 +186,15 @@ export default class XSwitch extends ViewController {
 
   async remove(ev: EventTarget, ctx: any) {
     ev.stopPropagation();
-    if(this.deletingKey === ctx.item.id){
-      const i = this.items.indexOf(ctx.item);
-      if (i > -1) {
-        this.items.splice(i, 1);
-      }
-      // i will not be 0
-      if(this.items[i-1].hasOwnProperty('id')){
-        this.editingKey = this.items[i-1].id;
-        await this.setEditingKeyHandler(this.editingKey);
-      }
-      setConfigItems(this.items);
-    }else{
-      this.deletingKey = ctx.item.id;
+    const i = this.items.indexOf(ctx.item);
+    if (i > -1) {
+      this.items.splice(i, 1);
     }
+    // i will not be 0
+    if(this.items[i-1].hasOwnProperty('id')){
+      this.editingKey = this.items[i-1].id;
+      await this.setEditingKeyHandler(this.editingKey);
+    }
+    setConfigItems(this.items);
   }
 }

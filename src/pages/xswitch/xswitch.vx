@@ -3,7 +3,17 @@
     <ul class="xswitch-tabs" ref="tabs">
       <li x-for={items} x-each='item' @click='setEditingKey' class.editing={item.id === editingKey}>
         <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span class="label">&nbsp;{item.name}</span>
-        <Icon class="delete-icon" class.deleting={item.id === deletingKey} type="delete" theme="outlined" style.color={item.id === deletingKey? "#f5222d": "#ccc"} title={item.id === deletingKey? "Are you sure to delete?":"Click to delete"} @click="remove"/>
+        <Popconfirm
+          title={"Are you sure to delete?"}
+          @confirm="remove"
+        >
+        <Icon
+          class="delete-icon"
+          type="delete"
+          theme="outlined"
+          style.color="#f5222d"
+        />
+        </Popconfirm>
       </li>
     </ul>
     <div class="xswitch-new-item-container">
