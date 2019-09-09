@@ -149,8 +149,6 @@ export default class XSwitch extends ViewController {
     const config: any = await getConfig(this.editingKey);
     this.setEditorValue(config || DEFAULT_DUP_DATA);
     setEditingConfigKey(this.editingKey);
-    // reset
-    // this.deletingKey = '0';
   }
 
   async setEditingKey(event: EventTarget, ctx: any) {
