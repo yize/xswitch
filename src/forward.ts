@@ -15,6 +15,7 @@ import { Enabled, UrlType } from './enums';
 interface IFowardConfig {
   proxy?: string[][];
   cors?: string[];
+  enable?: string[];
 }
 
 /**
@@ -38,6 +39,13 @@ const matchUrl = (url: string, reg: string): string | boolean => {
   }
   return false;
 };
+
+
+function isCurrentDomainEnabled(enable: string[], initiator: string) {
+    // return enable.some((regOrStr: string) => {
+    //   return new RegExp(regOrStr, i)
+    // });
+}
 
 class Forward {
   private _lastRequestId: string | null = null;
@@ -76,6 +84,7 @@ class Forward {
 
     if (corsMap && corsMap.length) {
       corsMap.forEach((rule) => {
+        console.log('corsMap', details.url, rule);
         if (matchUrl(details.url, rule)) {
           corsMatched = true;
         }
@@ -165,13 +174,20 @@ class Forward {
   redirectToMatchingRule(
     details: chrome.webRequest.WebRequestHeadersDetails
   ): chrome.webRequest.BlockingResponse {
-    const rules = this.config.proxy;
+    const {
+      proxy: rules,
+      enable,
+    } = this.config;
     let redirectUrl: string = details.url;
 
     // in case of chrome-extension downtime
     if (!rules || !rules.length || REG.CHROME_EXTENSION.test(redirectUrl)) {
       return {};
     }
+
+    // if (!enable || !enable.length || !isCurrentDomainEnabled(enable, details.initiator)) {
+    //   return {};
+    // }
 
     if (
       /http(s?):\/\/.*\.(js|css|json|jsonp)/.test(redirectUrl) &&
@@ -187,7 +203,12 @@ class Forward {
         if (rule && rule[0] && typeof rule[1] === 'string') {
           const reg = rule[0];
           const matched = matchUrl(redirectUrl, reg);
-
+          console.log(
+            'RequestId:',
+            details.requestId,
+            this._lastRequestId,
+          );
+          console.log('matched', redirectUrl, rule, matched);
           if (details.requestId !== this._lastRequestId) {
             if (matched === UrlType.REG) {
               const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');

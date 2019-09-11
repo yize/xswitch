@@ -16,7 +16,7 @@ export function getEditorConfig(value: string): object {
     fontFamily: DEFAULT_FONT_FAMILY,
     fontSize: 13,
 
-    contextmenu: true,
+    contextmenu: false,
     scrollBeyondLastLine: false,
     folding: true,
     showFoldingControls: SHOW_FOLDING_CONTROLS,

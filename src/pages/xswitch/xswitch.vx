@@ -30,12 +30,22 @@
   </div>
   <div class="xswitch-container" ref="shell"></div>
 </div>
-<div class="toolbar-area">
-  <Switch checkedChildren={<Icon type="check" />} unCheckedChildren={<Icon type="close" />} checked={checked} @change="toggleButton"/>
-  <a class="open-readme" title="Open help page" href="javascript:;" @click="openReadme">
-    <Icon type="question-circle" theme="twoTone" style={{ fontSize: '22px'}}/>
-  </a>
-  <a class="new-tab-control" title="Open in new tab" href="javascript:;" @click="openNewTab">
-    <Icon type="code" theme="twoTone" style={{ fontSize: '22px'}}/>
-  </a>
+<div class="toolbar-area-top">
+  <Switch
+    checkedChildren={<Icon type="check" />}
+    unCheckedChildren={<Icon type="close" />}
+    checked={checked}
+    @change="toggleButton"
+  />
+  <Tooltip arrowPointAtCenter title="Open help page" placement="bottom">
+    <Icon type="question-circle" theme="twoTone" style={{ fontSize: '22px'}} @click="openReadme"/>
+  </Tooltip>
+</div>
+<div class="toolbar-area-bottom">
+  <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
+    <Icon type="file-text" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
+  </Tooltip>
+  <Tooltip arrowPointAtCenter title="Open in new tab">
+    <Icon type="code" theme="twoTone" style={{ fontSize: '22px'}} @click="openNewTab"/>
+  </Tooltip>
 </div>
