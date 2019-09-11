@@ -1,3 +1,4 @@
+import parseUrl from 'parse-url';
 import {
   CORS,
   DEFAULT_CORS_CREDENTIALS,
@@ -41,10 +42,11 @@ const matchUrl = (url: string, reg: string): string | boolean => {
 };
 
 
-function isCurrentDomainEnabled(enable: string[], initiator: string) {
-    // return enable.some((regOrStr: string) => {
-    //   return new RegExp(regOrStr, i)
-    // });
+function isCurrentDomainEnabled(enable: string[], url: string) {
+  const parsedTargetDomain = parseUrl(url).resource;
+  return enable.some((enabledDomain: string) => {
+    return parsedTargetDomain.indexOf(enabledDomain) > -1;
+  });
 }
 
 class Forward {
@@ -84,7 +86,6 @@ class Forward {
 
     if (corsMap && corsMap.length) {
       corsMap.forEach((rule) => {
-        console.log('corsMap', details.url, rule);
         if (matchUrl(details.url, rule)) {
           corsMatched = true;
         }
@@ -185,9 +186,11 @@ class Forward {
       return {};
     }
 
-    // if (!enable || !enable.length || !isCurrentDomainEnabled(enable, details.initiator)) {
-    //   return {};
-    // }
+    if ((enable && enable.length)) {
+      if (details.initiator && !isCurrentDomainEnabled(enable, details.initiator)) {
+        return {};
+      }
+    }
 
     if (
       /http(s?):\/\/.*\.(js|css|json|jsonp)/.test(redirectUrl) &&
@@ -203,12 +206,6 @@ class Forward {
         if (rule && rule[0] && typeof rule[1] === 'string') {
           const reg = rule[0];
           const matched = matchUrl(redirectUrl, reg);
-          console.log(
-            'RequestId:',
-            details.requestId,
-            this._lastRequestId,
-          );
-          console.log('matched', redirectUrl, rule, matched);
           if (details.requestId !== this._lastRequestId) {
             if (matched === UrlType.REG) {
               const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');

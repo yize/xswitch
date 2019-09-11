@@ -14,6 +14,7 @@ import {
   ACTIVE_KEYS,
   TAB_LIST,
   USE_CHROME_STORAGE_SYNC_FN,
+  ENABLE_DOMAIN_STORAGE,
 } from './constants';
 import {
   BadgeText,
@@ -89,6 +90,13 @@ function getActiveConfig(config: StorageJSON): object {
           json[CORS_STORAGE] = [];
         }
         json[CORS_STORAGE] = [...json[CORS_STORAGE], ...config[key][CORS_STORAGE]];
+      }
+
+      if (config[key][ENABLE_DOMAIN_STORAGE]) {
+        if (!json[ENABLE_DOMAIN_STORAGE]) {
+          json[ENABLE_DOMAIN_STORAGE] = [];
+        }
+        json[ENABLE_DOMAIN_STORAGE] = [...json[ENABLE_DOMAIN_STORAGE], ...config[key][ENABLE_DOMAIN_STORAGE]];
       }
     }
   });

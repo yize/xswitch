@@ -39,6 +39,7 @@
     "jest": "^23.6.0",
     "mini-css-extract-plugin": "^0.4.2",
     "monaco": "^1.201704190613.0+9ac64297a3b2ace5240299ba54b03f5029378397",
+    "parse-url": "^5.0.1",
     "ts-jest": "^23.1.4",
     "ts-loader": "~5.0.0",
     "typescript": "~3.0.3",
