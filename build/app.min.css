@@ -9596,7 +9596,7 @@ textarea.ant-input {
   top: 50%;
   z-index: 6;
   transform: translate(-50%, -50%);
-  width: 90%;
+  width: 560px;
   height: 600px;
   overflow: auto;
 }

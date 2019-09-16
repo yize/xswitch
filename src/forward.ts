@@ -186,8 +186,12 @@ class Forward {
       return {};
     }
 
-    if ((enable && enable.length)) {
-      if (details.initiator && !isCurrentDomainEnabled(enable, details.initiator)) {
+    if ((enable && enable.length > 0)) {
+      let domainUrl = details.url;
+      if (details.initiator && details.initiator !== 'null') {
+        domainUrl = details.initiator;
+      }
+      if (!isCurrentDomainEnabled(enable, domainUrl)) {
         return {};
       }
     }

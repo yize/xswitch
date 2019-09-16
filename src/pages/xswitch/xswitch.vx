@@ -38,7 +38,7 @@
           >
             <Collapse.Panel header={<Badge count={proxyRules.length} showZero offset={[10, 0]}>Proxy</Badge>} key="proxy">
               <ul class="proxy-rules">
-                {proxyRules.length ? '' : <p>暂无Proxy规则</p>}
+                {proxyRules.length ? '' : <i>暂无Proxy规则</i>}
                 <li x-for={proxyRules} x-each="proxy,key" key={key} style={{ marginBottom: 12 }}>
                   <Tag color="#87d068">{proxy[0]}</Tag>
                   <Icon type="caret-right" theme="filled" />&nbsp;
@@ -48,7 +48,7 @@
                   }} />
                 </li>
               </ul>
-              <Row>
+              <Row style={{ marginTop: 10 }}>
                 <Col span={10}>
                   <Input
                     ref="proxyPattern"
@@ -75,7 +75,7 @@
               </Row>
             </Collapse.Panel>
             <Collapse.Panel header={<Badge count={corsItems.length} showZero offset={[10, 0]}>CORS</Badge>} key="cors">
-              {corsItems.length ? '' : <p>暂无CORS规则</p>}
+              {corsItems.length ? '' : <i>暂无CORS规则</i>}
               <Tag key={key} x-for={corsItems} x-each='item,key' closable @close={removeCors}>
                 {item}
               </Tag>
@@ -84,7 +84,7 @@
               </Row>
             </Collapse.Panel>
             <Collapse.Panel header={<Badge count={enableItems.length} showZero offset={[10, 0]}>Enable</Badge>} key="enable">
-              {enableItems.length ? '' : <p>暂无Enable规则</p>}
+              {enableItems.length ? '' : <i>暂无Enable规则</i>}
               <Tag key={key} x-for={enableItems} x-each='item,key' closable @close={removeEnable}>
                 {item}
               </Tag>
