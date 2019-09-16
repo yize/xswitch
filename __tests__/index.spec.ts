@@ -618,3 +618,67 @@ describe('CORS withCredentials and forwardConfig is disabled', () => {
     );
   });
 });
+
+describe('Request with enable rules', () => {
+  test('No enable rules specified should return { redirectUrl: **matchedUrl** }', () => {
+    forward.config.proxy = [
+      [
+        "http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js",
+        "http://g.alicdn.com/mylib/react/??16.8.3/umd/react.development.js"
+      ]
+    ];
+    expect(
+      // @ts-ignore
+      forward.redirectToMatchingRule({
+        url: 'http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js',
+        requestId: 4
+      })
+    ).toEqual({
+      redirectUrl: 'http://g.alicdn.com/mylib/react/??16.8.3/umd/react.development.js',
+    });
+  });
+
+  test('Match one of enable domains', () => {
+    forward.config.proxy = [
+      [
+        "http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js",
+        "http://g.alicdn.com/mylib/react/??16.8.3/umd/react.development.js"
+      ]
+    ];
+    forward.config.enable = [
+      'a.alicdn.com',
+      'b.alicdn.com',
+      'g.alicdn.com',
+    ];
+    expect(
+      // @ts-ignore
+      forward.redirectToMatchingRule({
+        url: 'http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js',
+        requestId: 5
+      })
+    ).toEqual({
+      redirectUrl: 'http://g.alicdn.com/mylib/react/??16.8.3/umd/react.development.js',
+    });
+  });
+
+  test('Match none of enable domains', () => {
+    forward.config.proxy = [
+      [
+        "http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js",
+        "http://g.alicdn.com/mylib/react/??16.8.3/umd/react.development.js"
+      ]
+    ];
+    forward.config.enable = [
+      '9.alicdn.com',
+      'alicdn1.com',
+      'icdn.org',
+      'a1icdn',
+    ];
+    expect(
+      forward.redirectToMatchingRule({
+        url: 'http://g.alicdn.com/mylib/react/??16.8.6/umd/react.development.js',
+        requestId: 6
+      })
+    ).toEqual({});
+  });
+});

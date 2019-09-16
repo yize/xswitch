@@ -178,7 +178,7 @@ export default class XSwitch extends ViewController {
           }
 
           if (e.keyCode === KEY_CODE_M && e.altKey && e.shiftKey) {
-            self.switchMode();
+            self.switchEditMode();
             e.preventDefault();
           }
         },
@@ -270,7 +270,7 @@ export default class XSwitch extends ViewController {
 
   async setEditingKeyHandler(id: string) {
     if (this.editMode === 'form') {
-      if (!this.switchMode()) {
+      if (!this.switchEditMode()) {
         return;
       }
     }
@@ -348,7 +348,7 @@ export default class XSwitch extends ViewController {
     }
   }
 
-  switchMode() {
+  switchEditMode() {
     if (!this.isCurrentRuleValid()) {
       message.error('Please check your rules');
       return false;

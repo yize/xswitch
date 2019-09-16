@@ -1,4 +1,3 @@
-import parseUrl from 'parse-url';
 import {
   CORS,
   DEFAULT_CORS_CREDENTIALS,
@@ -12,6 +11,7 @@ import {
   ACCESS_CONTROL_REQUEST_HEADERS,
 } from './constants';
 import { Enabled, UrlType } from './enums';
+const url = require('url');
 
 interface IFowardConfig {
   proxy?: string[][];
@@ -42,8 +42,8 @@ const matchUrl = (url: string, reg: string): string | boolean => {
 };
 
 
-function isCurrentDomainEnabled(enable: string[], url: string) {
-  const parsedTargetDomain = parseUrl(url).resource;
+export function isCurrentDomainEnabled(enable: string[], rawUrl: string) {
+  const parsedTargetDomain = url.parse(rawUrl).hostname;
   return enable.some((enabledDomain: string) => {
     return parsedTargetDomain.indexOf(enabledDomain) > -1;
   });
@@ -187,7 +187,7 @@ class Forward {
     }
 
     if ((enable && enable.length > 0)) {
-      let domainUrl = details.url;
+      let domainUrl: string = redirectUrl;
       if (details.initiator && details.initiator !== 'null') {
         domainUrl = details.initiator;
       }

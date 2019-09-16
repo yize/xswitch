@@ -95,7 +95,7 @@
           </Collapse>
           <Row style={{ marginTop: 10 }}>
             <Col offset={20} span={4}>
-              <Button size="small" type="primary" @click="switchMode" block>
+              <Button size="small" type="primary" @click="switchEditMode" block>
                 <Icon type="save" /> Save
               </Button>
             </Col>
@@ -118,7 +118,7 @@
 </div>
 <div class="toolbar-area-bottom">
   <Tooltip arrowPointAtCenter title="Switch mode (Alt+Shift+M)">
-    <Icon type="interaction" theme="twoTone" style={{ fontSize: '22px'}} @click="switchMode" />
+    <Icon type="interaction" theme="twoTone" style={{ fontSize: '22px'}} @click="switchEditMode" />
   </Tooltip>
   <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
     <Icon type="file-text" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
