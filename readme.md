@@ -66,6 +66,11 @@
   "cors": [
     "cors.a.com",
     "(.*).b.com"
+  ],
+  // 希望规则生效的 domain
+  "enable": [
+    "a.com",
+    "b.com"
   ]
 }
 ```

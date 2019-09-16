@@ -42,10 +42,16 @@ const matchUrl = (url: string, reg: string): string | boolean => {
 };
 
 
-export function isCurrentDomainEnabled(enable: string[], rawUrl: string) {
+function isCurrentDomainEnabled(enable: string[], rawUrl: string) {
   const parsedTargetDomain = url.parse(rawUrl).hostname;
   return enable.some((enabledDomain: string) => {
-    return parsedTargetDomain.indexOf(enabledDomain) > -1;
+    if (REG.FORWARD.test(enabledDomain)) {
+      const r = new RegExp(enabledDomain.replace('??', '\\?\\?'), 'gi');
+      const matched = r.test(rawUrl);
+      return matched;
+    } else {
+      return rawUrl.toLowerCase().indexOf(enabledDomain.toLowerCase()) > -1;
+    }
   });
 }
 
@@ -212,7 +218,7 @@ class Forward {
           const matched = matchUrl(redirectUrl, reg);
           if (details.requestId !== this._lastRequestId) {
             if (matched === UrlType.REG) {
-              const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+              const r = new RegExp(reg.replace('??', '\\?\\?'), 'gi');
               redirectUrl = redirectUrl.replace(r, rule[1]);
             } else if (matched === UrlType.STRING) {
               redirectUrl = redirectUrl.split(rule[0]).join(rule[1]);
