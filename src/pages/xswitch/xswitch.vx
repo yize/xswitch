@@ -28,7 +28,82 @@
         <Icon class="confirm-button" type="edit" theme="twoTone" @click="add" />
     </div>
   </div>
-  <div class="xswitch-container" ref="shell"></div>
+  <div class="xswitch-container" ref="shell">
+    <div class="form-container-mask" style={{ display: editMode === 'form' ? 'block' : 'none' }}>
+      <div class="form-container">
+        <div class="form-main">
+          <Collapse
+            defaultActiveKey={['proxy']}
+            @change={togglePanel}
+          >
+            <Collapse.Panel header={<Badge count={proxyRules.length} showZero offset={[10, 0]}>Proxy</Badge>} key="proxy">
+              <ul class="proxy-rules">
+                {proxyRules.length ? '' : <p>暂无Proxy规则</p>}
+                <li x-for={proxyRules} x-each="proxy,key" key={key} style={{ marginBottom: 12 }}>
+                  <Tag color="#87d068">{proxy[0]}</Tag>
+                  <Icon type="caret-right" theme="filled" />&nbsp;
+                  <Tag>{proxy[1]}</Tag>
+                  <Icon type="delete" style={{ color: '#a20', marginLeft: 10 }} @click={() => {
+                    removeProxyRule(key);
+                  }} />
+                </li>
+              </ul>
+              <Row>
+                <Col span={10}>
+                  <Input
+                    ref="proxyPattern"
+                    size="small"
+                    placeholder="Input proxy pattern"
+                    x-model={newProxyPattern} />
+                </Col>
+                <Col span={1}>
+                 <Icon type="caret-right" theme="filled" />&nbsp;
+                </Col>
+                <Col span={10}>
+                  <Input
+                    size="small"
+                    placeholder="Input proxy target"
+                    x-model={newProxyTarget}
+                    @keyUp.enter="addNewProxyRule"
+                  />
+                </Col>
+                <Col offset={1} span={1}>
+                  <Button size="small" shape="circle" type="primary" @click="addNewProxyRule">
+                    <Icon type="plus-o" />
+                  </Button>
+                </Col>
+              </Row>
+            </Collapse.Panel>
+            <Collapse.Panel header={<Badge count={corsItems.length} showZero offset={[10, 0]}>CORS</Badge>} key="cors">
+              {corsItems.length ? '' : <p>暂无CORS规则</p>}
+              <Tag key={key} x-for={corsItems} x-each='item,key' closable @close={removeCors}>
+                {item}
+              </Tag>
+              <Row style={{ marginTop: 10 }}>
+                <Input size="small" placeholder="Add a new CORS rule with Enter" x-model={newCors} @keyUp.enter="addNewCors" />
+              </Row>
+            </Collapse.Panel>
+            <Collapse.Panel header={<Badge count={enableItems.length} showZero offset={[10, 0]}>Enable</Badge>} key="enable">
+              {enableItems.length ? '' : <p>暂无Enable规则</p>}
+              <Tag key={key} x-for={enableItems} x-each='item,key' closable @close={removeEnable}>
+                {item}
+              </Tag>
+              <Row style={{ marginTop: 10 }}>
+                <Input size="small" placeholder="Add a new enable rule with Enter" x-model={newEnable} @keyUp.enter="addNewEnable" />
+              </Row>
+            </Collapse.Panel>
+          </Collapse>
+          <Row style={{ marginTop: 10 }}>
+            <Col offset={20} span={4}>
+              <Button size="small" type="primary" @click="switchMode" block>
+                <Icon type="save" /> Save
+              </Button>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="toolbar-area-top">
   <Switch
@@ -42,6 +117,9 @@
   </Tooltip>
 </div>
 <div class="toolbar-area-bottom">
+  <Tooltip arrowPointAtCenter title="Switch mode (Alt+Shift+M)">
+    <Icon type="interaction" theme="twoTone" style={{ fontSize: '22px'}} @click="switchMode" />
+  </Tooltip>
   <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
     <Icon type="file-text" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
   </Tooltip>

@@ -75,6 +75,42 @@
   min-width: 600px;
   min-height: 600px;
   height: 100vh;
+
+  .form-container-mask {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    background: #2b2b2b;
+    opacity: 0.8;
+    transition: all .3s ease-in-out;
+  }
+
+  .form-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 6;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 600px;
+    overflow: auto;
+
+    .form-main {
+      background: #fff;
+      margin-top: 60px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+
+      ul.proxy-rules {
+        margin: 0;
+        padding: 0;
+        width: 480px;
+        overflow: auto;
+      }
+    }
+  }
 }
 
 .xswitch-left-area{
@@ -104,7 +140,6 @@
 .toolbar-area-bottom {
   bottom: 20px;
   right: 40px;
-  width: 60px;
 }
 
 .switch-control {

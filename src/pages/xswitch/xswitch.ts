@@ -1,12 +1,27 @@
 import { ViewController, observable, inject } from '@ali/recore';
-import { Switch, Icon, Tooltip, Checkbox, Input, Popconfirm, Button, message } from 'antd';
-
+import {
+  Switch,
+  Icon,
+  Tooltip,
+  Checkbox,
+  Tag,
+  Input,
+  Popconfirm,
+  Collapse,
+  Button,
+  Badge,
+  Row,
+  Col,
+  message,
+} from 'antd';
 import './xswitch.less';
 
 import {
   ANYTHING,
   FORMAT_DOCUMENT_CMD,
   KEY_CODE_S,
+  KEY_CODE_M,
+  KEY_PRESSE,
   KEY_DOWN,
   LANGUAGE_JSON,
   MONACO_CONTRIBUTION_PATH,
@@ -32,10 +47,25 @@ import {
   removeUnusedItems,
 } from '../../chrome-storage';
 import { getEditorConfig } from '../../editor-config';
+import { JSONC2JSON } from '../../utils';
 
 let editor: any;
 @inject({
-  components: { Switch, Icon, Tooltip, Checkbox, Input, Popconfirm, Button, message },
+  components: {
+    Switch,
+    Icon,
+    Tooltip,
+    Checkbox,
+    Input,
+    Tag,
+    Popconfirm,
+    Button,
+    Collapse,
+    Badge,
+    Row,
+    Col,
+    message,
+  },
 })
 export default class XSwitch extends ViewController {
   @observable
@@ -49,6 +79,30 @@ export default class XSwitch extends ViewController {
 
   @observable
   items: any = [];
+
+  @observable
+  editMode: string = 'editor'; // editor / form
+
+  @observable
+  newCors = '';
+
+  @observable
+  newEnable = '';
+
+  @observable
+  newProxyPattern = '';
+  
+  @observable
+  newProxyTarget = '';
+
+  @observable.shallow
+  proxyRules: string[][] = [];
+
+  @observable.shallow
+  corsItems: string[] = [];
+
+  @observable.shallow
+  enableItems: string[] = [];
 
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
@@ -111,7 +165,8 @@ export default class XSwitch extends ViewController {
       });
     });
 
-    function preventSave() {
+    const self = this;
+    function initHotKeyBindings() {
       document.addEventListener(
         KEY_DOWN,
         (e) => {
@@ -121,11 +176,79 @@ export default class XSwitch extends ViewController {
           if (e.keyCode === KEY_CODE_S && controlKeyDown) {
             e.preventDefault();
           }
+
+          if (e.keyCode === KEY_CODE_M && e.altKey && e.shiftKey) {
+            self.switchMode();
+            e.preventDefault();
+          }
         },
         false
       );
     }
-    preventSave();
+    initHotKeyBindings();
+  }
+
+  removeCors(ev: EventTarget, ctx: any) {
+    ev.preventDefault();
+    const idx: number = this.corsItems.indexOf(ctx.item);
+    if (idx > -1) {
+      this.corsItems.splice(idx, 1);
+    }
+  }
+
+  removeEnable(ev: EventTarget, ctx: any) {
+    ev.preventDefault();
+    const idx: number = this.enableItems.indexOf(ctx.item);
+    if (idx > -1) {
+      this.enableItems.splice(idx, 1);
+    }
+  }
+
+  removeProxyRule(index: number) {
+    this.proxyRules.splice(index, 1);
+  }
+
+  addNewProxyRule(ev: any) {
+    // precheck
+    if (this.newProxyPattern.trim() === '') {
+      message.error('Proxy pattern is invalid');
+      return;
+    }
+
+    if (this.newProxyTarget.trim() === '') {
+      message.error('Proxy target is invalid');
+      return;
+    }
+
+    this.proxyRules.push([
+      this.newProxyPattern,
+      this.newProxyTarget,
+    ]);
+
+    this.newProxyPattern = '';
+    this.newProxyTarget = '';
+
+    this.$refs.proxyPattern.focus();
+  }
+
+  addNewCors(ev: any) {
+    // precheck
+    if (this.newCors.trim() === '') {
+      message.error('CORS pattern is invalid');
+      return;
+    }
+    this.corsItems = Array.from(new Set([...this.corsItems, this.newCors]));
+    this.newCors = '';
+  }
+
+  addNewEnable(ev: any) {
+    // precheck
+    if (this.newEnable.trim() === '') {
+      message.error('Enable pattern is invalid');
+      return;
+    }
+    this.enableItems = Array.from(new Set([...this.enableItems, this.newEnable]));
+    this.newEnable = '';
   }
 
   setEditorValue(value: string) {
@@ -140,15 +263,24 @@ export default class XSwitch extends ViewController {
   openNewTab() {
     openLink(POPUP_HTML_PATH, true);
   }
+
   openReadme() {
     openLink(HELP_URL);
   }
 
   async setEditingKeyHandler(id: string) {
+    if (this.editMode === 'form') {
+      if (!this.switchMode()) {
+        return;
+      }
+    }
+
     this.editingKey = id;
     const config: any = await getConfig(this.editingKey);
     this.setEditorValue(config || DEFAULT_DUP_DATA);
     setEditingConfigKey(this.editingKey);
+    
+    this.formatCode();
   }
 
   async setEditingKey(event: EventTarget, ctx: any) {
@@ -160,8 +292,81 @@ export default class XSwitch extends ViewController {
     setConfigItems(this.items);
   }
 
-  async formatCode() {
+  formatCode() {
     editor.getAction('editor.action.formatDocument').run();
+  }
+
+  isCurrentRuleValid() {
+    if (this.editMode === 'editor') {
+      try {
+        const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  syncRulesForBothModes() {
+    if (this.editMode === 'editor') {
+      const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
+      const {
+        proxy,
+        cors,
+        enable,
+      } = rawCode;
+
+      if (proxy && proxy.length) {
+        this.proxyRules = proxy;
+      }
+
+      if (cors && cors.length) {
+        this.corsItems = cors;
+      }
+
+      if (enable && enable.length) {
+        this.enableItems = enable;
+      }
+    } else {
+      const newRules = {
+        proxy: this.proxyRules,
+        cors: this.corsItems,
+        enable: this.enableItems,
+      };
+  
+      editor.setValue(JSON.stringify(newRules));
+      this.formatCode();
+      
+      message.info('Your changes have been saved');
+
+      this.newProxyPattern = '';
+      this.newProxyTarget = '';
+      this.newCors = '';
+      this.newEnable = '';
+    }
+  }
+
+  switchMode() {
+    if (!this.isCurrentRuleValid()) {
+      message.error('Please check your rules');
+      return false;
+    }
+
+    this.syncRulesForBothModes();
+
+    if (this.editMode === 'editor') {
+      this.editMode = 'form';
+    } else {
+      this.editMode = 'editor';
+    }
+    
+    return true;
+  }
+
+  togglePanel(panelKey: string) {
+    console.log('panelKey', panelKey);
   }
 
   async add() {
