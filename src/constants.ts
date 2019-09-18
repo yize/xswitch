@@ -126,3 +126,7 @@ export const USE_CHROME_STORAGE_SYNC_FN = false;
  * check if old config rules saving by chrome.storage.sync.set function have been migarated
  */
 export const SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL = 'sync_storage_data_has_been_migarated_to_local';
+
+export const BLUE_ICON_PATH = 'images/blue_128.png';
+export const GREY_ICON_PATH = 'images/grey_128.png';
+export const DARK_MODE_MEDIA = '(prefers-color-scheme: dark)';

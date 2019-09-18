@@ -12,8 +12,10 @@ import {
   PROXY_STORAGE_KEY,
   CORS_STORAGE,
   ACTIVE_KEYS,
-  TAB_LIST,
   USE_CHROME_STORAGE_SYNC_FN,
+  GREY_ICON_PATH,
+  BLUE_ICON_PATH,
+  DARK_MODE_MEDIA,
 } from './constants';
 import {
   BadgeText,
@@ -109,7 +111,9 @@ csmInstance.get(
   }
 );
 
+
 chrome.storage.onChanged.addListener((changes) => {
+
   if (changes[ACTIVE_KEYS]) {
     jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }
@@ -146,6 +150,8 @@ chrome.storage.onChanged.addListener((changes) => {
     }
     setIcon();
   });
+
+  checkAndChangeIcons()
 });
 
 chrome.webRequest.onBeforeRequest.addListener(
@@ -230,3 +236,15 @@ function clearCache(): void {
     );
   }
 }
+
+function checkAndChangeIcons() {
+  const isDarkMode = window.matchMedia(DARK_MODE_MEDIA);
+  if (isDarkMode && isDarkMode.matches) {
+    chrome.browserAction.setIcon({ path: BLUE_ICON_PATH });
+  } else {
+    chrome.browserAction.setIcon({ path: GREY_ICON_PATH });
+  }
+}
+
+// check when extension is loaded
+checkAndChangeIcons();
