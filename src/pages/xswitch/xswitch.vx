@@ -47,11 +47,11 @@
               key="proxy">
               <div class="proxy-rules">
                 {proxyRules.length ? '' : <i>No proxy rules</i>}
-                <table x-if={proxyRules.length > 0} class="proxy-rules-table" border="1">
+                <table x-if={proxyRules.length > 0} class="proxy-rules-table" border="none">
                   <thead>
                     <th>Pattern</th>
                     <th>Target</th>
-                    <th>Control</th>
+                    <th width="114">Control</th>
                   </thead>
                   <tbody>
                     <tr x-for={proxyRules} x-each="item,index">
@@ -111,7 +111,7 @@
                           />
                         </span>
                       </td>
-                      <td style={{ width: 80 }}>
+                      <td>
                         <Tooltip title="move up rule">
                           <Icon style={{ marginRight: 5 }} x-if={index > 0} type="up-circle" theme="twoTone" @click={(e, actionCtx) => {
                             moveUpProxyRule(+index);
@@ -145,14 +145,23 @@
                     ref="proxyPattern"
                     size="small"
                     placeholder="Proxy pattern"
-                    x-model={newProxyPattern} />
+                    x-model={newProxyPattern}
+                    @keyUp.enter={(ev) => {
+                      if (ev.target.value.trim() === '') {
+                        showErrorMessage('Proxy pattern is invalid.');
+                        return;
+                      }
+                      this.$refs.proxyTarget.focus();
+                    }}
+                  />
                 </Col>
                 <Col span={2} style={{ textAlign: 'center' }}>
-                 <Icon type="caret-right" theme="filled" />&nbsp;
+                 <Icon type="right-circle" theme="twoTone" />&nbsp;
                 </Col>
                 <Col span={11}>
                   <Input
                     size="small"
+                    ref="proxyTarget"
                     placeholder="Proxy target, add with Enter"
                     x-model={newProxyTarget}
                     @keyUp.enter="addNewProxyRule"
