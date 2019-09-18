@@ -22,7 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@recore/fx": "^0.8.0",,
+    "@recore/fx": "^0.8.0",
     "antd": "^3.9.2"
   },
   "devDependencies": {
