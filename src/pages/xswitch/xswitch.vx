@@ -71,7 +71,9 @@
                           }} />
                         </span>
                         <span x-else>
-                          {item[0]}
+                          <Tooltip title="You can also double click to edit">
+                            {item[0]}
+                          </Tooltip>
                         </span>
                         <span style={{ float: 'right' }}>
                           <Icon
@@ -99,7 +101,9 @@
                           }} />
                         </span>
                         <span x-else>
-                          {item[1]}
+                          <Tooltip title="You can also double click to edit">
+                            {item[1]}
+                          </Tooltip>
                         </span>
                         <span style={{ float: 'right' }}>
                           <Icon
