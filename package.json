@@ -22,12 +22,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@recore/fx": "^0.8.0",
+    "@ali/recore": "^1.0.10",
     "antd": "^3.9.2"
   },
   "devDependencies": {
-    "@recore/solution": "^0.8.0",
-    "@recore/recore-loader": "^0.8.0",
+    "@ali/nowa-recore-solution": "^1.0.0",
+    "@ali/recore-loader": "^1.0.0",
     "@nowa/cli": "^0.6.0",
     "@types/chrome": "^0.0.73",
     "@types/jest": "^23.3.2",
