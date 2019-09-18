@@ -373,7 +373,11 @@ export default class XSwitch extends ViewController {
       }
     } else {
       const newRules = {
-        proxy: this.proxyRules,
+        proxy: this.proxyRules.map(item => {
+          return item.map(rule => {
+            return rule.replace(/\r|\n/gm, '');
+          })
+        }),
         cors: this.corsItems,
         enable: this.enableItems,
       };
@@ -402,6 +406,10 @@ export default class XSwitch extends ViewController {
       this.editMode = 'form';
     } else {
       this.editMode = 'editor';
+      this.currentEditIndexes = {
+        pattern: [],
+        target: [],
+      };
     }
     
     return true;
