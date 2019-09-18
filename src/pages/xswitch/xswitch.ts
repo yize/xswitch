@@ -229,6 +229,7 @@ export default class XSwitch extends ViewController {
 
   removeProxyRule(index: number) {
     this.proxyRules.splice(index, 1);
+    message.success('Proxy rule has been removed successfully');
   }
 
   showErrorMessage(msg: string) {

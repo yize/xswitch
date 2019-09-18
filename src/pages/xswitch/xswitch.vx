@@ -112,28 +112,20 @@
                         </span>
                       </td>
                       <td>
-                        <Tooltip title="move up rule">
-                          <Icon style={{ marginRight: 5 }} x-if={index > 0} type="up-circle" theme="twoTone" @click={(e, actionCtx) => {
-                            moveUpProxyRule(+index);
-                          }} />
-                        </Tooltip>
-                        <Tooltip title="move down rule">
-                          <Icon style={{ marginRight: 5 }} x-if={+index < proxyRules.length - 1} theme="twoTone" type="down-circle" @click={(e, actionCtx) => {
-                            moveDownProxyRule(+index);
-                          }} />
-                        </Tooltip>
+                        <Icon style={{ marginRight: 5 }} x-if={index > 0} type="up-circle" theme="twoTone" @click={(e, actionCtx) => {
+                          moveUpProxyRule(+index);
+                        }} />
+                        <Icon style={{ marginRight: 5 }} x-if={+index < proxyRules.length - 1} theme="twoTone" type="down-circle" @click={(e, actionCtx) => {
+                          moveDownProxyRule(+index);
+                        }} />
                         |
-                        <Tooltip title="copy rule">
-                          <Icon style={{ marginLeft: 5, marginRight: 5 }} theme="twoTone" type="copy" @click={(e, actionCtx) => {
-                            copyProxyRule(+index);
-                          }} />
-                        </Tooltip>
+                        <Icon style={{ marginLeft: 5, marginRight: 5 }} theme="twoTone" type="copy" @click={(e, actionCtx) => {
+                          copyProxyRule(+index);
+                        }} />
                         |
-                        <Tooltip title="remove rule">
-                          <Icon style={{ marginLeft: 5, marginRight: 5 }} twoToneColor="#f20" theme="twoTone" type="delete" onClick={(e, actionCtx) => {
-                            removeProxyRule(index);
-                          }} />
-                        </Tooltip>
+                        <Icon style={{ marginLeft: 5, marginRight: 5 }} twoToneColor="#f20" theme="twoTone" type="delete" onClick={(e, actionCtx) => {
+                          removeProxyRule(index);
+                        }} />
                       </td>
                     </tr>
                   </tbody>
