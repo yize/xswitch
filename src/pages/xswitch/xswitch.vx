@@ -36,46 +36,132 @@
             defaultActiveKey={['proxy']}
             @change={togglePanel}
           >
-            <Collapse.Panel header={<Badge count={proxyRules.length} showZero offset={[10, 0]}>Proxy</Badge>} key="proxy">
-              <ul class="proxy-rules">
-                {proxyRules.length ? '' : <i>暂无Proxy规则</i>}
-                <li x-for={proxyRules} x-each="proxy,key" key={key} style={{ marginBottom: 12 }}>
-                  <Tag color="#87d068">{proxy[0]}</Tag>
-                  <Icon type="caret-right" theme="filled" />&nbsp;
-                  <Tag>{proxy[1]}</Tag>
-                  <Icon type="delete" style={{ color: '#a20', marginLeft: 10 }} @click={() => {
-                    removeProxyRule(key);
-                  }} />
-                </li>
-              </ul>
+            <Collapse.Panel
+              header={
+                <Badge
+                  count={proxyRules.length}
+                  showZero
+                  offset={[10, 0]}
+                  >Proxy
+                </Badge>}
+              key="proxy">
+              <div class="proxy-rules">
+                {proxyRules.length ? '' : <i>No proxy rules</i>}
+                <table x-if={proxyRules.length > 0} class="proxy-rules-table" border="1">
+                  <thead>
+                    <th>Pattern</th>
+                    <th>Target</th>
+                    <th>Control</th>
+                  </thead>
+                  <tbody>
+                    <tr x-for={proxyRules} x-each="item,index">
+                      <td style={{ width: 280 }} @doubleClick={(ev) => {
+                          ev.preventDefault();
+                          if (!currentEditIndexes['pattern'].includes(index)) {
+                            switchRowItemEditMode(index, 'pattern');
+                          }
+                        }}>
+                        <span x-if={currentEditIndexes['pattern'].includes(index)}>
+                          <Input size="small" class="table-inp" x-model={item[0]} @keyUp.enter={(ev) => {
+                            if (ev.target.value.trim() === '') {
+                              showErrorMessage('Proxy pattern is invalid');
+                              return;
+                            }
+                            switchRowItemEditMode(index, 'pattern');
+                          }} />
+                        </span>
+                        <span x-else>
+                          {item[0]}
+                        </span>
+                        <span style={{ float: 'right' }}>
+                          <Icon
+                            type={currentEditIndexes['pattern'].includes(index) ? '' : 'edit'}
+                            theme="twoTone"
+                            @click={() => {
+                              switchRowItemEditMode(index, 'pattern');
+                            }}
+                          />
+                        </span>
+                      </td>
+                      <td style={{ width: 280 }} @doubleClick={(ev) => {
+                          ev.preventDefault();
+                          if (!currentEditIndexes['target'].includes(index)) {
+                            switchRowItemEditMode(index, 'target');
+                          }
+                        }}>
+                        <span x-if={currentEditIndexes['target'].includes(index)}>
+                          <Input size="small" class="table-inp" x-model={item[1]} @keyUp.enter={(ev) => {
+                            if (ev.target.value.trim() === '') {
+                              showErrorMessage('Proxy target is invalid');
+                              return;
+                            }
+                            switchRowItemEditMode(index, 'target');
+                          }} />
+                        </span>
+                        <span x-else>
+                          {item[1]}
+                        </span>
+                        <span style={{ float: 'right' }}>
+                          <Icon
+                            type={currentEditIndexes['target'].includes(index) ? '' : 'edit'}
+                            theme="twoTone"
+                            @click={() => {
+                              switchRowItemEditMode(index, 'target');
+                            }}
+                          />
+                        </span>
+                      </td>
+                      <td style={{ width: 80 }}>
+                        <Tooltip title="move up rule">
+                          <Icon style={{ marginRight: 5 }} x-if={index > 0} type="up-circle" theme="twoTone" @click={(e, actionCtx) => {
+                            moveUpProxyRule(+index);
+                          }} />
+                        </Tooltip>
+                        <Tooltip title="move down rule">
+                          <Icon style={{ marginRight: 5 }} x-if={+index < proxyRules.length - 1} theme="twoTone" type="down-circle" @click={(e, actionCtx) => {
+                            moveDownProxyRule(+index);
+                          }} />
+                        </Tooltip>
+                        |
+                        <Tooltip title="copy rule">
+                          <Icon style={{ marginLeft: 5, marginRight: 5 }} theme="twoTone" type="copy" @click={(e, actionCtx) => {
+                            copyProxyRule(+index);
+                          }} />
+                        </Tooltip>
+                        |
+                        <Tooltip title="remove rule">
+                          <Icon style={{ marginLeft: 5, marginRight: 5 }} twoToneColor="#f20" theme="twoTone" type="delete" onClick={(e, actionCtx) => {
+                            removeProxyRule(index);
+                          }} />
+                        </Tooltip>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <Row style={{ marginTop: 10 }}>
-                <Col span={10}>
+                <Col span={11}>
                   <Input
                     ref="proxyPattern"
                     size="small"
-                    placeholder="Input proxy pattern"
+                    placeholder="Proxy pattern"
                     x-model={newProxyPattern} />
                 </Col>
-                <Col span={1}>
+                <Col span={2} style={{ textAlign: 'center' }}>
                  <Icon type="caret-right" theme="filled" />&nbsp;
                 </Col>
-                <Col span={10}>
+                <Col span={11}>
                   <Input
                     size="small"
-                    placeholder="Input proxy target"
+                    placeholder="Proxy target, add with Enter"
                     x-model={newProxyTarget}
                     @keyUp.enter="addNewProxyRule"
                   />
                 </Col>
-                <Col offset={1} span={1}>
-                  <Button size="small" shape="circle" type="primary" @click="addNewProxyRule">
-                    <Icon type="plus-o" />
-                  </Button>
-                </Col>
               </Row>
             </Collapse.Panel>
             <Collapse.Panel header={<Badge count={corsItems.length} showZero offset={[10, 0]}>CORS</Badge>} key="cors">
-              {corsItems.length ? '' : <i>暂无CORS规则</i>}
+              {corsItems.length ? '' : <i>No CORS rules</i>}
               <Tag key={key} x-for={corsItems} x-each='item,key' closable @close={removeCors}>
                 {item}
               </Tag>
@@ -84,7 +170,7 @@
               </Row>
             </Collapse.Panel>
             <Collapse.Panel header={<Badge count={enableItems.length} showZero offset={[10, 0]}>Enable</Badge>} key="enable">
-              {enableItems.length ? '' : <i>暂无Enable规则</i>}
+              {enableItems.length ? '' : <i>No enable rules</i>}
               <Tag key={key} x-for={enableItems} x-each='item,key' closable @close={removeEnable}>
                 {item}
               </Tag>
@@ -94,8 +180,17 @@
             </Collapse.Panel>
           </Collapse>
           <Row style={{ marginTop: 10 }}>
-            <Col offset={20} span={4}>
-              <Button size="small" type="primary" @click="switchEditMode" block>
+            <Col offset={16} span={8}>
+              <Button size="small" type="default" @click="hideForm">
+                Cancel
+              </Button>
+              <Button size="small" type="primary" @click={() => {
+                if (currentEditIndexes['pattern'].length || currentEditIndexes['target'].length) {
+                  showErrorMessage('Please confirm your changes in proxy rules.');
+                  return;
+                }
+                switchEditMode();
+              }} style={{ marginLeft: 10 }}>
                 <Icon type="save" /> Save
               </Button>
             </Col>

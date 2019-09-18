@@ -70,7 +70,8 @@
   // 希望规则生效的 domain
   "enable": [
     "a.com",
-    "b.com"
+    "b.com",
+    "c.(.*).org",
   ]
 }
 ```

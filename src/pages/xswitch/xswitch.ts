@@ -12,6 +12,7 @@ import {
   Badge,
   Row,
   Col,
+  Table,
   message,
 } from 'antd';
 import './xswitch.less';
@@ -63,6 +64,7 @@ let editor: any;
     Collapse,
     Badge,
     Row,
+    Table,
     Col,
     message,
   },
@@ -103,6 +105,9 @@ export default class XSwitch extends ViewController {
 
   @observable.shallow
   enableItems: string[] = [];
+
+  @observable.shallow
+  currentEditIndexes: any = { pattern: [], target: [] };
 
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
@@ -204,8 +209,38 @@ export default class XSwitch extends ViewController {
     }
   }
 
+  swapProxyRule(from: number, to: number) {
+    const tmp = this.proxyRules[to];
+    this.proxyRules[to] = this.proxyRules[from];
+    this.proxyRules[from] = tmp;
+  }
+
+  moveUpProxyRule(index: number) {
+    if (index > 0) {
+      this.swapProxyRule(index - 1, index);
+    }
+  }
+
+  moveDownProxyRule(index: number) {
+    if (index < this.proxyRules.length - 1) {
+      this.swapProxyRule(index, index + 1);
+    }
+  }
+
   removeProxyRule(index: number) {
     this.proxyRules.splice(index, 1);
+  }
+
+  showErrorMessage(msg: string) {
+    message.error(msg);
+  } 
+
+  switchRowItemEditMode(index: number, type: string) {
+    if (this.currentEditIndexes[type].includes(index)) {
+      this.currentEditIndexes[type].splice(this.currentEditIndexes[type].indexOf(index));
+    } else {
+      this.currentEditIndexes[type].push(index);
+    }
   }
 
   addNewProxyRule(ev: any) {
@@ -309,6 +344,12 @@ export default class XSwitch extends ViewController {
     }
   }
 
+  copyProxyRule(index: number) {
+    const originalRule = [...this.proxyRules[index]];
+    this.proxyRules.splice(index, 0, originalRule);
+    message.success('Proxy rule has been copied successfully');
+  }
+
   syncRulesForBothModes() {
     if (this.editMode === 'editor') {
       const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
@@ -363,6 +404,10 @@ export default class XSwitch extends ViewController {
     }
     
     return true;
+  }
+
+  hideForm() {
+    this.editMode = 'editor';
   }
 
   togglePanel(panelKey: string) {

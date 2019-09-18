@@ -103,11 +103,41 @@
       border: 1px solid #ddd;
       border-radius: 4px;
 
-      ul.proxy-rules {
-        margin: 0;
+      table.proxy-rules-table {
+        margin: 0 auto;
         padding: 0;
-        width: 480px;
+        width: 94%;
         overflow: auto;
+        border-color: #d5d5d5;
+        border-radius: 4px;
+        table-layout: fixed;
+
+        tr {
+          cursor: pointer;
+          opacity: 0.9;
+          background: #f9f9f9;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        th, td {
+          padding: 8px;
+
+          .table-inp {
+            outline: none;
+            width: 100%;
+          }
+        }
+
+        td {
+          word-wrap: break-word;
+        }
+
+        tr:nth-child(odd) {
+          background: #e8e8e8;
+        }
       }
     }
   }

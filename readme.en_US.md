@@ -66,6 +66,12 @@ Rules will be executed in order before all requests are initiated.
   "cors": [
     "cors.a.com",
     "(.*).b.com"
+  ],
+  // domains/patterns that allowing rules to enforce
+  "enable": [
+    "a.com",
+    "b.com",
+    "c.(.*).org",
   ]
 }
 ```
