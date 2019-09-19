@@ -34,7 +34,7 @@ import {
   HELP_URL,
   DEFAULT_DUP_DATA,
 } from '../../constants';
-import { Enabled } from '../../enums';
+import { Enabled, EditModeEnum } from '../../enums';
 import {
   getConfig,
   saveConfig,
@@ -83,7 +83,7 @@ export default class XSwitch extends ViewController {
   items: any = [];
 
   @observable
-  editMode: string = 'editor'; // editor / form
+  editMode: EditModeEnum = EditModeEnum.EDITOR; // editor | form
 
   @observable
   newCors = '';
@@ -107,20 +107,31 @@ export default class XSwitch extends ViewController {
   enableItems: string[] = [];
 
   @observable.shallow
-  currentEditIndexes: any = { pattern: [], target: [] };
+  currentEditingRowItemIndexes: any = { pattern: [], target: [] };
 
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
   }
 
-  async $didMount() {
-    window.require.config({ paths: { vs: MONACO_VS_PATH } });
+  async $destroy() {
+    this.saveProxyRulesInternally();
+  }
+
+  async initEditorConfig() {
     const editingConfigKey: string = await getEditingConfigKey();
     this.editingKey = editingConfigKey;
-    const config: any = await getConfig(editingConfigKey);
     this.items = Array.from(await getConfigItems());
-    await removeUnusedItems()
+    removeUnusedItems();
+  }
 
+  async initMonocaEditor() {
+    const editingConfigKey: string = await getEditingConfigKey();
+    this.editingKey = editingConfigKey;
+    this.items = Array.from(await getConfigItems());
+    removeUnusedItems();
+    const config: any = await getConfig(this.editingKey);
+
+    window.require.config({ paths: { vs: MONACO_VS_PATH } });
     let monacoReady: boolean = true;
 
     window.require([MONACO_CONTRIBUTION_PATH], () => {
@@ -130,6 +141,18 @@ export default class XSwitch extends ViewController {
       );
 
       saveConfig(editor.getValue(), this.editingKey);
+
+      // load his edit mode
+      const [ lastEditItem ] = this.items.filter((item: any) => {
+        return item.id === this.editingKey;
+      });
+  
+      if (lastEditItem) {
+        this.editMode = lastEditItem.editMode;
+        if (this.editMode === EditModeEnum.FORM) {
+          this.loadEditorRulesIntoForm();
+        }
+      }
 
       window.monaco.languages.registerCompletionItemProvider(LANGUAGE_JSON, {
         provideCompletionItems: () => {
@@ -193,6 +216,10 @@ export default class XSwitch extends ViewController {
     initHotKeyBindings();
   }
 
+  async $didMount() {
+    await this.initMonocaEditor();
+  }
+
   removeCors(ev: EventTarget, ctx: any) {
     ev.preventDefault();
     const idx: number = this.corsItems.indexOf(ctx.item);
@@ -236,23 +263,23 @@ export default class XSwitch extends ViewController {
     message.error(msg);
   } 
 
-  switchRowItemEditMode(index: number, type: string) {
-    if (this.currentEditIndexes[type].includes(index)) {
-      this.currentEditIndexes[type].splice(this.currentEditIndexes[type].indexOf(index));
+  switchProxyRuleRowItemEditMode(index: number, type: string) {
+    if (this.currentEditingRowItemIndexes[type].includes(index)) {
+      this.currentEditingRowItemIndexes[type].splice(this.currentEditingRowItemIndexes[type].indexOf(index));
     } else {
-      this.currentEditIndexes[type].push(index);
+      this.currentEditingRowItemIndexes[type].push(index);
     }
   }
 
-  addNewProxyRule(ev: any) {
+  async addNewProxyRule(ev: any) {
     // precheck
     if (this.newProxyPattern.trim() === '') {
-      message.error('Proxy pattern is invalid');
+      message.error('Proxy pattern is empty');
       return;
     }
 
     if (this.newProxyTarget.trim() === '') {
-      message.error('Proxy target is invalid');
+      message.error('Proxy target is empty');
       return;
     }
 
@@ -264,27 +291,32 @@ export default class XSwitch extends ViewController {
     this.newProxyPattern = '';
     this.newProxyTarget = '';
 
+    await this.loadFormRulesIntoEditor();
     this.$refs.proxyPattern.focus();
   }
 
-  addNewCors(ev: any) {
+  async addNewCors(ev: any) {
     // precheck
     if (this.newCors.trim() === '') {
-      message.error('CORS pattern is invalid');
+      message.error('CORS pattern is empty');
       return;
     }
     this.corsItems = Array.from(new Set([...this.corsItems, this.newCors]));
     this.newCors = '';
+
+    await this.loadFormRulesIntoEditor();
   }
 
-  addNewEnable(ev: any) {
+  async addNewEnable(ev: any) {
     // precheck
     if (this.newEnable.trim() === '') {
-      message.error('Enable pattern is invalid');
+      message.error('Enable pattern is empty');
       return;
     }
     this.enableItems = Array.from(new Set([...this.enableItems, this.newEnable]));
     this.newEnable = '';
+
+    await this.loadFormRulesIntoEditor();
   }
 
   setEditorValue(value: string) {
@@ -304,19 +336,39 @@ export default class XSwitch extends ViewController {
     openLink(HELP_URL);
   }
 
-  async setEditingKeyHandler(id: string) {
-    if (this.editMode === 'form') {
-      if (!this.switchEditMode()) {
-        return;
-      }
+  async setEditModeForTargetItemAsync() {
+    const [ lastEditItem ] = this.items.filter((item: any) => {
+      return item.id === this.editingKey;
+    });
+    
+    if (lastEditItem) {
+      lastEditItem.editMode = this.editMode;
+      await setConfigItems(this.items);
     }
+  }
+
+  async setEditingKeyHandler(id: string) {
+    const [ currentEditConfigItem ] = this.items.filter((item: any) => {
+      return item.id === id;
+    });
+
+    await this.setEditModeForTargetItemAsync();
 
     this.editingKey = id;
+    if (currentEditConfigItem) {
+      this.editMode = currentEditConfigItem.editMode || EditModeEnum.EDITOR;
+    }
+
     const config: any = await getConfig(this.editingKey);
     this.setEditorValue(config || DEFAULT_DUP_DATA);
     setEditingConfigKey(this.editingKey);
     
-    this.formatCode();
+    if (this.editMode === EditModeEnum.FORM) {
+      this.loadEditorRulesIntoForm();
+    } else {
+      this.formatCode();
+    }
+    this.saveCurrentEditModeToStorage(this.editMode);
   }
 
   async setEditingKey(event: EventTarget, ctx: any) {
@@ -329,11 +381,11 @@ export default class XSwitch extends ViewController {
   }
 
   formatCode() {
-    editor.getAction('editor.action.formatDocument').run();
+    editor.getAction(FORMAT_DOCUMENT_CMD).run();
   }
 
   isCurrentRuleValid() {
-    if (this.editMode === 'editor') {
+    if (this.editMode === EditModeEnum.EDITOR) {
       try {
         const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
         return true;
@@ -351,72 +403,90 @@ export default class XSwitch extends ViewController {
     message.success('Proxy rule has been copied successfully');
   }
 
-  syncRulesForBothModes() {
-    if (this.editMode === 'editor') {
-      const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
-      const {
-        proxy,
-        cors,
-        enable,
-      } = rawCode;
+  loadEditorRulesIntoForm() {
+    const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
+    const {
+      proxy,
+      cors,
+      enable,
+    } = rawCode;
 
-      if (proxy && proxy.length) {
-        this.proxyRules = proxy;
-      }
+    if (proxy && proxy.length) {
+      this.proxyRules = proxy;
+    }
 
-      if (cors && cors.length) {
-        this.corsItems = cors;
-      }
+    if (cors && cors.length) {
+      this.corsItems = cors;
+    }
 
-      if (enable && enable.length) {
-        this.enableItems = enable;
-      }
-    } else {
-      const newRules = {
-        proxy: this.proxyRules.map(item => {
-          return item.map(rule => {
-            return rule.replace(/\r|\n/gm, '');
-          })
-        }),
-        cors: this.corsItems,
-        enable: this.enableItems,
-      };
-  
-      editor.setValue(JSON.stringify(newRules));
-      this.formatCode();
-      
-      message.info('Your changes have been saved');
-
-      this.newProxyPattern = '';
-      this.newProxyTarget = '';
-      this.newCors = '';
-      this.newEnable = '';
+    if (enable && enable.length) {
+      this.enableItems = enable;
     }
   }
 
-  switchEditMode() {
+  async syncRulesForBothModes() {
+    if (this.editMode === EditModeEnum.EDITOR) {
+      this.loadEditorRulesIntoForm();
+    } else {
+      await this.loadFormRulesIntoEditor();
+    }
+  }
+
+  async saveProxyRulesInternally() {
+    const newRules = {
+      proxy: this.proxyRules.map(item => {
+        return item.map(rule => {
+          return rule.replace(/\r|\n/gm, '');
+        })
+      }),
+      cors: this.corsItems,
+      enable: this.enableItems,
+    };
+
+    // we should diff two trees to maintain the comments area before synchronizing rules into monoca editor
+    editor.setValue(JSON.stringify(newRules));
+
+    await this.setEditModeForTargetItemAsync();
+  }
+
+  async loadFormRulesIntoEditor() {
+    await this.saveProxyRulesInternally();
+    this.formatCode();
+
+    this.newProxyPattern = '';
+    this.newProxyTarget = '';
+    this.newCors = '';
+    this.newEnable = '';
+  }
+
+  async switchEditMode() {
     if (!this.isCurrentRuleValid()) {
       message.error('Please check your rules');
-      return false;
+      return;
     }
 
-    this.syncRulesForBothModes();
+    await this.syncRulesForBothModes();
 
-    if (this.editMode === 'editor') {
-      this.editMode = 'form';
+    if (this.editMode === EditModeEnum.EDITOR) {
+      this.editMode = EditModeEnum.FORM;
     } else {
-      this.editMode = 'editor';
-      this.currentEditIndexes = {
+      this.editMode = EditModeEnum.EDITOR;
+      this.currentEditingRowItemIndexes = {
         pattern: [],
         target: [],
       };
     }
-    
-    return true;
+
+    await this.saveCurrentEditModeToStorage(this.editMode);
   }
 
-  hideForm() {
-    this.editMode = 'editor';
+  async saveCurrentEditModeToStorage(editMode: EditModeEnum) {
+    this.editMode = editMode;
+    await this.setEditModeForTargetItemAsync();
+  }
+
+  hideForm() {    
+    this.saveCurrentEditModeToStorage(EditModeEnum.EDITOR);
   }
 
   togglePanel(panelKey: string) {
@@ -434,9 +504,13 @@ export default class XSwitch extends ViewController {
       id,
       name: this.newItem,
       active: true,
+      editMode: EditModeEnum.EDITOR,
     });
     setConfigItems(this.items);
     this.editingKey = id;
+    
+    await this.saveCurrentEditModeToStorage(EditModeEnum.EDITOR);
+    
     setEditingConfigKey(this.editingKey);
     await this.setEditingKeyHandler(id);
     setTimeout(function () {
@@ -453,8 +527,7 @@ export default class XSwitch extends ViewController {
     }
     // i will not be 0
     if(this.items[i-1].hasOwnProperty('id')){
-      this.editingKey = this.items[i-1].id;
-      await this.setEditingKeyHandler(this.editingKey);
+      await this.setEditingKeyHandler(this.items[i-1].id);
     }
     setConfigItems(this.items);
   }

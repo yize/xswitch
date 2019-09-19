@@ -33,7 +33,7 @@
       <div class="form-container">
         <div class="form-main" style={{ marginTop: 30, marginBottom: 40 }}>
           <Collapse
-            defaultActiveKey={['proxy']}
+            defaultActiveKey={['proxy', 'cors', 'enable']}
             @change={togglePanel}
           >
             <Collapse.Panel
@@ -58,17 +58,17 @@
                     <tr x-for={proxyRules} x-each="item,index">
                       <td style={{ width: 280 }} @doubleClick={(ev) => {
                           ev.preventDefault();
-                          if (!currentEditIndexes['pattern'].includes(index)) {
-                            switchRowItemEditMode(index, 'pattern');
+                          if (!currentEditingRowItemIndexes.pattern.includes(index)) {
+                            switchProxyRuleRowItemEditMode(index, 'pattern');
                           }
                         }}>
-                        <span x-if={currentEditIndexes['pattern'].includes(index)}>
-                          <Input.TextArea autosize size="small" class="table-inp" x-model={item[0]} @keyUp.enter={(ev) => {
+                        <span x-if={currentEditingRowItemIndexes.pattern.includes(index)}>
+                          <Input.TextArea autosize size="small" class="table-inp" x-model={item[0]} @keyDown.enter={(ev) => {
                             if (ev.target.value.trim() === '') {
                               showErrorMessage('Proxy pattern is empty');
                               return;
                             }
-                            switchRowItemEditMode(index, 'pattern');
+                            switchProxyRuleRowItemEditMode(index, 'pattern');
                           }} />
                         </span>
                         <span x-else>
@@ -78,27 +78,27 @@
                         </span>
                         <span style={{ float: 'right' }}>
                           <Icon
-                            type={currentEditIndexes['pattern'].includes(index) ? '' : 'edit'}
+                            type={currentEditingRowItemIndexes.pattern.includes(index) ? '' : 'edit'}
                             theme="twoTone"
                             @click={() => {
-                              switchRowItemEditMode(index, 'pattern');
+                              switchProxyRuleRowItemEditMode(index, 'pattern');
                             }}
                           />
                         </span>
                       </td>
                       <td style={{ width: 280 }} @doubleClick={(ev) => {
                           ev.preventDefault();
-                          if (!currentEditIndexes['target'].includes(index)) {
-                            switchRowItemEditMode(index, 'target');
+                          if (!currentEditingRowItemIndexes.target.includes(index)) {
+                            switchProxyRuleRowItemEditMode(index, 'target');
                           }
                         }}>
-                        <span x-if={currentEditIndexes['target'].includes(index)}>
-                          <Input.TextArea autosize size="small" class="table-inp" x-model={item[1]} @keyUp.enter={(ev) => {
+                        <span x-if={currentEditingRowItemIndexes.target.includes(index)}>
+                          <Input.TextArea autosize size="small" class="table-inp" x-model={item[1]} @keyDown.enter={(ev) => {
                             if (ev.target.value.trim() === '') {
                               showErrorMessage('Proxy target is empty');
                               return;
                             }
-                            switchRowItemEditMode(index, 'target');
+                            switchProxyRuleRowItemEditMode(index, 'target');
                           }} />
                         </span>
                         <span x-else>
@@ -108,10 +108,10 @@
                         </span>
                         <span style={{ float: 'right' }}>
                           <Icon
-                            type={currentEditIndexes['target'].includes(index) ? '' : 'edit'}
+                            type={currentEditingRowItemIndexes.target.includes(index) ? '' : 'edit'}
                             theme="twoTone"
                             @click={() => {
-                              switchRowItemEditMode(index, 'target');
+                              switchProxyRuleRowItemEditMode(index, 'target');
                             }}
                           />
                         </span>
@@ -123,11 +123,11 @@
                         <Icon style={{ marginRight: 5 }} x-if={+index < proxyRules.length - 1} theme="twoTone" type="down-circle" @click={(e, actionCtx) => {
                           moveDownProxyRule(+index);
                         }} />
-                        |
+                        <span x-if={proxyRules.length > 1}>|</span>
                         <Icon style={{ marginLeft: 5, marginRight: 5 }} theme="twoTone" type="copy" @click={(e, actionCtx) => {
                           copyProxyRule(+index);
                         }} />
-                        |
+                        <span>|</span>
                         <Icon style={{ marginLeft: 5, marginRight: 5 }} twoToneColor="#f20" theme="twoTone" type="delete" onClick={(e, actionCtx) => {
                           removeProxyRule(index);
                         }} />
@@ -143,7 +143,7 @@
                   size="small"
                   placeholder="Input proxy pattern"
                   x-model={newProxyPattern}
-                  @keyUp.enter={(ev) => {
+                  @keyDown.enter={(ev) => {
                     if (ev.target.value.trim() === '') {
                       showErrorMessage('Proxy pattern is empty.');
                       return;
@@ -162,7 +162,7 @@
                   ref="proxyTarget"
                   placeholder="Input proxy target, then add new proxy rule with Enter"
                   x-model={newProxyTarget}
-                  @keyUp.enter="addNewProxyRule"
+                  @keyDown.enter="addNewProxyRule"
                 />
               </Row>
             </Collapse.Panel>
@@ -172,7 +172,7 @@
                 {item}
               </Tag>
               <Row style={{ marginTop: 10 }}>
-                <Input size="small" placeholder="Add a new CORS rule with Enter" x-model={newCors} @keyUp.enter="addNewCors" />
+                <Input size="small" placeholder="Add a new CORS rule with Enter" x-model={newCors} @keyDown.enter="addNewCors" />
               </Row>
             </Collapse.Panel>
             <Collapse.Panel header={<Badge count={enableItems.length} showZero offset={[10, 0]}>Enable</Badge>} key="enable">
@@ -181,7 +181,7 @@
                 {item}
               </Tag>
               <Row style={{ marginTop: 10 }}>
-                <Input size="small" placeholder="Add a new enable rule with Enter" x-model={newEnable} @keyUp.enter="addNewEnable" />
+                <Input size="small" placeholder="Add a new enable rule with Enter" x-model={newEnable} @keyDown.enter="addNewEnable" />
               </Row>
             </Collapse.Panel>
           </Collapse>
@@ -201,12 +201,14 @@
     <Icon type="question-circle" theme="twoTone" style={{ fontSize: '22px'}} @click="openReadme"/>
   </Tooltip>
 </div>
-<div class="toolbar-area-bottom">
+<div class="toolbar-area-bottom" style={{ width: editMode === 'editor' ? 80 : 60 }}>
+  <span x-if={editMode === 'editor'}>
+    <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
+      <Icon type="layout" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
+    </Tooltip>
+  </span>
   <Tooltip arrowPointAtCenter title="Switch mode (Alt+Shift+M)">
     <Icon type="interaction" theme="twoTone" style={{ fontSize: '22px'}} @click="switchEditMode" />
-  </Tooltip>
-  <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
-    <Icon type="layout" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
   </Tooltip>
   <Tooltip arrowPointAtCenter title="Open in new tab">
     <Icon type="code" theme="twoTone" style={{ fontSize: '22px'}} @click="openNewTab"/>

@@ -175,6 +175,7 @@ export function getConfigItems(): Promise<any> {
           id: '0',
           name: 'Current',
           active: true,
+          editMode: 'editor',
         }],
       });
     }
@@ -184,6 +185,7 @@ export function getConfigItems(): Promise<any> {
           id: '0',
           name: 'Current',
           active: true,
+          editMode: 'editor',
         }],
       }, (result: any) => {
         resolve(result[TAB_LIST]);
@@ -352,6 +354,7 @@ export function removeUnusedItems(){
       id: '0',
       name: 'Current',
       active: true,
+      editMode: 'editor',
     }],
   }, (result: any) => {
     let stash: any = {

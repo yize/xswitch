@@ -19,3 +19,8 @@ export enum BadgeText {
   OFF = 'OFF',
   ON = 'ON',
 }
+
+export enum EditModeEnum {
+  EDITOR = 'editor',
+  FORM = 'form'
+}
