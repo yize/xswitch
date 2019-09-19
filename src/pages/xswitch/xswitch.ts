@@ -292,7 +292,9 @@ export default class XSwitch extends ViewController {
     this.newProxyTarget = '';
 
     await this.loadFormRulesIntoEditor();
-    this.$refs.proxyPattern.focus();
+    setTimeout(() => {
+      this.$refs.proxyPattern.focus();
+    }, 200);
   }
 
   async addNewCors(ev: any) {
