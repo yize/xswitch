@@ -124,7 +124,7 @@ export default class XSwitch extends ViewController {
     removeUnusedItems();
   }
 
-  async initMonocaEditor() {
+  async initMonacoEditor() {
     const editingConfigKey: string = await getEditingConfigKey();
     this.editingKey = editingConfigKey;
     this.items = Array.from(await getConfigItems());
@@ -217,7 +217,7 @@ export default class XSwitch extends ViewController {
   }
 
   async $didMount() {
-    await this.initMonocaEditor();
+    await this.initMonacoEditor();
   }
 
   removeCors(ev: EventTarget, ctx: any) {
@@ -445,7 +445,7 @@ export default class XSwitch extends ViewController {
       enable: this.enableItems,
     };
 
-    // we should diff two trees to maintain the comments area before synchronizing rules into monoca editor
+    // we should diff two trees to maintain the comments area before synchronizing rules into monaco editor
     editor.setValue(JSON.stringify(newRules));
 
     await this.setEditModeForTargetItemAsync();
