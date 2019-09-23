@@ -413,6 +413,10 @@ export default class XSwitch extends ViewController {
   }
 
   loadEditorRulesIntoForm() {
+    console.log(
+      'loading editor rules...',
+      JSON.parse(JSONC2JSON(editor.getValue())),
+    );
     const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
     const {
       proxy,
@@ -473,7 +477,7 @@ export default class XSwitch extends ViewController {
         { tokens: true, comment: true, loc: true, range: true },
       );
 
-      newAst.tokens.forEach((t: any) => {
+      oldAst.tokens.forEach((t: any) => {
         const {
           loc: {
             start,
@@ -484,6 +488,8 @@ export default class XSwitch extends ViewController {
         }
         linedTokens[start.line].push(t);
       });
+
+      console.log('linedTokens', linedTokens, oldComments);
 
       function getCommentLineNumberByLoc(loc: any, insertedCount: number) {
         let lineNumber = loc.start.line;
@@ -513,7 +519,7 @@ export default class XSwitch extends ViewController {
         // loc.start.line which indicates the original comment's position
 
         let maxEndColumnToken: any;
-        let lineNumber = getCommentLineNumberByLoc(loc, index);
+        let lineNumber = loc.start.line;
 
         // const sameLineTokens = (linedTokens[lineNumber] || []);
 
@@ -563,9 +569,14 @@ export default class XSwitch extends ViewController {
         //   }
         // }
         // console.log(`comment ${JSON.stringify(c)} found target token at line ${lineNumber}, after token`, maxEndColumnToken);
-
+        console.log(
+          'lineNumber',
+          lineNumber,
+          typeof linedTokens[lineNumber] === 'undefined',
+        );
         maxEndColumnTokens.push({
           lineNumber,
+          emptyLine: typeof linedTokens[lineNumber] === 'undefined',
           // position: lineNumber - getCommentLineNumberByLoc(loc, index) === 0 ? 'current' : 'prev',
           // tokenValue: maxEndColumnToken.value,
           // lineTokens: linedTokens[lineNumber],
@@ -581,11 +592,13 @@ export default class XSwitch extends ViewController {
           type,
           value,
           lineNumber,
+          emptyLine,
         } = targetTokenInfo;
         const commentWithLineNumber = {
           value,
           type,
           lineNumber,
+          emptyLine,
         };
         commentEntities.push({
           ...commentWithLineNumber,
@@ -607,11 +620,16 @@ export default class XSwitch extends ViewController {
       const tempValue = editor.getValue();
       const lines = tempValue.split(/\n/);
       commentEntities.forEach((c: any, index: number) => {
-        const { lineNumber, type, value } = c;
+        const { lineNumber, emptyLine, type, value } = c;
         let lineIndex = lineNumber - 1;;
         let comment;
+        console.log('emptyLine', lineNumber, type, emptyLine);
         if (type === 'Line') {
           comment = `//${value}`;
+          if (emptyLine) {
+            lines.splice(lineIndex, 0, comment)
+            return;
+          }
         } else {
           if (/[\r\n]/.test(value)) {
             // comment = adjustMultilineComment(`/*${value}*/`);
