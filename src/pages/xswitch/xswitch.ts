@@ -612,16 +612,7 @@ export default class XSwitch extends ViewController {
       this.formatCode();
 
       // 3. append comments into new editor values based on previous calculated line infomation
-      setTimeout(() => {
-        // const commentTypeFilter = (c: any, cType: string) => { return c.type === cType };
-        // const [
-        //   blockComments,
-        //   lineComments,
-        // ] = [
-        //   commentEntities.filter((c: any) => commentTypeFilter(c, 'Block')),
-        //   commentEntities.filter((c: any) => commentTypeFilter(c, 'Line')),
-        // ];
-
+      setTimeout(async () => {
         const tempValue = editor.getValue();
         const lines = tempValue.split(/\n/);
         commentEntities.forEach((c: any, index: number) => {
@@ -649,11 +640,10 @@ export default class XSwitch extends ViewController {
         // 4. we can happily reset the editor value eventually
         editor.setValue(lines.join('\n'));
         this.formatCode();
+
+        await this.setEditModeForTargetItemAsync();
       }, 200);
     }, 100);
-
-
-    await this.setEditModeForTargetItemAsync();
   }
 
   async loadFormRulesIntoEditor() {

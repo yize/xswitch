@@ -64,15 +64,6 @@ function extendCommentRange(comment: any, tokens: any[]) {
   if (target >= 0) {
     comment.extendedRange[0] = tokens[target].range[1];
   }
-
-  // const {
-  //   attachedToken,
-  // } = comment;
-  // const {
-  //   range,
-  // } = attachedToken;
-
-  // comment.extendedRange = [range[0], range[1]];
   
   return comment;
 }
@@ -150,7 +141,6 @@ export function attachComments(tree: any, providedComments: any[], tokens: any[]
   estraverse.traverse(tree, {
     leave: function (node: any) {
       var comment;
-      console.log('leaving node', node);
       while (cursor < comments.length) {
         comment = comments[cursor];
         if (node.range[1] < comment.extendedRange[0]) {
@@ -178,7 +168,6 @@ export function attachComments(tree: any, providedComments: any[], tokens: any[]
       }
     }
   });
-  console.log('tree', tree);
   
   return tree;
 }
