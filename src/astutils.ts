@@ -100,7 +100,7 @@ export function attachComments(tree: any, providedComments: any[], tokens: any[]
   for (i = 0, len = providedComments.length; i < len; i += 1) {
     comments.push(extendCommentRange(deepCopy(providedComments[i]), tokens));
   }
-
+  
   console.log('comments', comments);
   
   // This is based on John Freeman's implementation.
@@ -175,8 +175,8 @@ export function attachComments(tree: any, providedComments: any[], tokens: any[]
 function flattenToString(arr: any[]) {
   var i, iz, elem, result = '';
   for (i = 0, iz = arr.length; i < iz; ++i) {
-      elem = arr[i];
-      result += Array.isArray(elem) ? flattenToString(elem) : elem;
+    elem = arr[i];
+    result += Array.isArray(elem) ? flattenToString(elem) : elem;
   }
   return result;
 }
@@ -185,58 +185,58 @@ function toSourceNodeWhenNeeded(generated: any) {
   if (Array.isArray(generated)) {
     return flattenToString(generated);
   } else {
-      return generated;
+    return generated;
   }
 }
 
 export function adjustMultilineComment(value: string, base: string = '', specialBase: any) {
   var array, i, len, line, j, spaces, previousBase, sn;
-
+  
   array = value.split(/\r\n|[\r\n]/);
   spaces = Number.MAX_VALUE;
-
+  
   // first line doesn't have indentation
   for (i = 1, len = array.length; i < len; ++i) {
-      line = array[i];
-      j = 0;
-      while (j < line.length && esutils.code.isWhiteSpace(line.charCodeAt(j))) {
-          ++j;
-      }
-      if (spaces > j) {
-          spaces = j;
-      }
+    line = array[i];
+    j = 0;
+    while (j < line.length && esutils.code.isWhiteSpace(line.charCodeAt(j))) {
+      ++j;
+    }
+    if (spaces > j) {
+      spaces = j;
+    }
   }
-
+  
   if (typeof specialBase !== 'undefined') {
-      // pattern like
-      // {
-      //   var t = 20;  /*
-      //                 * this is comment
-      //                 */
-      // }
-      previousBase = base;
-      if (array[1][spaces] === '*') {
-          specialBase += ' ';
-      }
-      base = specialBase;
+    // pattern like
+    // {
+    //   var t = 20;  /*
+    //                 * this is comment
+    //                 */
+    // }
+    previousBase = base;
+    if (array[1][spaces] === '*') {
+      specialBase += ' ';
+    }
+    base = specialBase;
   } else {
-      if (spaces & 1) {
-          // /*
-          //  *
-          //  */
-          // If spaces are odd number, above pattern is considered.
-          // We waste 1 space.
-          --spaces;
-      }
-      previousBase = base;
+    if (spaces & 1) {
+      // /*
+      //  *
+      //  */
+      // If spaces are odd number, above pattern is considered.
+      // We waste 1 space.
+      --spaces;
+    }
+    previousBase = base;
   }
-
+  
   for (i = 1, len = array.length; i < len; ++i) {
-      sn = toSourceNodeWhenNeeded(addIndent(array[i].slice(spaces)));
-      array[i] = sn;
+    sn = toSourceNodeWhenNeeded(addIndent(array[i].slice(spaces)));
+    array[i] = sn;
   }
-
+  
   base = previousBase;
-
+  
   return array.join('\n');
 }

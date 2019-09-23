@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import './xswitch.less';
 import { flattenArray } from '../../utils.ts';
-import { attachComments, adjustMultilineComment } from '../../astutils.ts';
+import { adjustMultilineComment } from '../../astutils.ts';
 
 const esprima = require('esprima');
 const escodegen = require('escodegen');
@@ -375,7 +375,7 @@ export default class XSwitch extends ViewController {
     if (this.editMode === EditModeEnum.FORM) {
       this.loadEditorRulesIntoForm();
     } else {
-      this.formatCode();
+      await this.formatCode();
     }
     this.saveCurrentEditModeToStorage(this.editMode);
   }
@@ -389,8 +389,8 @@ export default class XSwitch extends ViewController {
     setConfigItems(this.items);
   }
 
-  formatCode() {
-    editor.getAction(FORMAT_DOCUMENT_CMD).run();
+  async formatCode() {
+    await editor.getAction(FORMAT_DOCUMENT_CMD).run();
   }
 
   isCurrentRuleValid() {
@@ -414,7 +414,6 @@ export default class XSwitch extends ViewController {
 
   loadEditorRulesIntoForm() {
     const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
-    console.log('rawCode', rawCode);
     const {
       proxy,
       cors,
@@ -443,9 +442,9 @@ export default class XSwitch extends ViewController {
   }
 
   async saveProxyRulesInternally() {
-    const newRules = {
+    const newRules: any = {
       proxy: this.proxyRules.map(item => {
-        return item.map(rule => {
+        return item.map((rule: string) => {
           return rule.replace(/\r|\n/gm, '');
         })
       }),
@@ -462,193 +461,201 @@ export default class XSwitch extends ViewController {
 
     // 1. we need to format code to get exact lines for each tokens
     editor.setValue(JSON.stringify(newRules));
-    this.formatCode();
+    await this.formatCode();
 
-    setTimeout(() => {
-      const commentEntities: any[] = [];
-      const oldComments = oldAst.comments;
-      
-      // 2. then we need to set new rules into editor and format it
-      let linedTokens: any[] = [];
-      let newAst = esprima.parse(
-          `${BUILD_AST_DECLARATION_PREFIX}${editor.getValue()}`, 
-          { tokens: true, comment: true, loc: true, range: true },
-        );
+    const commentEntities: any[] = [];
+    const oldComments = oldAst.comments;
+    
+    // 2. then we need to set new rules into editor and format it
+    let linedTokens: any[] = [];
+    let newAst = esprima.parse(
+        `${BUILD_AST_DECLARATION_PREFIX}${editor.getValue()}`, 
+        { tokens: true, comment: true, loc: true, range: true },
+      );
 
-        newAst.tokens.forEach((t: any) => {
-          const {
-            loc: {
-              start,
-            },
-          } = t;
-          if (!linedTokens[start.line]) {
-            linedTokens[start.line] = [];
-          }
-          linedTokens[start.line].push(t);
-        });
-
-        function logLinedTokens(array: any[]) {
-          array.forEach((item: any, index: number) => {
-            console.log(`line: ${index}`, item);
-          });
+      newAst.tokens.forEach((t: any) => {
+        const {
+          loc: {
+            start,
+          },
+        } = t;
+        if (!linedTokens[start.line]) {
+          linedTokens[start.line] = [];
         }
-        logLinedTokens(linedTokens);
-
-        function getCommentLineNumberByLoc(loc: any, insertedCount: number) {
-          let lineNumber = loc.start.line;
-          const checkLineLastTokenHasComments = (tokens: any[]) => {
-            if (!tokens) return false;
-            const l = tokens.length;
-            if (l > 0) {
-              const lastToken = tokens[l - 1];
-              return tokens.length && lastToken && lastToken.trailingComments && lastToken.trailingComments.length;
-            } else {
-              return false;
-            }
-          };
-          while (checkLineLastTokenHasComments(linedTokens[lineNumber])) {
-            lineNumber++;
-          };
-          return lineNumber;
-        }
-
-        const maxEndColumnTokens: any[] = [];
-
-        oldComments.forEach((c: any, index: number) => {
-          const {
-            value,
-            loc,
-          } = c;
-          // loc.start.line which indicates the original comment's position
-
-          let maxEndColumnToken: any;
-          let lineNumber = getCommentLineNumberByLoc(loc, index);
-
-          const sameLineTokens = (linedTokens[lineNumber] || []);
-
-          console.log('sameLineTokens of comment', value, c, loc.start.line, sameLineTokens);
-          if (!sameLineTokens.length) {
-            // find previous line
-            lineNumber = getCommentLineNumberByLoc(loc, index);
-            while (lineNumber > 0 && !linedTokens[--lineNumber]);
-            if (lineNumber === 0) {
-              // add leading comments into ast
-            } else {
-              const prevLineTokens = linedTokens[lineNumber];
-              maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
-              console.log('add in previous line after', maxEndColumnToken);
-            }
-          } else {
-            if (sameLineTokens.length === 1) {
-              if (loc.start.column < sameLineTokens[0].loc.end.column) {
-                lineNumber = getCommentLineNumberByLoc(loc, index);
-                while (lineNumber > 0 && !linedTokens[--lineNumber]);
-                if (lineNumber === 0) {
-                  // add leading comments into AST
-                } else {
-                  const prevLineTokens = linedTokens[lineNumber];
-                  maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
-                  console.log('add in previous line after', maxEndColumnToken);
-                }
-              } else {
-                maxEndColumnToken = sameLineTokens[0];
-              }
-            } else {
-              const firstLineToken = sameLineTokens[0];
-              if (loc.end.column > firstLineToken.loc.start.column && loc.end.column < firstLineToken.loc.end.column) {
-                while (lineNumber > 0 && !linedTokens[--lineNumber]);
-                if (lineNumber === 0) {
-                  // add leading comments into AST
-                } else {
-                  const prevLineTokens = linedTokens[lineNumber];
-                  maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
-                  console.log('add in previous line after', maxEndColumnToken);
-                }
-              } else {
-                const i = sameLineTokens.length - 1;
-                maxEndColumnToken = sameLineTokens[i];
-                console.log('add in current line after', maxEndColumnToken);
-              }
-            }
-          }
-          console.log(`comment ${JSON.stringify(c)} found target token at line ${lineNumber}, after token`, maxEndColumnToken);
-
-          maxEndColumnTokens.push({
-            lineNumber,
-            position: lineNumber - getCommentLineNumberByLoc(loc, index) === 0 ? 'current' : 'prev',
-            // tokenValue: maxEndColumnToken.value,
-            lineTokens: linedTokens[lineNumber],
-            comment: c,
-            type: c.type,
-            value: c.value,
-            token: maxEndColumnToken,
-          });
-        });
-
-        maxEndColumnTokens.forEach((targetTokenInfo: any) => {
-          const {
-            type,
-            value,
-            lineNumber,
-          } = targetTokenInfo;
-          const commentWithLineNumber = {
-            value,
-            type,
-            lineNumber,
-          };
-          commentEntities.push({
-            ...commentWithLineNumber,
-          });
-        });
-
-      const targetCodes = escodegen.generate(newAst, {
-        comment: true,
-      })
-      .replace(/\'(.*?)\'(\:|\,*)/gm, function(source: string, $1: any, $2: any) {
-        return '\"' + $1 + '\"' + $2;
+        linedTokens[start.line].push(t);
       });
-      console.log('target AST', newAst);
-      editor.setValue(targetCodes.slice(BUILD_AST_DECLARATION_PREFIX.length, targetCodes.length - 1 ));
-      this.formatCode();
 
-      // 3. append comments into new editor values based on previous calculated line infomation
-      setTimeout(async () => {
-        const tempValue = editor.getValue();
-        const lines = tempValue.split(/\n/);
-        commentEntities.forEach((c: any, index: number) => {
-          const { lineNumber, type, value } = c;
-          let lineIndex = lineNumber - 1;;
-          let comment;
-          if (type === 'Line') {
-            comment = `//${value}`;
+      function getCommentLineNumberByLoc(loc: any, insertedCount: number) {
+        let lineNumber = loc.start.line;
+        const checkLineLastTokenHasComments = (tokens: any[]) => {
+          if (!tokens) return false;
+          const l = tokens.length;
+          if (l > 0) {
+            const lastToken = tokens[l - 1];
+            return tokens.length && lastToken && lastToken.trailingComments && lastToken.trailingComments.length;
           } else {
-            if (/[\r\n]/.test(value)) {
-              comment = adjustMultilineComment(`/*${value}*/`)
-            } else {
-              comment = `/*${value}*/`;
-            }
+            return false;
           }
+        };
+        while (checkLineLastTokenHasComments(linedTokens[lineNumber])) {
+          lineNumber++;
+        };
+        return lineNumber;
+      }
 
-          if (lines[lineIndex]) {
-            lines[lineIndex] += comment;
-          } else {
-            lines[lineIndex] = [];
-            lines[lineIndex].push(comment);
-          }
+      const maxEndColumnTokens: any[] = [];
+
+      oldComments.forEach((c: any, index: number) => {
+        const {
+          value,
+          loc,
+        } = c;
+        // loc.start.line which indicates the original comment's position
+
+        let maxEndColumnToken: any;
+        let lineNumber = getCommentLineNumberByLoc(loc, index);
+
+        // const sameLineTokens = (linedTokens[lineNumber] || []);
+
+        // console.log('sameLineTokens of comment', value, c, loc.start.line, sameLineTokens);
+        // if (!sameLineTokens.length) {
+        //   // find previous line
+        //   lineNumber = getCommentLineNumberByLoc(loc, index);
+        //   while (lineNumber > 0 && !linedTokens[--lineNumber]);
+        //   if (lineNumber === 0) {
+        //     // add leading comments into ast
+        //   } else {
+        //     const prevLineTokens = linedTokens[lineNumber];
+        //     maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
+        //     console.log('add in previous line after', maxEndColumnToken);
+        //   }
+        // } else {
+        //   if (sameLineTokens.length === 1) {
+        //     if (loc.start.column < sameLineTokens[0].loc.end.column) {
+        //       lineNumber = getCommentLineNumberByLoc(loc, index);
+        //       while (lineNumber > 0 && !linedTokens[--lineNumber]);
+        //       if (lineNumber === 0) {
+        //         // add leading comments into AST
+        //       } else {
+        //         const prevLineTokens = linedTokens[lineNumber];
+        //         maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
+        //         console.log('add in previous line after', maxEndColumnToken);
+        //       }
+        //     } else {
+        //       maxEndColumnToken = sameLineTokens[0];
+        //     }
+        //   } else {
+        //     const firstLineToken = sameLineTokens[0];
+        //     if (loc.end.column > firstLineToken.loc.start.column && loc.end.column < firstLineToken.loc.end.column) {
+        //       while (lineNumber > 0 && !linedTokens[--lineNumber]);
+        //       if (lineNumber === 0) {
+        //         // add leading comments into AST
+        //       } else {
+        //         const prevLineTokens = linedTokens[lineNumber];
+        //         maxEndColumnToken = prevLineTokens[prevLineTokens.length - 1];
+        //         console.log('add in previous line after', maxEndColumnToken);
+        //       }
+        //     } else {
+        //       const i = sameLineTokens.length - 1;
+        //       maxEndColumnToken = sameLineTokens[i];
+        //       console.log('add in current line after', maxEndColumnToken);
+        //     }
+        //   }
+        // }
+        // console.log(`comment ${JSON.stringify(c)} found target token at line ${lineNumber}, after token`, maxEndColumnToken);
+
+        maxEndColumnTokens.push({
+          lineNumber,
+          // position: lineNumber - getCommentLineNumberByLoc(loc, index) === 0 ? 'current' : 'prev',
+          // tokenValue: maxEndColumnToken.value,
+          // lineTokens: linedTokens[lineNumber],
+          // comment: c,
+          type: c.type,
+          value: c.value,
+          // token: maxEndColumnToken,
         });
+      });
 
-        // 4. we can happily reset the editor value eventually
-        editor.setValue(lines.join('\n'));
-        this.formatCode();
+      maxEndColumnTokens.forEach((targetTokenInfo: any) => {
+        const {
+          type,
+          value,
+          lineNumber,
+        } = targetTokenInfo;
+        const commentWithLineNumber = {
+          value,
+          type,
+          lineNumber,
+        };
+        commentEntities.push({
+          ...commentWithLineNumber,
+        });
+      });
 
-        await this.setEditModeForTargetItemAsync();
-      }, 200);
-    }, 100);
+    const targetCodes = escodegen.generate(newAst, {
+      comment: true,
+    })
+    .replace(/\'(.*?)\'(\:|\,*)/gm, function(source: string, $1: any, $2: any) {
+      return '\"' + $1 + '\"' + $2;
+    });
+    // console.log('target AST', commentEntities, newAst);
+    editor.setValue(targetCodes.slice(BUILD_AST_DECLARATION_PREFIX.length, targetCodes.length - 1 ));
+    await this.formatCode();
+
+    // 3. append comments into new editor values based on previous calculated line infomation
+    setTimeout(async () => {
+      const tempValue = editor.getValue();
+      const lines = tempValue.split(/\n/);
+      commentEntities.forEach((c: any, index: number) => {
+        const { lineNumber, type, value } = c;
+        let lineIndex = lineNumber - 1;;
+        let comment;
+        if (type === 'Line') {
+          comment = `//${value}`;
+        } else {
+          if (/[\r\n]/.test(value)) {
+            // comment = adjustMultilineComment(`/*${value}*/`);
+            const multiLineComments = value.split(/[\r\n]/g);
+            multiLineComments.forEach((cv: string, cIndex: number) => {
+              comment = `${cv}`;
+              const blockCommentStartIndex = Math.max(0, lineIndex + cIndex);
+              if (cIndex === 0) {
+                comment = `/*${comment}`;
+              }
+
+              if (cIndex === multiLineComments.length - 1) {
+                comment += '*/';
+              }
+
+              lines.splice(blockCommentStartIndex, 0, comment)
+
+            });
+            return;
+          } else {
+            comment = `/*${value}*/`;
+            lines[lineIndex] += comment;
+            return;
+          }
+        }
+
+        if (lines[lineIndex]) {
+          lines[lineIndex] += comment;
+        } else {
+          lines[lineIndex] = [];
+          lines[lineIndex].push(comment);
+        }
+      });
+
+      // 4. we can happily reset the editor value eventually
+      editor.setValue(lines.join('\n'));
+      await this.formatCode();
+      await this.setEditModeForTargetItemAsync();
+    }, 200);
   }
 
   async loadFormRulesIntoEditor() {
     await this.saveProxyRulesInternally();
-    this.formatCode();
+    await this.formatCode();
 
     this.newProxyPattern = '';
     this.newProxyTarget = '';
