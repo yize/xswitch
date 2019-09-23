@@ -413,10 +413,6 @@ export default class XSwitch extends ViewController {
   }
 
   loadEditorRulesIntoForm() {
-    console.log(
-      'loading editor rules...',
-      JSON.parse(JSONC2JSON(editor.getValue())),
-    );
     const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
     const {
       proxy,
@@ -426,14 +422,20 @@ export default class XSwitch extends ViewController {
 
     if (proxy && proxy.length) {
       this.proxyRules = proxy;
+    }  else {
+      this.proxyRules = [];
     }
 
     if (cors && cors.length) {
       this.corsItems = cors;
+    } else {
+      this.corsItems = [];
     }
 
     if (enable && enable.length) {
       this.enableItems = enable;
+    } else {
+      this.enableItems = [];
     }
   }
 
@@ -628,7 +630,13 @@ export default class XSwitch extends ViewController {
           comment = `//${value}`;
           if (emptyLine) {
             lines.splice(lineIndex, 0, comment)
-            return;
+          } else {
+            if (lines[lineIndex]) {
+              lines[lineIndex] += comment;
+            } else {
+              lines[lineIndex] = [];
+              lines[lineIndex].push(comment);
+            }
           }
         } else {
           if (/[\r\n]/.test(value)) {
@@ -640,27 +648,24 @@ export default class XSwitch extends ViewController {
               if (cIndex === 0) {
                 comment = `/*${comment}`;
               }
-
               if (cIndex === multiLineComments.length - 1) {
                 comment += '*/';
               }
-
               lines.splice(blockCommentStartIndex, 0, comment)
-
             });
-            return;
           } else {
             comment = `/*${value}*/`;
-            lines[lineIndex] += comment;
-            return;
+            if (emptyLine) {
+              lines.splice(lineIndex, 0, comment);
+            } else {
+              if (lines[lineIndex]) {
+                lines[lineIndex] += comment;
+              } else {
+                lines[lineIndex] = [];
+                lines[lineIndex].push(comment);
+              }
+            }
           }
-        }
-
-        if (lines[lineIndex]) {
-          lines[lineIndex] += comment;
-        } else {
-          lines[lineIndex] = [];
-          lines[lineIndex].push(comment);
         }
       });
 
