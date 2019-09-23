@@ -1,5 +1,7 @@
 import { REG, EMPTY_STRING } from '../src/constants';
 import { stripJsonComments } from '../src/strip-json-comments';
+const esprima = require('esprima');
+const escodegen = require('escodegen');
 
 const replace = (jsonc: string): string => {
   try {
@@ -118,4 +120,33 @@ describe('parse', () => {
       proxy: [['(.*)a.com??a.js,b.js', '$1b.com??a.js,b.js']]
     });
   });
+
+
+  test(`comments should remian while changing diffrent modes`, () => {
+    const oldAstConfig = `
+      {
+        "proxy": [
+          [
+            "abc",  // asdbc
+            "def",
+          ]
+        ],
+      }
+    `;
+
+    const newProxyConfig = `
+    {
+      "proxy: [
+        [
+          "hijasdfsdf",
+          "klmh",
+        ]
+      ],
+    }
+  `;
+  
+  
+  });
 });
+
+

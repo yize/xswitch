@@ -14,3 +14,15 @@ export function JSON_Parse(json: string, cb: (error: object | boolean, json?: ob
     cb(e);
   }
 }
+
+export function flattenArray(arr: any[]) {
+  let result: any[] = [];
+  arr.forEach((item: any) => {
+    if (Array.isArray(item)) {
+      result = result.concat(flattenArray(item))
+    } else {
+      result.push(item);
+    }
+  });
+  return result;
+}

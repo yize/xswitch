@@ -133,3 +133,6 @@ export const SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL = 'sync_storage_data_
 export const BLUE_ICON_PATH = 'images/blue_128.png';
 export const GREY_ICON_PATH = 'images/grey_128.png';
 export const DARK_MODE_MEDIA = '(prefers-color-scheme: dark)';
+
+
+export const BUILD_AST_DECLARATION_PREFIX = `const mySpecialASTSourceObj = `;
