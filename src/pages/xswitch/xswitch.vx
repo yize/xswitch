@@ -197,20 +197,18 @@
     checked={checked}
     @change="toggleButton"
   />
-  <Tooltip arrowPointAtCenter title="Open help page" placement="bottom">
+  <Tooltip placement="bottomRight" title="Open help page">
     <Icon type="question-circle" theme="twoTone" style={{ fontSize: '22px'}} @click="openReadme"/>
   </Tooltip>
 </div>
-<div class="toolbar-area-bottom" style={{ width: editMode === 'editor' ? 80 : 60 }}>
-  <span x-if={editMode === 'editor'}>
-    <Tooltip arrowPointAtCenter title="Format code (Alt+Shift+F)">
-      <Icon type="layout" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
-    </Tooltip>
-  </span>
-  <Tooltip arrowPointAtCenter title="Switch mode (Alt+Shift+M)">
+<div class="toolbar-area-bottom" style={{ width: editMode === 'editor' ? 72 : 48 }}>
+  <Tooltip x-if={editMode === 'editor'} placement="topRight" title="Format code (Alt+Shift+F)">
+    <Icon x-if={editMode === 'editor'} type="layout" theme="twoTone" style={{ fontSize: '22px'}} @click="formatCode" />
+  </Tooltip>
+  <Tooltip placement="topRight" title="Switch mode (Alt+Shift+M)">
     <Icon type="interaction" theme="twoTone" style={{ fontSize: '22px'}} @click="switchEditMode" />
   </Tooltip>
-  <Tooltip arrowPointAtCenter title="Open in new tab">
+  <Tooltip placement="topRight" title="Open in new tab">
     <Icon type="code" theme="twoTone" style={{ fontSize: '22px'}} @click="openNewTab"/>
   </Tooltip>
 </div>

@@ -12413,7 +12413,7 @@ textarea.ant-input {
 }
 .toolbar-area-top,
 .toolbar-area-bottom {
-  width: 80px;
+  width: 72px;
   position: fixed;
   z-index: 8;
   cursor: pointer;
@@ -12427,7 +12427,7 @@ textarea.ant-input {
 }
 .toolbar-area-bottom {
   bottom: 20px;
-  right: 40px;
+  right: 20px;
 }
 .switch-control {
   width: 50px;
