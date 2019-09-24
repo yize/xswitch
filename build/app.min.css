@@ -12348,6 +12348,10 @@ textarea.ant-input {
   min-height: 600px;
   height: 100vh;
 }
+.xswitch-container.form-mode .monaco-editor {
+  opacity: 0;
+  display: none;
+}
 .xswitch-container .form-container-mask {
   position: relative;
   width: 100%;

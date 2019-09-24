@@ -28,7 +28,7 @@
         <Icon class="confirm-button" type="edit" theme="twoTone" @click="add" />
     </div>
   </div>
-  <div class="xswitch-container" ref="shell">
+  <div class={ editMode === 'editor' ? 'xswitch-container' : 'xswitch-container form-mode' } ref="shell">
     <div class="form-container-mask" style={{ display: editMode === 'form' ? 'block' : 'none' }}>
       <div class="form-container">
         <div class="form-main" style={{ marginTop: 30, marginBottom: 40 }}>

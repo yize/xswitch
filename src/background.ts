@@ -75,34 +75,39 @@ csmInstance.get({
   }
 });
 
-function getActiveConfig(config: StorageJSON): object {
-  const activeKeys = [...jsonActiveKeys];
-  const json = config['0'];
-  activeKeys.forEach((key: string) => {
-    if (config[key] && key !== '0') {
-      if (config[key][PROXY_STORAGE_KEY]) {
-        if (!json[PROXY_STORAGE_KEY]) {
-          json[PROXY_STORAGE_KEY] = [];
+function getActiveConfig(config: StorageJSON): object | undefined {
+  try {
+    const activeKeys = [...jsonActiveKeys];
+    const json: any = config['0'];
+    activeKeys.forEach((key: string) => {
+      if (config[key] && key !== '0') {
+        if (config[key][PROXY_STORAGE_KEY]) {
+          if (!json[PROXY_STORAGE_KEY]) {
+            json[PROXY_STORAGE_KEY] = [];
+          }
+          json[PROXY_STORAGE_KEY] = [...json[PROXY_STORAGE_KEY], ...config[key][PROXY_STORAGE_KEY]];
         }
-        json[PROXY_STORAGE_KEY] = [...json[PROXY_STORAGE_KEY], ...config[key][PROXY_STORAGE_KEY]];
-      }
 
-      if (config[key][CORS_STORAGE]) {
-        if (!json[CORS_STORAGE]) {
-          json[CORS_STORAGE] = [];
+        if (config[key][CORS_STORAGE]) {
+          if (!json[CORS_STORAGE]) {
+            json[CORS_STORAGE] = [];
+          }
+          json[CORS_STORAGE] = [...json[CORS_STORAGE], ...config[key][CORS_STORAGE]];
         }
-        json[CORS_STORAGE] = [...json[CORS_STORAGE], ...config[key][CORS_STORAGE]];
-      }
 
-      if (config[key][ENABLE_DOMAIN_STORAGE]) {
-        if (!json[ENABLE_DOMAIN_STORAGE]) {
-          json[ENABLE_DOMAIN_STORAGE] = [];
+        if (config[key][ENABLE_DOMAIN_STORAGE]) {
+          if (!json[ENABLE_DOMAIN_STORAGE]) {
+            json[ENABLE_DOMAIN_STORAGE] = [];
+          }
+          json[ENABLE_DOMAIN_STORAGE] = [...json[ENABLE_DOMAIN_STORAGE], ...config[key][ENABLE_DOMAIN_STORAGE]];
         }
-        json[ENABLE_DOMAIN_STORAGE] = [...json[ENABLE_DOMAIN_STORAGE], ...config[key][ENABLE_DOMAIN_STORAGE]];
       }
-    }
-  });
-  return json;
+    });
+    return json;
+  } catch(e) {
+    console.error(e);
+    return {};
+  }
 }
 
 csmInstance.get(
@@ -121,7 +126,7 @@ csmInstance.get(
 
 
 chrome.storage.onChanged.addListener((changes) => {
-
+  console.log('changes', changes);
   if (changes[ACTIVE_KEYS]) {
     jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }

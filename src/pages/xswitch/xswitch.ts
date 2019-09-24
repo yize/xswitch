@@ -116,6 +116,8 @@ export default class XSwitch extends ViewController {
   @observable.shallow
   currentEditingRowItemIndexes: any = { pattern: [], target: [] };
 
+  isSynchronizing: boolean = false;
+
   async $init() {
     this.checked = (await getChecked()) !== Enabled.NO;
   }
@@ -413,29 +415,33 @@ export default class XSwitch extends ViewController {
   }
 
   loadEditorRulesIntoForm() {
-    const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
-    const {
-      proxy,
-      cors,
-      enable,
-    } = rawCode;
-
-    if (proxy && proxy.length) {
-      this.proxyRules = proxy;
-    }  else {
-      this.proxyRules = [];
-    }
-
-    if (cors && cors.length) {
-      this.corsItems = cors;
-    } else {
-      this.corsItems = [];
-    }
-
-    if (enable && enable.length) {
-      this.enableItems = enable;
-    } else {
-      this.enableItems = [];
+    try {
+      const rawCode: any = JSON.parse(JSONC2JSON(editor.getValue()));
+      const {
+        proxy,
+        cors,
+        enable,
+      } = rawCode;
+  
+      if (proxy && proxy.length) {
+        this.proxyRules = proxy;
+      }  else {
+        this.proxyRules = [];
+      }
+  
+      if (cors && cors.length) {
+        this.corsItems = cors;
+      } else {
+        this.corsItems = [];
+      }
+  
+      if (enable && enable.length) {
+        this.enableItems = enable;
+      } else {
+        this.enableItems = [];
+      }
+    } catch(e) {
+      console.error(`JSON codes inside editor is illegal ${JSON.stringify(e)}`);
     }
   }
 
@@ -465,6 +471,8 @@ export default class XSwitch extends ViewController {
       { tokens: true, comment: true, loc: true, range: true },
     );
 
+    this.isSynchronizing = true;
+
     // 1. we need to format code to get exact lines for each tokens
     editor.setValue(JSON.stringify(newRules));
     await this.formatCode();
@@ -491,8 +499,7 @@ export default class XSwitch extends ViewController {
         linedTokens[start.line].push(t);
       });
 
-      console.log('linedTokens', linedTokens, oldComments);
-
+      // console.log('linedTokens', linedTokens, oldComments);
       function getCommentLineNumberByLoc(loc: any, insertedCount: number) {
         let lineNumber = loc.start.line;
         const checkLineLastTokenHasComments = (tokens: any[]) => {
@@ -571,11 +578,6 @@ export default class XSwitch extends ViewController {
         //   }
         // }
         // console.log(`comment ${JSON.stringify(c)} found target token at line ${lineNumber}, after token`, maxEndColumnToken);
-        console.log(
-          'lineNumber',
-          lineNumber,
-          typeof linedTokens[lineNumber] === 'undefined',
-        );
         maxEndColumnTokens.push({
           lineNumber,
           emptyLine: typeof linedTokens[lineNumber] === 'undefined',
@@ -673,6 +675,7 @@ export default class XSwitch extends ViewController {
       editor.setValue(lines.join('\n'));
       await this.formatCode();
       await this.setEditModeForTargetItemAsync();
+      this.isSynchronizing = false;
     }, 200);
   }
 
@@ -687,6 +690,7 @@ export default class XSwitch extends ViewController {
   }
 
   async switchEditMode() {
+    if (this.isSynchronizing) return;
     if (!this.isCurrentRuleValid()) {
       message.error('Please check your rules');
       return;
@@ -696,12 +700,14 @@ export default class XSwitch extends ViewController {
 
     if (this.editMode === EditModeEnum.EDITOR) {
       this.editMode = EditModeEnum.FORM;
+      // editor.updateOptions({ readOnly: true });
     } else {
       this.editMode = EditModeEnum.EDITOR;
       this.currentEditingRowItemIndexes = {
         pattern: [],
         target: [],
       };
+      // editor.updateOptions({ readOnly: false });
     }
 
     await this.saveCurrentEditModeToStorage(this.editMode);
