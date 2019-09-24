@@ -40,6 +40,7 @@ import {
   HELP_URL,
   DEFAULT_DUP_DATA,
   BUILD_AST_DECLARATION_PREFIX,
+  SINGLE_QUOTE_PLACEHOLDER,
 } from '../../constants';
 import { Enabled, EditModeEnum } from '../../enums';
 import {
@@ -251,21 +252,24 @@ export default class XSwitch extends ViewController {
     this.proxyRules[from] = tmp;
   }
 
-  moveUpProxyRule(index: number) {
+  async moveUpProxyRule(index: number) {
     if (index > 0) {
       this.swapProxyRule(index - 1, index);
+      await this.loadFormRulesIntoEditor();
     }
   }
 
-  moveDownProxyRule(index: number) {
+  async moveDownProxyRule(index: number) {
     if (index < this.proxyRules.length - 1) {
       this.swapProxyRule(index, index + 1);
+      await this.loadFormRulesIntoEditor();
     }
   }
 
-  removeProxyRule(index: number) {
+  async removeProxyRule(index: number) {
     this.proxyRules.splice(index, 1);
     message.success('Proxy rule has been removed successfully');
+    await this.loadFormRulesIntoEditor();
   }
 
   showErrorMessage(msg: string) {
@@ -408,10 +412,11 @@ export default class XSwitch extends ViewController {
     }
   }
 
-  copyProxyRule(index: number) {
+  async copyProxyRule(index: number) {
     const originalRule = [...this.proxyRules[index]];
     this.proxyRules.splice(index, 0, originalRule);
     message.success('Proxy rule has been copied successfully');
+    await this.loadFormRulesIntoEditor();
   }
 
   loadEditorRulesIntoForm() {
@@ -454,14 +459,18 @@ export default class XSwitch extends ViewController {
   }
 
   async saveProxyRulesInternally() {
+    const quoteReg = new RegExp("'", "gm");
+    const singleQuoteToPlaceholder = (item: string = '') => {
+      return item.replace(quoteReg, SINGLE_QUOTE_PLACEHOLDER);
+    };
     const newRules: any = {
       proxy: this.proxyRules.map(item => {
         return item.map((rule: string) => {
-          return rule.replace(/\r|\n/gm, '');
+          return singleQuoteToPlaceholder(rule.replace(/\r|\n/gm, ''))
         })
       }),
-      cors: this.corsItems.length ? this.corsItems : undefined,
-      enable: this.enableItems.length ? this.enableItems : undefined,
+      cors: this.corsItems.length ? this.corsItems.map(singleQuoteToPlaceholder) : undefined,
+      enable: this.enableItems.length ? this.enableItems.map(singleQuoteToPlaceholder) : undefined,
     };
 
     // we should diff two trees to maintain the comments area before synchronizing rules into monaco editor
@@ -609,14 +618,15 @@ export default class XSwitch extends ViewController {
         });
       });
 
-    const targetCodes = escodegen.generate(newAst, {
+    const interCodes = escodegen.generate(newAst, {
       comment: true,
-    })
-    .replace(/\'(.*?)\'(\:|\,*)/gm, function(source: string, $1: any, $2: any) {
-      return '\"' + $1 + '\"' + $2;
     });
-    // console.log('target AST', commentEntities, newAst);
-    editor.setValue(targetCodes.slice(BUILD_AST_DECLARATION_PREFIX.length, targetCodes.length - 1 ));
+    
+    const targetCodes = interCodes.replace(/\'(.*?)\'(\:|\,*)/gm, function(source: string, $1: any, $2: any) {
+      return '\"' + $1 + '\"' + $2;
+    }).replace(new RegExp(SINGLE_QUOTE_PLACEHOLDER, 'g'), "'");
+    // console.log('interCodes', interCodes);
+    editor.setValue(targetCodes.slice(BUILD_AST_DECLARATION_PREFIX.length, Math.max(0, targetCodes.length - 1) ));
     await this.formatCode();
 
     // 3. append comments into new editor values based on previous calculated line infomation
@@ -627,7 +637,6 @@ export default class XSwitch extends ViewController {
         const { lineNumber, emptyLine, type, value } = c;
         let lineIndex = lineNumber - 1;;
         let comment;
-        console.log('emptyLine', lineNumber, type, emptyLine);
         if (type === 'Line') {
           comment = `//${value}`;
           if (emptyLine) {
