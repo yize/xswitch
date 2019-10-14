@@ -43,12 +43,18 @@ const matchUrl = (url: string, reg: string): string | boolean => {
 
 
 function isCurrentDomainEnabled(enable: string[], rawUrl: string) {
-  const parsedTargetDomain = url.parse(rawUrl).hostname;
   return enable.some((enabledDomain: string) => {
     if (REG.FORWARD.test(enabledDomain)) {
-      const r = new RegExp(enabledDomain.replace('??', '\\?\\?'), 'gi');
-      const matched = r.test(rawUrl);
-      return matched;
+      // handle unexpected cases when enabledDomain var cannot be intialized correctly
+      try {
+        const r = new RegExp(enabledDomain.replace('??', '\\?\\?'), 'gi');
+        const matched = r.test(rawUrl);
+        return matched;
+      } catch(e) {
+        console.warn(`${enabledDomain} cannot be constructed using *new RegExp* function`);
+        console.warn(`Detail: ${JSON.stringify(e)}`);
+        return false;
+      }
     } else {
       return rawUrl.toLowerCase().indexOf(enabledDomain.toLowerCase()) > -1;
     }

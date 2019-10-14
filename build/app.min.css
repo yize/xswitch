@@ -11506,7 +11506,6 @@ textarea.ant-input {
   color: rgba(0, 0, 0, 0.65);
   font-weight: normal;
   font-size: 14px;
-  line-height: 1;
   text-align: center;
   background-color: #fafafa;
   border: 1px solid #d9d9d9;
@@ -11733,6 +11732,10 @@ textarea.ant-input {
 .ant-input-affix-wrapper .ant-input-prefix :not(.anticon),
 .ant-input-affix-wrapper .ant-input-suffix :not(.anticon) {
   line-height: 1.5;
+}
+.ant-input-affix-wrapper .ant-input-disabled ~ .ant-input-suffix .anticon {
+  color: rgba(0, 0, 0, 0.25);
+  cursor: not-allowed;
 }
 .ant-input-affix-wrapper .ant-input-prefix {
   left: 12px;

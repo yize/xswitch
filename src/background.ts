@@ -126,7 +126,6 @@ csmInstance.get(
 
 
 chrome.storage.onChanged.addListener((changes) => {
-  console.log('changes', changes);
   if (changes[ACTIVE_KEYS]) {
     jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }

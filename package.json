@@ -23,11 +23,13 @@
   "license": "MIT",
   "dependencies": {
     "@recore/fx": "^0.8.0",
+    "@ali/recore": "^1.5.0",
     "antd": "^3.9.2"
   },
   "devDependencies": {
+    "@ali/nowa-recore-solution": "^1.7.1",
+    "@ali/recore-loader": "^2.0.0",
     "@nowa/cli": "^0.6.0",
-    "@recore/recore-loader": "^0.8.0",
     "@recore/solution": "^0.8.0",
     "@types/chrome": "^0.0.73",
     "@types/jest": "^23.3.2",
@@ -44,7 +46,7 @@
     "monaco": "^1.201704190613.0+9ac64297a3b2ace5240299ba54b03f5029378397",
     "ts-jest": "^23.1.4",
     "ts-loader": "~5.0.0",
-    "typescript": "~3.0.3",
+    "typescript": "^3.5.0",
     "webpack": "~4.17.2",
     "webpack-cli": "~3.1.0",
     "webpack-merge": "~4.1.4"

@@ -16,12 +16,10 @@ import {
   message,
 } from 'antd';
 import './xswitch.less';
-import { flattenArray } from '../../utils.ts';
-import { adjustMultilineComment } from '../../astutils.ts';
 
 const esprima = require('esprima');
 const escodegen = require('escodegen');
-const estraverse = require('estraverse');
+// const estraverse = require('estraverse');
 
 import {
   ANYTHING,
@@ -40,7 +38,7 @@ import {
   HELP_URL,
   DEFAULT_DUP_DATA,
   BUILD_AST_DECLARATION_PREFIX,
-  SINGLE_QUOTE_PLACEHOLDER,
+  SINGLE_QUOTATION_MARK_PLACEHOLDER,
 } from '../../constants';
 import { Enabled, EditModeEnum } from '../../enums';
 import {
@@ -74,7 +72,6 @@ let editor: any;
     Row,
     Table,
     Col,
-    message,
   },
 })
 export default class XSwitch extends ViewController {
@@ -230,7 +227,7 @@ export default class XSwitch extends ViewController {
     await this.initMonacoEditor();
   }
 
-  removeCors(ev: EventTarget, ctx: any) {
+  removeCors(ev: CompositionEvent, ctx: any) {
     ev.preventDefault();
     const idx: number = this.corsItems.indexOf(ctx.item);
     if (idx > -1) {
@@ -238,7 +235,7 @@ export default class XSwitch extends ViewController {
     }
   }
 
-  removeEnable(ev: EventTarget, ctx: any) {
+  removeEnable(ev: CompositionEvent, ctx: any) {
     ev.preventDefault();
     const idx: number = this.enableItems.indexOf(ctx.item);
     if (idx > -1) {
@@ -461,12 +458,15 @@ export default class XSwitch extends ViewController {
   async saveProxyRulesInternally() {
     const quoteReg = new RegExp("'", "gm");
     const singleQuoteToPlaceholder = (item: string = '') => {
-      return item.replace(quoteReg, SINGLE_QUOTE_PLACEHOLDER);
+      return item.replace(quoteReg, SINGLE_QUOTATION_MARK_PLACEHOLDER);
+    };
+    const encodeQuotes = (item: string = '') => {
+      return item.replace(new RegExp('"', "gm"), '\"');
     };
     const newRules: any = {
       proxy: this.proxyRules.map(item => {
         return item.map((rule: string) => {
-          return singleQuoteToPlaceholder(rule.replace(/\r|\n/gm, ''))
+          return singleQuoteToPlaceholder(rule.replace(/\r|\n/gm, ''));
         })
       }),
       cors: this.corsItems.length ? this.corsItems.map(singleQuoteToPlaceholder) : undefined,
@@ -624,7 +624,7 @@ export default class XSwitch extends ViewController {
     
     const targetCodes = interCodes.replace(/\'(.*?)\'(\:|\,*)/gm, function(source: string, $1: any, $2: any) {
       return '\"' + $1 + '\"' + $2;
-    }).replace(new RegExp(SINGLE_QUOTE_PLACEHOLDER, 'g'), "'");
+    }).replace(new RegExp(SINGLE_QUOTATION_MARK_PLACEHOLDER, 'g'), "'");
     // console.log('interCodes', interCodes);
     editor.setValue(targetCodes.slice(BUILD_AST_DECLARATION_PREFIX.length, Math.max(0, targetCodes.length - 1) ));
     await this.formatCode();
@@ -761,7 +761,7 @@ export default class XSwitch extends ViewController {
     this.newItem = '';
   }
 
-  async remove(ev: EventTarget, ctx: any) {
+  async remove(ev: CompositionEvent, ctx: any) {
     ev.stopPropagation();
     const i = this.items.indexOf(ctx.item);
     if (i > -1) {

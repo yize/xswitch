@@ -136,4 +136,4 @@ export const DARK_MODE_MEDIA = '(prefers-color-scheme: dark)';
 
 
 export const BUILD_AST_DECLARATION_PREFIX = `const mySpecialASTSourceObj = `;
-export const SINGLE_QUOTE_PLACEHOLDER = '@@SINGLE_QUOTE_PLACEHOLDER@@';
+export const SINGLE_QUOTATION_MARK_PLACEHOLDER = '@@SINGLE_QUOTATION_MARK_PLACEHOLDER@@';
