@@ -72,7 +72,7 @@ Rules will be executed in order before all requests are initiated.
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://nsole.co)
+[MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://www.yuque.com/jiushen)
 
 [link-xswitch]: https://github.com/yize/xswitch
 [link-cws]: https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg
