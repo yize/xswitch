@@ -1,7 +1,18 @@
 <div class="xswitch-wrapper">
   <div class="xswitch-left-area">
     <ul class="xswitch-tabs" ref="tabs">
-      <li x-for={items} x-each='item' @click='setEditingKey' class.editing={item.id === editingKey}>
+      <li
+        id={item.id}
+        x-for={items}
+        x-each='item'
+        @click='setEditingKey'
+        class.editing={item.id === editingKey}
+        class.dragovering={item.id === dragoverKey}
+        draggable
+        @dragStart={dragStart}
+        @dragOver={dragOver}
+        @drop={drop}
+      >
         <Checkbox checked={item.active} @change='setActive' disabled={item.id === '0'}/><span class="label">&nbsp;{item.name}</span>
         <Popconfirm
           title={"Are you sure to delete?"}

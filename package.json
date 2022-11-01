@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "nowa2 start",
-    "build": "nowa2 build && cp -rf images lib XSwitch.html options.html manifest.json build",
+    "build": "TYPESCRIPT_NO_CHECK=true nowa2 build && cp -rf images lib XSwitch.html options.html manifest.json build",
     "pub": "npm run build && npm t && sh pub.sh",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
@@ -26,7 +26,7 @@
     "antd": "^3.9.2"
   },
   "devDependencies": {
-    "@ali/nowa-recore-solution": "^1.0.0",
+    "@ali/nowa-recore-solution": "1.7.0",
     "@ali/recore-loader": "^1.0.0",
     "@nowa/cli": "^0.6.0",
     "@types/chrome": "^0.0.73",

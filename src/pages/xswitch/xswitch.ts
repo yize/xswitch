@@ -45,6 +45,9 @@ export default class XSwitch extends ViewController {
   editingKey = '0';
 
   @observable
+  dragoverKey: string;
+
+  @observable
   newItem = '';
 
   @observable
@@ -140,8 +143,55 @@ export default class XSwitch extends ViewController {
   openNewTab() {
     openLink(POPUP_HTML_PATH, true);
   }
+
   openReadme() {
     openLink(HELP_URL);
+  }
+
+  dragStart(ev: DragEvent) {
+    // Add the target element's id to the data transfer object
+    ev.dataTransfer!.setData('application/my-app', ev.target!.id);
+    ev.dataTransfer!.effectAllowed = 'move';
+  }
+
+  dragOver(ev: DragEvent) {
+    ev.preventDefault();
+    this.dragoverKey = (ev.target as HTMLElement).closest('li')!.id;
+    ev.dataTransfer!.dropEffect = 'move';
+  }
+
+  drop(ev: DragEvent) {
+    ev.preventDefault();
+    const id = ev.dataTransfer!.getData('application/my-app');
+    const targetId = (ev.target as HTMLElement).closest('li')!.id;
+    this.dragoverKey = '';
+    this.swapItem(id, targetId);
+  }
+
+  swapItem(srcItemId: string, destItemId: string) {
+    let srcItemIdx;
+    let destItemIdx;
+    let srcItem;
+    let destItem;
+    this.items.forEach((item: any, idx: number) => {
+      if (item.id === srcItemId) {
+        srcItemIdx = idx;
+        srcItem = item;
+      }
+      if (item.id === destItemId) {
+        destItemIdx = idx;
+        destItem = item;
+      }
+    });
+
+    if (!srcItem || !destItem) {
+      console.warn('srcItem or destItem is undefined, swap aborted.')
+      return;
+    }
+
+    this.items[srcItemIdx] = destItem;
+    this.items[destItemIdx] = srcItem;
+    setConfigItems(this.items);
   }
 
   async setEditingKeyHandler(id: string) {
