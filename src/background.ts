@@ -19,10 +19,11 @@ import {
 } from "./constants";
 import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
 import forward from "./forward";
-import { ChromeStorageManager } from "./chrome-storage";
+import { ChromeStorageManager, getChecked } from "./chrome-storage";
 import {
   updateDeclarativeNetRequestRules,
   isDeclarativeNetRequestAvailable,
+  removeDeclarativeNetRequestRules,
 } from "./declarative-net-request";
 
 const csmInstance = new ChromeStorageManager({
@@ -158,7 +159,10 @@ chrome.storage.onChanged.addListener((changes) => {
         forward[JSON_CONFIG] = { ...config };
         // 更新 declarativeNetRequest 规则
         if (isDeclarativeNetRequestAvailable()) {
-          updateDeclarativeNetRequestRules(config);
+          updateDeclarativeNetRequestRules(
+            config,
+            forward[DISABLED] === Enabled.NO
+          );
         }
       }
       setIcon();
@@ -167,46 +171,76 @@ chrome.storage.onChanged.addListener((changes) => {
 
   checkAndChangeIcons();
 });
-
-// 使用 declarativeNetRequest 替代 webRequest API
-if (isDeclarativeNetRequestAvailable()) {
-  // 初始化 declarativeNetRequest 规则
-  const config = getActiveConfig(conf);
-  updateDeclarativeNetRequestRules(config);
-
-  console.log("Using declarativeNetRequest API");
-} else {
-  // 降级到 webRequest API（仅用于兼容性）
-  console.warn(
-    "declarativeNetRequest not available, falling back to webRequest"
-  );
-
-  (chrome as any).webRequest?.onBeforeRequest?.addListener(
-    (details: any) => {
-      if (forward[DISABLED] !== Enabled.NO) {
-        if (clearCacheEnabled) {
-          clearCache();
-        }
-        return forward.onBeforeRequestCallback(details);
-      }
-      return {};
+csmInstance.get(
+  {
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
     },
-    { urls: [ALL_URLS] },
-    [BLOCKING]
-  );
+  },
+  async (result: any) => {
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      const config = getActiveConfig(conf);
+      const initialDisabled = (await getChecked()) === Enabled.NO;
+      if (isDeclarativeNetRequestAvailable()) {
+        updateDeclarativeNetRequestRules(config, initialDisabled);
+      }
+    }
+    setIcon();
+  }
+);
 
-  (chrome as any).webRequest?.onHeadersReceived?.addListener(
-    headersReceivedListener,
-    { urls: [ALL_URLS] },
-    [BLOCKING, RESPONSE_HEADERS]
-  );
+// // 使用 declarativeNetRequest 替代 webRequest API
+// if (isDeclarativeNetRequestAvailable()) {
+//   //   // 初始化 declarativeNetRequest 规则
+//   const config = getActiveConfig(conf);
+//   const initialDisabled = (await getChecked()) === Enabled.NO;
+//   console.log("initialDisabled", initialDisabled, config);
+//   updateDeclarativeNetRequestRules(config, initialDisabled);
+// }
 
-  (chrome as any).webRequest?.onBeforeSendHeaders?.addListener(
-    (details: any) => forward.onBeforeSendHeadersCallback(details),
-    { urls: [ALL_URLS] },
-    [BLOCKING, REQUEST_HEADERS]
-  );
-}
+//   console.log("Using declarativeNetRequest API");
+// } else {
+//   // 降级到 webRequest API（仅用于兼容性）
+//   console.warn(
+//     "declarativeNetRequest not available, falling back to webRequest"
+//   );
+
+// (chrome as any).webRequest?.onBeforeRequest?.addListener(
+//   (details: any) => {
+//     console.log("onBeforeRequest", forward[DISABLED]);
+//     if (forward[DISABLED] !== Enabled.NO) {
+//       if (clearCacheEnabled) {
+//         clearCache();
+//       }
+//       console.log("onBeforeRequestCallback");
+//       const config = getActiveConfig(conf);
+//       updateDeclarativeNetRequestRules(config);
+//       return;
+//       // return forward.onBeforeRequestCallback(details);
+//     }
+//     removeDeclarativeNetRequestRules();
+//     return {};
+//   },
+//   { urls: [ALL_URLS] },
+//   [BLOCKING]
+// );
+
+//   (chrome as any).webRequest?.onHeadersReceived?.addListener(
+//     headersReceivedListener,
+//     { urls: [ALL_URLS] },
+//     [BLOCKING, RESPONSE_HEADERS]
+//   );
+
+//   (chrome as any).webRequest?.onBeforeSendHeaders?.addListener(
+//     (details: any) => forward.onBeforeSendHeadersCallback(details),
+//     { urls: [ALL_URLS] },
+//     [BLOCKING, REQUEST_HEADERS]
+//   );
+// }
 
 function setBadgeAndBackgroundColor(
   text: string | number,

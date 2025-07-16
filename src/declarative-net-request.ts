@@ -152,18 +152,33 @@ export function generateCorsRules(
 
   return rules;
 }
+/**
+ * 清除现有规则
+ */
+export async function removeDeclarativeNetRequestRules(): Promise<void> {
+  try {
+    const ruleIds = await getAllRuleIds();
+    if (ruleIds.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: ruleIds,
+      });
+    }
+  } catch (error) {}
+}
 
 /**
  * 更新 declarativeNetRequest 规则
  */
 export async function updateDeclarativeNetRequestRules(
-  config: IForwardConfig
+  config: IForwardConfig,
+  disabled: boolean
 ): Promise<void> {
   try {
-    // 清除现有规则
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: await getAllRuleIds(),
-    });
+    await removeDeclarativeNetRequestRules();
+
+    if (disabled) {
+      return;
+    }
 
     // 生成新规则
     const proxyRules = generateProxyRules(config);

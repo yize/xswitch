@@ -160,10 +160,8 @@ const XSwitch: React.FC = () => {
   };
 
   const handleToggle = () => {
-    setCheckedState((prev) => {
-      setChecked(!prev);
-      return !prev;
-    });
+    setChecked(!checked);
+    setCheckedState(!checked);
   };
 
   const handleOpenNewTab = () => {
