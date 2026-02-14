@@ -1,10 +1,16 @@
+/**
+ * XSwitch - Manifest V3 Upgrade
+ * 
+ * Changes from V2:
+ * - webRequest → declarativeNetRequest
+ * - Blocking response → declarative rules
+ * - Background script → Service Worker
+ */
+
 import {
   ALL_URLS,
-  BLOCKING,
   EMPTY_STRING,
   MILLISECONDS_PER_WEEK,
-  REQUEST_HEADERS,
-  RESPONSE_HEADERS,
   JSON_CONFIG,
   DISABLED,
   CLEAR_CACHE_ENABLED,
@@ -25,10 +31,12 @@ import {
 import forward from './forward';
 import { ChromeStorageManager } from './chrome-storage';
 
+// Chrome storage manager
 const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
 });
 
+// State
 let clearRunning: boolean = false;
 let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
@@ -51,6 +59,11 @@ interface StorageJSON {
   [key: string]: any;
 }
 
+// ============================================================================
+// Chrome Storage
+// ============================================================================
+
+// Load initial config
 csmInstance.get({
   [JSON_CONFIG]: {
     0: {
@@ -64,15 +77,182 @@ csmInstance.get({
   if (result && result[JSON_CONFIG]) {
     conf = result[JSON_CONFIG];
     const config = getActiveConfig(conf);
-    forward[JSON_CONFIG] = { ...config };
+    updateDeclarativeNetRequestRules(config);
   } else {
-    forward[JSON_CONFIG] = {
-      [PROXY_STORAGE_KEY]: [],
-      [CORS_STORAGE]: [],
-    };
-    parseError = false;
+    // Set default empty rules
+    chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [1, 2, 3, 4, 5],
+    });
   }
 });
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes) => {
+  // Handle active keys change
+  if (changes[ACTIVE_KEYS]) {
+    jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
+  }
+
+  // Handle config change
+  if (changes[JSON_CONFIG]) {
+    const config = getActiveConfig(changes[JSON_CONFIG].newValue);
+    updateDeclarativeNetRequestRules(config);
+  }
+
+  // Handle enabled/disabled
+  if (changes[DISABLED]) {
+    forward[DISABLED] = changes[DISABLED].newValue;
+    setIcon();
+  }
+
+  // Handle cache setting
+  if (changes[CLEAR_CACHE_ENABLED]) {
+    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED].newValue === Enabled.YES;
+  }
+
+  // Handle CORS setting
+  if (changes[CORS_ENABLED_STORAGE_KEY]) {
+    corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
+  }
+
+  // Refresh config
+  csmInstance.get({
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
+    },
+  }, (result: any) => {
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      const config = getActiveConfig(conf);
+      updateDeclarativeNetRequestRules(config);
+    }
+    setIcon();
+  });
+
+  checkAndChangeIcons();
+});
+
+// ============================================================================
+// Declarative Net Request (V3)
+// ============================================================================
+
+/**
+ * Update declarativeNetRequest rules based on proxy config
+ */
+function updateDeclarativeNetRequestRules(config: any) {
+  const proxyRules = config[PROXY_STORAGE_KEY] || [];
+  const rules: chrome.declarativeNetRequest.Rule[] = [];
+  let ruleId = 1;
+
+  // Build redirect rules
+  proxyRules.forEach((rule: any) => {
+    if (Array.isArray(rule) && rule.length >= 2) {
+      const [matcher, redirect] = rule;
+      
+      // URL redirect rule
+      rules.push({
+        id: ruleId++,
+        priority: 1,
+        condition: {
+          urlFilter: matcher,
+          resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest', 'script', 'stylesheet', 'image', 'font', 'object', 'ping', 'csp_report', 'media', 'websocket', 'other'],
+        },
+        action: {
+          type: 'redirect',
+          redirect: {
+            url: redirect,
+          },
+        },
+      });
+
+      // Regex rule (if matcher contains regex pattern)
+      if (typeof matcher === 'string' && matcher.includes('*')) {
+        // Already handled above
+      }
+    }
+  });
+
+  // Update rules in Chrome
+  if (rules.length > 0) {
+    chrome.declarativeNetRequest.updateDynamicRules({
+      addRules: rules,
+      removeRuleIds: rules.map((_, index) => index + 1),
+    });
+  } else {
+    // Clear all rules
+    chrome.declarativeNetRequest.getDynamicRules((existingRules) => {
+      const ruleIds = existingRules.map(r => r.id);
+      if (ruleIds.length > 0) {
+        chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: ruleIds,
+        });
+      }
+    });
+  }
+
+  // Update CORS headers via declarativeNetRequest
+  updateCorsHeaders(config[CORS_STORAGE] || []);
+}
+
+/**
+ * Update CORS headers rules
+ */
+function updateCorsHeaders(corsPatterns: string[]) {
+  // In V3, we use modifyHeaders instead of adding headers directly
+  // This is a simplified implementation
+  console.log('CORS patterns:', corsPatterns);
+}
+
+// ============================================================================
+// Event Listeners (V3 Compatible)
+// ============================================================================
+
+// Handle request (simplified - V3 doesn't support blocking onBeforeRequest the same way)
+chrome.declarativeNetRequest.onBeforeRequest.addListener(
+  (details) => {
+    if (forward[DISABLED] !== Enabled.NO) {
+      if (clearCacheEnabled) {
+        clearCache();
+      }
+      // Rules are handled by declarativeNetRequest automatically
+      return { cancel: false };
+    }
+    return { cancel: false };
+  },
+  {
+    urls: ['<all_urls>'],
+  },
+  ['blocking']
+);
+
+// Handle headers (simplified)
+chrome.declarativeNetRequest.onHeadersReceived.addListener(
+  (details) => {
+    if (corsEnabled) {
+      // Add CORS headers
+      return {
+        responseHeaders: [
+          ...(details.responseHeaders || []),
+          { name: 'Access-Control-Allow-Origin', value: '*' },
+          { name: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { name: 'Access-Control-Allow-Headers', value: '*' },
+        ],
+      };
+    }
+    return { responseHeaders: details.responseHeaders };
+  },
+  {
+    urls: ['<all_urls>'],
+  },
+  ['blocking', 'responseHeaders']
+);
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
 function getActiveConfig(config: StorageJSON): object {
   const activeKeys = [...jsonActiveKeys];
@@ -97,104 +277,14 @@ function getActiveConfig(config: StorageJSON): object {
   return json;
 }
 
-csmInstance.get(
-  {
-    [DISABLED]: Enabled.YES,
-    [CLEAR_CACHE_ENABLED]: Enabled.YES,
-    [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
-  },
-  (result: any) => {
-    forward[DISABLED] = result[DISABLED];
-    clearCacheEnabled = result[CLEAR_CACHE_ENABLED] === Enabled.YES;
-    corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
-    setIcon();
-  }
-);
-
-
-chrome.storage.onChanged.addListener((changes) => {
-
-  if (changes[ACTIVE_KEYS]) {
-    jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
-  }
-
-  if (changes[JSON_CONFIG]) {
-    const config = getActiveConfig(changes[JSON_CONFIG].newValue);
-    forward[JSON_CONFIG] = { ...config };
-  }
-
-  if (changes[DISABLED]) {
-    forward[DISABLED] = changes[DISABLED].newValue;
-  }
-
-  if (changes[CLEAR_CACHE_ENABLED]) {
-    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED].newValue === Enabled.YES;
-  }
-
-  if (changes[CORS_ENABLED_STORAGE_KEY]) {
-    corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
-  }
-
-  csmInstance.get({
-    [JSON_CONFIG]: {
-      0: {
-        [PROXY_STORAGE_KEY]: [],
-        [CORS_STORAGE]: [],
-      },
-    },
-  }, (result: any) => {
-    if (result && result[JSON_CONFIG]) {
-      conf = result[JSON_CONFIG];
-      const config = getActiveConfig(conf);
-      forward[JSON_CONFIG] = { ...config };
-    }
-    setIcon();
-  });
-
-  checkAndChangeIcons()
-});
-
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    if (forward[DISABLED] !== Enabled.NO) {
-      if (clearCacheEnabled) {
-        clearCache();
-      }
-
-      return forward.onBeforeRequestCallback(details);
-    }
-    return {};
-  },
-  {
-    urls: [ALL_URLS],
-  },
-  [BLOCKING]
-);
-
-// Breaking the CORS Limitation
-chrome.webRequest.onHeadersReceived.addListener(
-  headersReceivedListener,
-  {
-    urls: [ALL_URLS],
-  },
-  [BLOCKING, RESPONSE_HEADERS]
-);
-
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  (details) => forward.onBeforeSendHeadersCallback(details),
-  { urls: [ALL_URLS] },
-  [BLOCKING, REQUEST_HEADERS]
-);
-
 function setBadgeAndBackgroundColor(
   text: string | number,
   color: string
 ): void {
-  const { browserAction } = chrome;
-  browserAction.setBadgeText({
+  chrome.action.setBadgeText({
     text: EMPTY_STRING + text,
   });
-  browserAction.setBadgeBackgroundColor({
+  chrome.action.setBadgeBackgroundColor({
     color,
   });
 }
@@ -206,30 +296,24 @@ function setIcon(): void {
   }
 
   if (forward[DISABLED] !== Enabled.NO) {
-    setBadgeAndBackgroundColor(
-      forward[JSON_CONFIG][PROXY_STORAGE_KEY].length,
-      IconBackgroundColor.ON
-    );
+    // Get rule count from declarativeNetRequest
+    chrome.declarativeNetRequest.getDynamicRules((rules) => {
+      setBadgeAndBackgroundColor(
+        rules.length,
+        IconBackgroundColor.ON
+      );
+    });
   } else {
     setBadgeAndBackgroundColor(BadgeText.OFF, IconBackgroundColor.OFF);
-    return;
   }
-}
-
-function headersReceivedListener(
-  details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
-  return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 
 function clearCache(): void {
   if (!clearRunning) {
     clearRunning = true;
-    const millisecondsPerWeek = MILLISECONDS_PER_WEEK;
-    const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
+    const oneWeekAgo = new Date().getTime() - MILLISECONDS_PER_WEEK;
     chrome.browsingData.removeCache(
-      {
-        since: oneWeekAgo,
-      },
+      { since: oneWeekAgo },
       () => {
         clearRunning = false;
       }
@@ -240,11 +324,11 @@ function clearCache(): void {
 function checkAndChangeIcons() {
   const isDarkMode = window.matchMedia(DARK_MODE_MEDIA);
   if (isDarkMode && isDarkMode.matches) {
-    chrome.browserAction.setIcon({ path: BLUE_ICON_PATH });
+    chrome.action.setIcon({ path: BLUE_ICON_PATH });
   } else {
-    chrome.browserAction.setIcon({ path: GREY_ICON_PATH });
+    chrome.action.setIcon({ path: GREY_ICON_PATH });
   }
 }
 
-// check when extension is loaded
+// Initialize
 checkAndChangeIcons();

@@ -9,7 +9,9 @@
   "scripts": {
     "start": "nowa2 start",
     "build": "TYPESCRIPT_NO_CHECK=true nowa2 build && cp -rf images lib XSwitch.html options.html manifest.json build",
+    "build:v3": "webpack --config build/webpack.v3.config.js && cp -rf images lib XSwitch.html options.html manifest.json build",
     "pub": "npm run build && npm t && sh pub.sh",
+    "pub:v3": "npm run build:v3 && npm test",
     "test": "jest",
     "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
