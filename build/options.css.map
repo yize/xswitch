@@ -1,0 +1,1 @@
+{"version":3,"file":"options.css","mappings":"AAAA;EACE;EACA;EACA;AACF;AAEA;;EAEE;AAAF","sources":["webpack://xswitch/./src/pages/options/options.less"],"sourcesContent":[".options-container {\n  width: 500px;\n  margin: 0 auto;\n  padding: 50px;\n}\n\nul,\nli {\n  list-style: none;\n}\n"],"names":[],"sourceRoot":""}

@@ -9,8 +9,8 @@ import {
   DEFAULT_CREDENTIALS_RESPONSE_HEADERS,
   NULL_STRING,
   ACCESS_CONTROL_REQUEST_HEADERS,
-} from './constants';
-import { Enabled, UrlType } from './enums';
+} from "./constants";
+import { Enabled, UrlType } from "./enums";
 
 interface IFowardConfig {
   proxy?: string[][];
@@ -25,7 +25,7 @@ interface IFowardConfig {
 const matchUrl = (url: string, reg: string): string | boolean => {
   if (REG.FORWARD.test(reg)) {
     // support ??
-    const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+    const r = new RegExp(reg.replace("??", "\\?\\?"), "i");
     const matched = r.test(url);
     if (matched) {
       return UrlType.REG;
@@ -149,7 +149,7 @@ class Forward {
     let CORSHeader: string = EMPTY_STRING;
 
     if (this._originRequestHeaders.get(details.requestId)) {
-      CORSHeader = ',' + this._originRequestHeaders.get(details.requestId);
+      CORSHeader = "," + this._originRequestHeaders.get(details.requestId);
     }
 
     resHeaders.push({
@@ -184,13 +184,13 @@ class Forward {
     try {
       for (let i: number = 0; i < rules.length; i++) {
         const rule = rules[i];
-        if (rule && rule[0] && typeof rule[1] === 'string') {
+        if (rule && rule[0] && typeof rule[1] === "string") {
           const reg = rule[0];
           const matched = matchUrl(redirectUrl, reg);
 
           if (details.requestId !== this._lastRequestId) {
             if (matched === UrlType.REG) {
-              const r = new RegExp(reg.replace('??', '\\?\\?'), 'i');
+              const r = new RegExp(reg.replace("??", "\\?\\?"), "i");
               redirectUrl = redirectUrl.replace(r, rule[1]);
             } else if (matched === UrlType.STRING) {
               redirectUrl = redirectUrl.split(rule[0]).join(rule[1]);
@@ -199,7 +199,7 @@ class Forward {
         }
       }
     } catch (e) {
-      console.error('rule match error', e);
+      console.error("rule match error", e);
     }
 
     this._lastRequestId = details.requestId;
@@ -217,12 +217,15 @@ class Forward {
           details.requestId,
           details.requestHeaders![i].value!
         );
-      } else if (requestName === ACCESS_CONTROL_REQUEST_HEADERS || REG.X_HEADER.test(requestName)) {
+      } else if (
+        requestName === ACCESS_CONTROL_REQUEST_HEADERS ||
+        REG.X_HEADER.test(requestName)
+      ) {
         headers.push(requestName);
       }
     }
     if (headers.length) {
-      this._originRequestHeaders.set(details.requestId, headers.join(','));
+      this._originRequestHeaders.set(details.requestId, headers.join(","));
     }
     return { requestHeaders: details.requestHeaders };
   }
@@ -234,8 +237,14 @@ class Forward {
   }
 }
 
-if (!window._forward) {
-  window._forward = new Forward();
+// 在 Service Worker 环境中创建单例实例
+let _forwardInstance: Forward | null = null;
+
+function getForwardInstance(): Forward {
+  if (!_forwardInstance) {
+    _forwardInstance = new Forward();
+  }
+  return _forwardInstance;
 }
 
-export default window._forward;
+export default getForwardInstance();

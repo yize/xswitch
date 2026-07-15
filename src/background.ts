@@ -16,14 +16,15 @@ import {
   GREY_ICON_PATH,
   BLUE_ICON_PATH,
   DARK_MODE_MEDIA,
-} from './constants';
+} from "./constants";
+import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
+import forward from "./forward";
+import { ChromeStorageManager, getChecked } from "./chrome-storage";
 import {
-  BadgeText,
-  Enabled,
-  IconBackgroundColor,
-} from './enums';
-import forward from './forward';
-import { ChromeStorageManager } from './chrome-storage';
+  updateDeclarativeNetRequestRules,
+  isDeclarativeNetRequestAvailable,
+  removeDeclarativeNetRequestRules,
+} from "./declarative-net-request";
 
 const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
@@ -33,7 +34,7 @@ let clearRunning: boolean = false;
 let clearCacheEnabled: boolean = true;
 let corsEnabled: boolean = true;
 let parseError: boolean = false;
-let jsonActiveKeys = ['0'];
+let jsonActiveKeys = ["0"];
 let conf: StorageJSON = {
   0: {
     [PROXY_STORAGE_KEY]: [],
@@ -51,46 +52,55 @@ interface StorageJSON {
   [key: string]: any;
 }
 
-csmInstance.get({
-  [JSON_CONFIG]: {
-    0: {
-      [PROXY_STORAGE_KEY]: [],
-      [CORS_STORAGE]: [],
+csmInstance.get(
+  {
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
     },
+    [ACTIVE_KEYS]: ["0"],
   },
-  [ACTIVE_KEYS]: ['0'],
-}, (result: any) => {
-  jsonActiveKeys = result[ACTIVE_KEYS];
-  if (result && result[JSON_CONFIG]) {
-    conf = result[JSON_CONFIG];
-    const config = getActiveConfig(conf);
-    forward[JSON_CONFIG] = { ...config };
-  } else {
-    forward[JSON_CONFIG] = {
-      [PROXY_STORAGE_KEY]: [],
-      [CORS_STORAGE]: [],
-    };
-    parseError = false;
+  (result: any) => {
+    jsonActiveKeys = result[ACTIVE_KEYS];
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      const config = getActiveConfig(conf);
+      forward[JSON_CONFIG] = { ...config };
+    } else {
+      forward[JSON_CONFIG] = {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      };
+      parseError = false;
+    }
   }
-});
+);
 
 function getActiveConfig(config: StorageJSON): object {
   const activeKeys = [...jsonActiveKeys];
-  const json = config['0'];
+  const json = config["0"];
   activeKeys.forEach((key: string) => {
-    if (config[key] && key !== '0') {
+    if (config[key] && key !== "0") {
       if (config[key][PROXY_STORAGE_KEY]) {
         if (!json[PROXY_STORAGE_KEY]) {
           json[PROXY_STORAGE_KEY] = [];
         }
-        json[PROXY_STORAGE_KEY] = [...json[PROXY_STORAGE_KEY], ...config[key][PROXY_STORAGE_KEY]];
+        json[PROXY_STORAGE_KEY] = [
+          ...json[PROXY_STORAGE_KEY],
+          ...config[key][PROXY_STORAGE_KEY],
+        ];
       }
 
       if (config[key][CORS_STORAGE]) {
         if (!json[CORS_STORAGE]) {
           json[CORS_STORAGE] = [];
         }
-        json[CORS_STORAGE] = [...json[CORS_STORAGE], ...config[key][CORS_STORAGE]];
+        json[CORS_STORAGE] = [
+          ...json[CORS_STORAGE],
+          ...config[key][CORS_STORAGE],
+        ];
       }
     }
   });
@@ -111,9 +121,7 @@ csmInstance.get(
   }
 );
 
-
 chrome.storage.onChanged.addListener((changes) => {
-
   if (changes[ACTIVE_KEYS]) {
     jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
   }
@@ -135,66 +143,115 @@ chrome.storage.onChanged.addListener((changes) => {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
-  csmInstance.get({
+  csmInstance.get(
+    {
+      [JSON_CONFIG]: {
+        0: {
+          [PROXY_STORAGE_KEY]: [],
+          [CORS_STORAGE]: [],
+        },
+      },
+    },
+    (result: any) => {
+      if (result && result[JSON_CONFIG]) {
+        conf = result[JSON_CONFIG];
+        const config = getActiveConfig(conf);
+        forward[JSON_CONFIG] = { ...config };
+        // 更新 declarativeNetRequest 规则
+        if (isDeclarativeNetRequestAvailable()) {
+          updateDeclarativeNetRequestRules(
+            config,
+            forward[DISABLED] === Enabled.NO
+          );
+        }
+      }
+      setIcon();
+    }
+  );
+
+  checkAndChangeIcons();
+});
+csmInstance.get(
+  {
     [JSON_CONFIG]: {
       0: {
         [PROXY_STORAGE_KEY]: [],
         [CORS_STORAGE]: [],
       },
     },
-  }, (result: any) => {
+  },
+  async (result: any) => {
     if (result && result[JSON_CONFIG]) {
       conf = result[JSON_CONFIG];
       const config = getActiveConfig(conf);
-      forward[JSON_CONFIG] = { ...config };
+      const initialDisabled = (await getChecked()) === Enabled.NO;
+      if (isDeclarativeNetRequestAvailable()) {
+        updateDeclarativeNetRequestRules(config, initialDisabled);
+      }
     }
     setIcon();
-  });
-
-  checkAndChangeIcons()
-});
-
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    if (forward[DISABLED] !== Enabled.NO) {
-      if (clearCacheEnabled) {
-        clearCache();
-      }
-
-      return forward.onBeforeRequestCallback(details);
-    }
-    return {};
-  },
-  {
-    urls: [ALL_URLS],
-  },
-  [BLOCKING]
+  }
 );
 
-// Breaking the CORS Limitation
-chrome.webRequest.onHeadersReceived.addListener(
-  headersReceivedListener,
-  {
-    urls: [ALL_URLS],
-  },
-  [BLOCKING, RESPONSE_HEADERS]
-);
+// // 使用 declarativeNetRequest 替代 webRequest API
+// if (isDeclarativeNetRequestAvailable()) {
+//   //   // 初始化 declarativeNetRequest 规则
+//   const config = getActiveConfig(conf);
+//   const initialDisabled = (await getChecked()) === Enabled.NO;
+//   console.log("initialDisabled", initialDisabled, config);
+//   updateDeclarativeNetRequestRules(config, initialDisabled);
+// }
 
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  (details) => forward.onBeforeSendHeadersCallback(details),
-  { urls: [ALL_URLS] },
-  [BLOCKING, REQUEST_HEADERS]
-);
+//   console.log("Using declarativeNetRequest API");
+// } else {
+//   // 降级到 webRequest API（仅用于兼容性）
+//   console.warn(
+//     "declarativeNetRequest not available, falling back to webRequest"
+//   );
+
+// (chrome as any).webRequest?.onBeforeRequest?.addListener(
+//   (details: any) => {
+//     console.log("onBeforeRequest", forward[DISABLED]);
+//     if (forward[DISABLED] !== Enabled.NO) {
+//       if (clearCacheEnabled) {
+//         clearCache();
+//       }
+//       console.log("onBeforeRequestCallback");
+//       const config = getActiveConfig(conf);
+//       updateDeclarativeNetRequestRules(config);
+//       return;
+//       // return forward.onBeforeRequestCallback(details);
+//     }
+//     removeDeclarativeNetRequestRules();
+//     return {};
+//   },
+//   { urls: [ALL_URLS] },
+//   [BLOCKING]
+// );
+
+//   (chrome as any).webRequest?.onHeadersReceived?.addListener(
+//     headersReceivedListener,
+//     { urls: [ALL_URLS] },
+//     [BLOCKING, RESPONSE_HEADERS]
+//   );
+
+//   (chrome as any).webRequest?.onBeforeSendHeaders?.addListener(
+//     (details: any) => forward.onBeforeSendHeadersCallback(details),
+//     { urls: [ALL_URLS] },
+//     [BLOCKING, REQUEST_HEADERS]
+//   );
+// }
 
 function setBadgeAndBackgroundColor(
   text: string | number,
   color: string
 ): void {
-  const { browserAction } = chrome;
-  browserAction.setBadgeText({
+  // 兼容 Manifest V3: browserAction -> action
+  const action = (chrome as any).action || (chrome as any).browserAction;
+  action.setBadgeText({
     text: EMPTY_STRING + text,
   });
-  browserAction.setBadgeBackgroundColor({
+  action.setBadgeBackgroundColor({
     color,
   });
 }
@@ -207,7 +264,7 @@ function setIcon(): void {
 
   if (forward[DISABLED] !== Enabled.NO) {
     setBadgeAndBackgroundColor(
-      forward[JSON_CONFIG][PROXY_STORAGE_KEY].length,
+      forward[JSON_CONFIG]?.[PROXY_STORAGE_KEY]?.length || 0,
       IconBackgroundColor.ON
     );
   } else {
@@ -217,7 +274,8 @@ function setIcon(): void {
 }
 
 function headersReceivedListener(
-  details: chrome.webRequest.WebResponseHeadersDetails): chrome.webRequest.BlockingResponse {
+  details: chrome.webRequest.WebResponseHeadersDetails
+): chrome.webRequest.BlockingResponse {
   return forward.onHeadersReceivedCallback(details, corsEnabled);
 }
 
@@ -226,23 +284,36 @@ function clearCache(): void {
     clearRunning = true;
     const millisecondsPerWeek = MILLISECONDS_PER_WEEK;
     const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
-    chrome.browsingData.removeCache(
-      {
+    chrome.browsingData
+      .removeCache({
         since: oneWeekAgo,
-      },
-      () => {
+      })
+      .then(() => {
         clearRunning = false;
-      }
-    );
+      });
   }
 }
 
 function checkAndChangeIcons() {
-  const isDarkMode = window.matchMedia(DARK_MODE_MEDIA);
-  if (isDarkMode && isDarkMode.matches) {
-    chrome.browserAction.setIcon({ path: BLUE_ICON_PATH });
-  } else {
-    chrome.browserAction.setIcon({ path: GREY_ICON_PATH });
+  // 兼容 Manifest V3: browserAction -> action
+  const action = (chrome as any).action || (chrome as any).browserAction;
+
+  // Service Worker 环境中没有 window.matchMedia，暂时使用默认图标
+  try {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      const isDarkMode = window.matchMedia(DARK_MODE_MEDIA);
+      if (isDarkMode && isDarkMode.matches) {
+        action.setIcon({ path: BLUE_ICON_PATH });
+      } else {
+        action.setIcon({ path: GREY_ICON_PATH });
+      }
+    } else {
+      // Service Worker 环境，使用默认图标
+      action.setIcon({ path: GREY_ICON_PATH });
+    }
+  } catch (error) {
+    // 出错时使用默认图标
+    action.setIcon({ path: GREY_ICON_PATH });
   }
 }
 

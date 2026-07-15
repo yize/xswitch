@@ -1,0 +1,131 @@
+::-webkit-scrollbar {
+  display: none;
+}
+::-webkit-scrollbar-thumb {
+  display: none;
+}
+html {
+  box-sizing: border-box;
+}
+body {
+  font-size: 12px;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+body {
+  margin: 0;
+}
+.xswitch-container {
+  width: 100%;
+  min-width: 800px;
+  min-height: 600px;
+  height: 100vh;
+}
+.xswitch-wrapper {
+  display: flex;
+  overflow: hidden;
+}
+.xswitch-wrapper .xswitch-tabs {
+  padding: 0;
+  width: 220px;
+  white-space: nowrap;
+  overflow: auto;
+  margin-right: -1px;
+  z-index: 2;
+  margin-bottom: 0;
+  padding-bottom: 44px;
+  flex: 1;
+}
+.xswitch-wrapper .xswitch-tabs li {
+  padding: 5px 10px;
+  line-height: 40px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.xswitch-wrapper .xswitch-tabs li .delete-icon {
+  display: none;
+  opacity: 0;
+}
+.xswitch-wrapper .xswitch-tabs li .label {
+  flex: 1;
+  overflow: hidden;
+}
+.xswitch-wrapper .xswitch-tabs li:hover {
+  background: #efefef;
+}
+.xswitch-wrapper .xswitch-tabs li:hover .delete-icon {
+  display: inline-block;
+  opacity: 0.5;
+}
+.xswitch-wrapper .xswitch-tabs li:hover .delete-icon:hover {
+  opacity: 1;
+}
+.xswitch-wrapper .xswitch-tabs li:first-of-type {
+  border-top: 0;
+}
+.xswitch-wrapper .xswitch-tabs li:first-of-type .delete-icon {
+  display: none !important;
+}
+.xswitch-wrapper .xswitch-tabs li.editing {
+  border-color: #bfbfbf #fff #bfbfbf transparent;
+}
+.xswitch-wrapper .xswitch-tabs li.dragovering {
+  background-color: #eee;
+}
+.xswitch-wrapper .xswitch-new-item-container {
+  padding: 10px;
+  z-index: 3;
+  background: #fff;
+  width: 100%;
+  position: relative;
+}
+.xswitch-wrapper .xswitch-new-item-container .confirm-button {
+  position: absolute;
+  right: 19px;
+  top: 25px;
+  font-size: 18px;
+  cursor: pointer;
+}
+.xswitch-left-area {
+  display: flex;
+  align-items: baseline;
+  flex-direction: column;
+  min-height: 600px;
+  height: 100vh;
+  border-right: 1px solid #bfbfbf;
+}
+.toolbar-area {
+  width: 120px;
+  position: fixed;
+  right: 20px;
+  top: 13px;
+  z-index: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.toolbar-area .open-readme {
+  font-size: 18px;
+}
+.toolbar-area .new-tab-control {
+  font-size: 18px;
+}
+.switch-control {
+  width: 50px;
+}
+.xswitch-icon {
+  width: 22px;
+  opacity: 0.5;
+}
+.xswitch-icon:hover {
+  opacity: 1;
+}
+
+
+/*# sourceMappingURL=xswitch.css.map*/

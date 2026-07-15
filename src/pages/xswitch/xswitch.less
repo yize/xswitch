@@ -5,13 +5,35 @@
 ::-webkit-scrollbar-thumb {
   display: none;
 }
+html {
+  box-sizing: border-box;
+}
 
+body {
+  font-size: 12px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+}
+.xswitch-container {
+  width: 100%;
+  min-width: 800px;
+  min-height: 600px;
+  height: 100vh;
+}
 .xswitch-wrapper {
   display: flex;
   overflow: hidden;
   .xswitch-tabs {
     padding: 0;
-    width: 200px;
+    width: 220px;
     white-space: nowrap;
     overflow: auto;
     margin-right: -1px;
@@ -64,23 +86,18 @@
     background: #fff;
     width: 100%;
     position: relative;
-    .confirm-button{
+
+    .confirm-button {
       position: absolute;
-      right: 15px;
-      top: 15px;
+      right: 19px;
+      top: 25px;
+      font-size: 18px;
       cursor: pointer;
     }
   }
 }
 
-.xswitch-container {
-  width: 100%;
-  min-width: 600px;
-  min-height: 600px;
-  height: 100vh;
-}
-
-.xswitch-left-area{
+.xswitch-left-area {
   display: flex;
   align-items: baseline;
   flex-direction: column;
@@ -99,6 +116,12 @@
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+  .open-readme {
+    font-size: 18px;
+  }
+  .new-tab-control {
+    font-size: 18px;
+  }
 }
 
 .switch-control {

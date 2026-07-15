@@ -1,70 +1,31 @@
 {
   "name": "xswitch",
-  "description": "A proxy tool based on Chrome.extensions",
-  "author": "yize",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:yize/xswitch.git"
-  },
+  "version": "2.0.1",
+  "description": "Xswitch - A compact proxy tool based on Chrome extensions",
   "scripts": {
-    "start": "nowa2 start",
-    "build": "TYPESCRIPT_NO_CHECK=true nowa2 build && cp -rf images lib XSwitch.html options.html manifest.json build",
-    "pub": "npm run build && npm t && sh pub.sh",
-    "test": "jest",
-    "ci": "jest --coverage && cat ./coverage/lcov.info | coveralls"
-  },
-  "keywords": [
-    "xswitch",
-    "chrome",
-    "urlProxy",
-    "proxy",
-    "xproxy"
-  ],
-  "license": "MIT",
-  "dependencies": {
-    "@ali/recore": "^1.0.10",
-    "antd": "^3.9.2"
+    "build": "webpack --config webpack.config.js --mode production",
+    "build:dev": "webpack --config webpack.config.js --mode development",
+    "build:test": "node build-test.js",
+    "start": "webpack serve --config webpack.config.js"
   },
   "devDependencies": {
-    "@ali/nowa-recore-solution": "1.7.0",
-    "@ali/recore-loader": "^1.0.0",
-    "@nowa/cli": "^0.6.0",
-    "@types/chrome": "^0.0.73",
-    "@types/jest": "^23.3.2",
-    "@types/node": "^10.9.4",
-    "@types/react": "^16",
-    "coveralls": "^3.0.2",
-    "css-loader": "^1.0.0",
-    "html-webpack-plugin": "^3.2.0",
-    "jest": "^23.6.0",
-    "mini-css-extract-plugin": "^0.4.2",
-    "monaco": "^1.201704190613.0+9ac64297a3b2ace5240299ba54b03f5029378397",
-    "ts-jest": "^23.1.4",
-    "ts-loader": "~5.0.0",
-    "typescript": "~3.0.3",
-    "webpack": "~4.17.2",
-    "webpack-cli": "~3.1.0",
-    "webpack-merge": "~4.1.4"
+    "css-loader": "^6.8.1",
+    "html-webpack-plugin": "^5.5.3",
+    "less": "^4.2.0",
+    "less-loader": "^11.1.3",
+    "mini-css-extract-plugin": "^2.7.6",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4",
+    "typescript": "^4.9.5",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.json"
-      }
-    },
-    "testMatch": [
-      "**/__tests__/*.+(ts|tsx|js)"
-    ]
-  },
-  "nowa": {
-    "solution": "@ali/nowa-recore-solution"
+  "repository": "https://github.com/yize/xswitch.git",
+  "dependencies": {
+    "@ali/recore": "^1.7.7",
+    "@ant-design/icons": "^5.2.6",
+    "antd": "^5.26.4",
+    "classnames": "^2.5.1"
   }
 }
