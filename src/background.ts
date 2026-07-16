@@ -1,10 +1,5 @@
 import {
-  ALL_URLS,
-  BLOCKING,
   EMPTY_STRING,
-  MILLISECONDS_PER_WEEK,
-  REQUEST_HEADERS,
-  RESPONSE_HEADERS,
   JSON_CONFIG,
   DISABLED,
   CLEAR_CACHE_ENABLED,
@@ -16,31 +11,41 @@ import {
   GREY_ICON_PATH,
   BLUE_ICON_PATH,
   DARK_MODE_MEDIA,
+  ALL_URLS,
 } from "./constants";
 import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
-import forward from "./forward";
 import { ChromeStorageManager, getChecked } from "./chrome-storage";
 import {
   updateDeclarativeNetRequestRules,
   isDeclarativeNetRequestAvailable,
-  removeDeclarativeNetRequestRules,
 } from "./declarative-net-request";
 
 const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
 });
 
-let clearRunning: boolean = false;
-let clearCacheEnabled: boolean = true;
-let corsEnabled: boolean = true;
+// 运行时状态（此前借助 forward 单例保存，现直接用模块级变量）
 let parseError: boolean = false;
-let jsonActiveKeys = ["0"];
+let corsEnabled: boolean = true;
+// DISABLED 存储位：值为 Enabled.YES 表示开关处于开启状态
+let switchState: Enabled = Enabled.YES;
+let jsonActiveKeys: string[] = ["0"];
 let conf: StorageJSON = {
   0: {
     [PROXY_STORAGE_KEY]: [],
     [CORS_STORAGE]: [],
   },
 };
+// 当前生效的合并配置，仅用于计算 badge 数量
+let activeConfig: IActiveConfig = {
+  [PROXY_STORAGE_KEY]: [],
+  [CORS_STORAGE]: [],
+};
+
+interface IActiveConfig {
+  [PROXY_STORAGE_KEY]?: any[];
+  [CORS_STORAGE]?: string[];
+}
 
 interface SingleConfig {
   [PROXY_STORAGE_KEY]: Array<[]>;
@@ -52,33 +57,11 @@ interface StorageJSON {
   [key: string]: any;
 }
 
-csmInstance.get(
-  {
-    [JSON_CONFIG]: {
-      0: {
-        [PROXY_STORAGE_KEY]: [],
-        [CORS_STORAGE]: [],
-      },
-    },
-    [ACTIVE_KEYS]: ["0"],
-  },
-  (result: any) => {
-    jsonActiveKeys = result[ACTIVE_KEYS];
-    if (result && result[JSON_CONFIG]) {
-      conf = result[JSON_CONFIG];
-      const config = getActiveConfig(conf);
-      forward[JSON_CONFIG] = { ...config };
-    } else {
-      forward[JSON_CONFIG] = {
-        [PROXY_STORAGE_KEY]: [],
-        [CORS_STORAGE]: [],
-      };
-      parseError = false;
-    }
-  }
-);
+function isEnabled(): boolean {
+  return switchState !== Enabled.NO;
+}
 
-function getActiveConfig(config: StorageJSON): object {
+function getActiveConfig(config: StorageJSON): IActiveConfig {
   const activeKeys = [...jsonActiveKeys];
   const json = config["0"];
   activeKeys.forEach((key: string) => {
@@ -107,6 +90,49 @@ function getActiveConfig(config: StorageJSON): object {
   return json;
 }
 
+/**
+ * 应用规则并根据结果刷新错误状态。
+ */
+async function applyRules(): Promise<void> {
+  if (!isDeclarativeNetRequestAvailable()) {
+    return;
+  }
+  const success = await updateDeclarativeNetRequestRules(
+    activeConfig,
+    !isEnabled(),
+    corsEnabled
+  );
+  parseError = !success;
+  setIcon();
+}
+
+// 初始化：读取配置并计算生效配置
+csmInstance.get(
+  {
+    [JSON_CONFIG]: {
+      0: {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      },
+    },
+    [ACTIVE_KEYS]: ["0"],
+  },
+  (result: any) => {
+    jsonActiveKeys = result[ACTIVE_KEYS] || ["0"];
+    if (result && result[JSON_CONFIG]) {
+      conf = result[JSON_CONFIG];
+      activeConfig = getActiveConfig(conf);
+    } else {
+      activeConfig = {
+        [PROXY_STORAGE_KEY]: [],
+        [CORS_STORAGE]: [],
+      };
+      parseError = false;
+    }
+  }
+);
+
+// 初始化：读取开关与选项状态
 csmInstance.get(
   {
     [DISABLED]: Enabled.YES,
@@ -114,8 +140,7 @@ csmInstance.get(
     [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
   },
   (result: any) => {
-    forward[DISABLED] = result[DISABLED];
-    clearCacheEnabled = result[CLEAR_CACHE_ENABLED] === Enabled.YES;
+    switchState = result[DISABLED];
     corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
     setIcon();
   }
@@ -123,20 +148,11 @@ csmInstance.get(
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes[ACTIVE_KEYS]) {
-    jsonActiveKeys = changes[ACTIVE_KEYS].newValue;
-  }
-
-  if (changes[JSON_CONFIG]) {
-    const config = getActiveConfig(changes[JSON_CONFIG].newValue);
-    forward[JSON_CONFIG] = { ...config };
+    jsonActiveKeys = changes[ACTIVE_KEYS].newValue as string[];
   }
 
   if (changes[DISABLED]) {
-    forward[DISABLED] = changes[DISABLED].newValue;
-  }
-
-  if (changes[CLEAR_CACHE_ENABLED]) {
-    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED].newValue === Enabled.YES;
+    switchState = changes[DISABLED].newValue as Enabled;
   }
 
   if (changes[CORS_ENABLED_STORAGE_KEY]) {
@@ -155,22 +171,16 @@ chrome.storage.onChanged.addListener((changes) => {
     (result: any) => {
       if (result && result[JSON_CONFIG]) {
         conf = result[JSON_CONFIG];
-        const config = getActiveConfig(conf);
-        forward[JSON_CONFIG] = { ...config };
-        // 更新 declarativeNetRequest 规则
-        if (isDeclarativeNetRequestAvailable()) {
-          updateDeclarativeNetRequestRules(
-            config,
-            forward[DISABLED] === Enabled.NO
-          );
-        }
+        activeConfig = getActiveConfig(conf);
       }
-      setIcon();
+      applyRules();
     }
   );
 
   checkAndChangeIcons();
 });
+
+// 启动时应用一次规则
 csmInstance.get(
   {
     [JSON_CONFIG]: {
@@ -183,64 +193,12 @@ csmInstance.get(
   async (result: any) => {
     if (result && result[JSON_CONFIG]) {
       conf = result[JSON_CONFIG];
-      const config = getActiveConfig(conf);
-      const initialDisabled = (await getChecked()) === Enabled.NO;
-      if (isDeclarativeNetRequestAvailable()) {
-        updateDeclarativeNetRequestRules(config, initialDisabled);
-      }
+      activeConfig = getActiveConfig(conf);
     }
-    setIcon();
+    switchState = (await getChecked()) as Enabled;
+    applyRules();
   }
 );
-
-// // 使用 declarativeNetRequest 替代 webRequest API
-// if (isDeclarativeNetRequestAvailable()) {
-//   //   // 初始化 declarativeNetRequest 规则
-//   const config = getActiveConfig(conf);
-//   const initialDisabled = (await getChecked()) === Enabled.NO;
-//   console.log("initialDisabled", initialDisabled, config);
-//   updateDeclarativeNetRequestRules(config, initialDisabled);
-// }
-
-//   console.log("Using declarativeNetRequest API");
-// } else {
-//   // 降级到 webRequest API（仅用于兼容性）
-//   console.warn(
-//     "declarativeNetRequest not available, falling back to webRequest"
-//   );
-
-// (chrome as any).webRequest?.onBeforeRequest?.addListener(
-//   (details: any) => {
-//     console.log("onBeforeRequest", forward[DISABLED]);
-//     if (forward[DISABLED] !== Enabled.NO) {
-//       if (clearCacheEnabled) {
-//         clearCache();
-//       }
-//       console.log("onBeforeRequestCallback");
-//       const config = getActiveConfig(conf);
-//       updateDeclarativeNetRequestRules(config);
-//       return;
-//       // return forward.onBeforeRequestCallback(details);
-//     }
-//     removeDeclarativeNetRequestRules();
-//     return {};
-//   },
-//   { urls: [ALL_URLS] },
-//   [BLOCKING]
-// );
-
-//   (chrome as any).webRequest?.onHeadersReceived?.addListener(
-//     headersReceivedListener,
-//     { urls: [ALL_URLS] },
-//     [BLOCKING, RESPONSE_HEADERS]
-//   );
-
-//   (chrome as any).webRequest?.onBeforeSendHeaders?.addListener(
-//     (details: any) => forward.onBeforeSendHeadersCallback(details),
-//     { urls: [ALL_URLS] },
-//     [BLOCKING, REQUEST_HEADERS]
-//   );
-// }
 
 function setBadgeAndBackgroundColor(
   text: string | number,
@@ -262,35 +220,13 @@ function setIcon(): void {
     return;
   }
 
-  if (forward[DISABLED] !== Enabled.NO) {
+  if (isEnabled()) {
     setBadgeAndBackgroundColor(
-      forward[JSON_CONFIG]?.[PROXY_STORAGE_KEY]?.length || 0,
+      activeConfig?.[PROXY_STORAGE_KEY]?.length || 0,
       IconBackgroundColor.ON
     );
   } else {
     setBadgeAndBackgroundColor(BadgeText.OFF, IconBackgroundColor.OFF);
-    return;
-  }
-}
-
-function headersReceivedListener(
-  details: chrome.webRequest.WebResponseHeadersDetails
-): chrome.webRequest.BlockingResponse {
-  return forward.onHeadersReceivedCallback(details, corsEnabled);
-}
-
-function clearCache(): void {
-  if (!clearRunning) {
-    clearRunning = true;
-    const millisecondsPerWeek = MILLISECONDS_PER_WEEK;
-    const oneWeekAgo = new Date().getTime() - millisecondsPerWeek;
-    chrome.browsingData
-      .removeCache({
-        since: oneWeekAgo,
-      })
-      .then(() => {
-        clearRunning = false;
-      });
   }
 }
 
@@ -311,11 +247,53 @@ function checkAndChangeIcons() {
       // Service Worker 环境，使用默认图标
       action.setIcon({ path: GREY_ICON_PATH });
     }
-  } catch (error) {
+  } catch {
     // 出错时使用默认图标
     action.setIcon({ path: GREY_ICON_PATH });
   }
 }
+
+// ---------------------------------------------------------------------------
+// 编辑器 URL 自动补全支持
+//
+// 通过非阻塞的 webRequest 观察器收集近期访问过的 js/css/json(p) URL，
+// 供 popup 编辑器的自动补全使用（响应 { action: "getUrls" } 消息）。
+// 该缓存仅存于内存中，Service Worker 重启后自动重建。
+// ---------------------------------------------------------------------------
+const MAX_CACHED_URLS = 200;
+const RESOURCE_URL_REG = /https?:\/\/.*\.(js|css|json|jsonp)/i;
+const recentUrls: string[] = [];
+
+function recordUrl(url: string): void {
+  if (!url || !RESOURCE_URL_REG.test(url) || recentUrls.indexOf(url) > -1) {
+    return;
+  }
+  recentUrls.push(url);
+  if (recentUrls.length > MAX_CACHED_URLS) {
+    recentUrls.shift();
+  }
+}
+
+try {
+  const webRequest = (chrome as any).webRequest;
+  if (webRequest && webRequest.onBeforeRequest) {
+    webRequest.onBeforeRequest.addListener(
+      (details: { url: string }) => {
+        recordUrl(details.url);
+      },
+      { urls: [ALL_URLS] }
+    );
+  }
+} catch {
+  // webRequest 不可用时静默降级，自动补全仅少了历史 URL 建议
+}
+
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  if (request && request.action === "getUrls") {
+    sendResponse({ urls: recentUrls.slice() });
+  }
+  return true;
+});
 
 // check when extension is loaded
 checkAndChangeIcons();

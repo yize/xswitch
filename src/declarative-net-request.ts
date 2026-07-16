@@ -1,5 +1,4 @@
-import { ALL_URLS, PROXY_STORAGE_KEY, CORS_STORAGE } from "./constants";
-import { Enabled, UrlType } from "./enums";
+import { REG } from "./constants";
 
 interface IForwardConfig {
   proxy?: string[][];
@@ -7,7 +6,60 @@ interface IForwardConfig {
 }
 
 /**
- * 将代理规则转换为 declarativeNetRequest 规则
+ * 判断一条规则的 from 是否是正则规则（而非纯字符串匹配）。
+ * 与 forward.matchUrl 保持一致：含有 \ [ ] ( ) * $ ^ 之一即视为正则。
+ */
+function isRegexRule(pattern: string): boolean {
+  return REG.FORWARD.test(pattern);
+}
+
+/**
+ * 转义 RE2 正则元字符，使字符串按字面量匹配。
+ */
+function escapeRe2Literal(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * 校验正则是否可被引擎编译。用 JS RegExp 作为近似校验，
+ * 目的是提前过滤掉明显非法的规则，避免整批规则被 DNR 拒绝。
+ */
+function isValidRegex(pattern: string): boolean {
+  try {
+    new RegExp(pattern);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 将原始模式转换为 RE2 兼容的 regexFilter。
+ *
+ * - 纯字符串规则：整体转义为字面量，保持"子串匹配"语义。
+ * - 正则规则：按 JS 正则原样传递，仅把 XSwitch 约定的 `??`
+ *   组合加载标记转义成字面量 `\?\?`（与旧 forward 逻辑一致）。
+ */
+function convertToRe2Pattern(pattern: string): string {
+  if (isRegexRule(pattern)) {
+    return pattern.replace(/\?\?/g, "\\?\\?");
+  }
+  return escapeRe2Literal(pattern);
+}
+
+/**
+ * 将目标 URL 转换为 RE2 兼容的替换模式。
+ * DNR 的 regexSubstitution 用 \1..\9 引用捕获组，且 \ 需要转义。
+ */
+function convertToRe2Substitution(targetUrl: string): string {
+  return targetUrl
+    .replace(/\\/g, "\\\\") // 先转义字面量反斜杠
+    .replace(/\$(\d)/g, "\\$1"); // 再把 $1..$9 转成 \1..\9
+}
+
+/**
+ * 将代理规则转换为 declarativeNetRequest 规则。
+ * 非法正则的规则会被跳过（而不是导致整批规则失效）。
  */
 export function generateProxyRules(
   config: IForwardConfig
@@ -16,89 +68,52 @@ export function generateProxyRules(
   let ruleId = 1;
 
   if (config.proxy && config.proxy.length > 0) {
-    config.proxy.forEach((rule, index) => {
-      if (rule && rule[0] && rule[1]) {
-        const fromPattern = rule[0];
-        const toUrl = rule[1];
-
-        // 转换正则表达式为 RE2 兼容格式
-        const regexFilter = convertToRe2Pattern(fromPattern);
-        const regexSubstitution = convertToRe2Substitution(toUrl);
-
-        // 创建重定向规则
-        rules.push({
-          id: ruleId++,
-          priority: 1,
-          action: {
-            type: "redirect",
-            redirect: {
-              regexSubstitution: regexSubstitution,
-            },
-          },
-          condition: {
-            regexFilter: regexFilter,
-            resourceTypes: [
-              "main_frame",
-              "sub_frame",
-              "stylesheet",
-              "script",
-              "image",
-              "font",
-              "object",
-              "xmlhttprequest",
-              "ping",
-              "csp_report",
-              "media",
-              "websocket",
-              "other",
-            ],
-          },
-        });
+    config.proxy.forEach((rule) => {
+      // rule[1] 必须是字符串才是一条有效的转发规则
+      if (!rule || !rule[0] || typeof rule[1] !== "string") {
+        return;
       }
+
+      const regexFilter = convertToRe2Pattern(rule[0]);
+      const regexSubstitution = convertToRe2Substitution(rule[1]);
+
+      if (!isValidRegex(regexFilter)) {
+        console.warn(`[XSwitch] Skip invalid proxy rule: ${rule[0]}`);
+        return;
+      }
+
+      rules.push({
+        id: ruleId++,
+        priority: 1,
+        action: {
+          type: "redirect",
+          redirect: {
+            regexSubstitution,
+          },
+        },
+        condition: {
+          regexFilter,
+          resourceTypes: [
+            "main_frame",
+            "sub_frame",
+            "stylesheet",
+            "script",
+            "image",
+            "font",
+            "object",
+            "xmlhttprequest",
+            "ping",
+            "csp_report",
+            "media",
+            "websocket",
+            "other",
+          ],
+        },
+      } as chrome.declarativeNetRequest.Rule);
     });
   }
 
   return rules;
-}
-
-/**
- * 将原始模式转换为 RE2 兼容的正则表达式
- */
-function convertToRe2Pattern(pattern: string): string {
-  let result = pattern;
-
-  // 转义特殊字符
-  result = result
-    .replace(/\./g, "\\.") // 转义点号
-    .replace(/-/g, "\\-");
-  // .replace(/\(/g, "\\(") // 转义左括号
-  // .replace(/\)/g, "\\)") // 转义右括号
-  // .replace(/\[/g, "\\[") // 转义左方括号
-  // .replace(/\]/g, "\\]") // 转义右方括号
-  // .replace(/\?/g, "\\?") // 转义问号
-  // .replace(/\*/g, "\\*") // 转义星号
-  // .replace(/\+/g, "\\+") // 转义加号
-  // .replace(/\|/g, "\\|") // 转义竖线
-  // .replace(/\^/g, "\\^") // 转义脱字符
-  // .replace(/\$/g, "\\$") // 转义美元符
-  // .replace(/\//g, "\\/") // 转义斜杠
-  // .replace(/\\/g, "\\\\"); // 转义反斜杠
-
-  // 恢复捕获组 (.*)
-  result = result.replace(/\(\\\.\*\)/g, "(.*)");
-
-  return result;
-}
-
-/**
- * 将目标 URL 转换为 RE2 兼容的替换模式
- */
-function convertToRe2Substitution(targetUrl: string): string {
-  // RE2 使用 $1, $2 等作为捕获组引用
-  // return targetUrl
-  //   .replace(/\$(\d+)/g, "$$$1") // 将 $1, $2 转换为 $$1, $$2
-  //   .replace(/\\/g, "\\\\"); // 转义反斜杠
-  return targetUrl.replace(/\$(\d+)/g, "\\$1"); // 将 $1, $2 转换为 $$1, $$2
 }
 
 /**
@@ -112,6 +127,9 @@ export function generateCorsRules(
 
   if (config.cors && config.cors.length > 0) {
     config.cors.forEach((domain) => {
+      if (!domain) {
+        return;
+      }
       // 添加 CORS 响应头规则
       rules.push({
         id: ruleId++,
@@ -146,12 +164,13 @@ export function generateCorsRules(
           urlFilter: `||${domain}`,
           resourceTypes: ["xmlhttprequest", "websocket"],
         },
-      });
+      } as chrome.declarativeNetRequest.Rule);
     });
   }
 
   return rules;
 }
+
 /**
  * 清除现有规则
  */
@@ -163,40 +182,44 @@ export async function removeDeclarativeNetRequestRules(): Promise<void> {
         removeRuleIds: ruleIds,
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error("[XSwitch] Failed to remove dynamic rules:", error);
+  }
 }
 
 /**
- * 更新 declarativeNetRequest 规则
+ * 更新 declarativeNetRequest 规则。
+ * @returns 是否成功应用规则（失败时可用于展示错误标记）
  */
 export async function updateDeclarativeNetRequestRules(
   config: IForwardConfig,
-  disabled: boolean
-): Promise<void> {
+  disabled: boolean,
+  corsEnabled: boolean = true
+): Promise<boolean> {
   try {
     await removeDeclarativeNetRequestRules();
 
     if (disabled) {
-      return;
+      return true;
     }
 
-    // 生成新规则
     const proxyRules = generateProxyRules(config);
-    const corsRules = generateCorsRules(config);
+    const corsRules = corsEnabled ? generateCorsRules(config) : [];
     const allRules = [...proxyRules, ...corsRules];
-    console.log("allRules---", allRules);
-    // 添加新规则
+
     if (allRules.length > 0) {
       await chrome.declarativeNetRequest.updateDynamicRules({
         addRules: allRules,
       });
     }
 
-    console.log(
-      `Updated declarativeNetRequest rules: ${allRules.length} rules`
-    );
+    return true;
   } catch (error) {
-    console.error("Failed to update declarativeNetRequest rules:", error);
+    console.error(
+      "[XSwitch] Failed to update declarativeNetRequest rules:",
+      error
+    );
+    return false;
   }
 }
 
@@ -208,7 +231,7 @@ async function getAllRuleIds(): Promise<number[]> {
     const rules = await (chrome as any).declarativeNetRequest.getDynamicRules();
     return rules.map((rule: any) => rule.id);
   } catch (error) {
-    console.error("Failed to get dynamic rules:", error);
+    console.error("[XSwitch] Failed to get dynamic rules:", error);
     return [];
   }
 }

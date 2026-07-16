@@ -25,7 +25,7 @@ interface ChromeStorageManagerProps {
   useChromeStorageSyncFn: boolean;
 }
 export class ChromeStorageManager {
-  private storageFn: any;
+  private storageFn: chrome.storage.StorageArea;
 
   constructor(props: ChromeStorageManagerProps) {
     /**
@@ -46,7 +46,7 @@ export class ChromeStorageManager {
       : chrome.storage.local;
   }
 
-  get(keyOrObj: any, callback?: Function): Promise<any> {
+  get(keyOrObj: any, callback?: (result: any) => void): Promise<any> {
     return new Promise((resolve, reject) => {
       this.storageFn.get(keyOrObj, (result: any) => {
         if (chrome.runtime.lastError) {
@@ -59,7 +59,7 @@ export class ChromeStorageManager {
     });
   }
 
-  set(obj: any, callback?: Function): Promise<any> {
+  set(obj: any, callback?: (result: any) => void): Promise<any> {
     return new Promise((resolve, reject) => {
       this.storageFn.set(obj, () => {
         if (chrome.runtime.lastError) {
@@ -78,7 +78,7 @@ const csmInstance = new ChromeStorageManager({
 });
 
 /**
- * 兼容chrome.storage.sync 历史数据的逻辑
+ * 兼容 chrome.storage.sync 历史数据的逻辑
  */
 function checkAndSyncHistorialSyncStorageDataToLocal() {
   const historyStorageKeyOrObj = {
@@ -101,14 +101,6 @@ function checkAndSyncHistorialSyncStorageDataToLocal() {
     },
   };
 
-  // Code below is only for migaration testing
-  //
-  // csmInstance.set({
-  //   [SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL]: {
-  //     migarated: false,
-  //   },
-  // });
-
   csmInstance.get(migaratedFlag, (result: any) => {
     if (!result[SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL].migarated) {
       chrome.storage.sync.get(historyStorageKeyOrObj, (hisData: any) => {
@@ -129,8 +121,6 @@ function checkAndSyncHistorialSyncStorageDataToLocal() {
           ...stash,
         });
       });
-    } else {
-      console.log("SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL");
     }
   });
 }
@@ -139,13 +129,6 @@ checkAndSyncHistorialSyncStorageDataToLocal();
 
 export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve({
-        [JSONC_CONFIG]: {
-          0: "",
-        },
-      });
-    }
     csmInstance.get(
       {
         [JSONC_CONFIG]: {
@@ -168,11 +151,6 @@ export function getConfig(editingConfigKey: string): Promise<ConfigStorage> {
 
 export function getActiveKeys(): Promise<any> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve({
-        [ACTIVE_KEYS]: ["0"],
-      });
-    }
     csmInstance.get(
       {
         [ACTIVE_KEYS]: ["0"],
@@ -184,32 +162,19 @@ export function getActiveKeys(): Promise<any> {
   });
 }
 
-export function setActiveKeys(keys?: string[]): Promise<object> | void {
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.set(
-        {
-          [ACTIVE_KEYS]: keys,
-        },
-        resolve
-      );
-    });
-  }
+export function setActiveKeys(keys?: string[]): Promise<object> {
+  return new Promise((resolve) => {
+    csmInstance.set(
+      {
+        [ACTIVE_KEYS]: keys,
+      },
+      resolve
+    );
+  });
 }
 
 export function getConfigItems(): Promise<any> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve({
-        [TAB_LIST]: [
-          {
-            id: "0",
-            name: "Current",
-            active: true,
-          },
-        ],
-      });
-    }
     csmInstance.get(
       {
         [TAB_LIST]: [
@@ -227,29 +192,22 @@ export function getConfigItems(): Promise<any> {
   });
 }
 
-export function setConfigItems(items?: any): Promise<object> | void {
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.set(
-        {
-          [TAB_LIST]: items.slice(),
-          [ACTIVE_KEYS]: items.map((item: any) => {
-            if (item.active) {
-              return item.id;
-            }
-          }),
-        },
-        resolve
-      );
-    });
-  }
+export function setConfigItems(items?: any): Promise<object> {
+  return new Promise((resolve) => {
+    csmInstance.set(
+      {
+        [TAB_LIST]: items.slice(),
+        [ACTIVE_KEYS]: items
+          .filter((item: any) => item.active)
+          .map((item: any) => item.id),
+      },
+      resolve
+    );
+  });
 }
 
 export function getEditingConfigKey(): Promise<string> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve("0");
-    }
     csmInstance.get(
       {
         [EDITING_CONFIG_KEY]: "0",
@@ -261,88 +219,73 @@ export function getEditingConfigKey(): Promise<string> {
   });
 }
 
-export function setEditingConfigKey(key: string): Promise<object> | void {
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.set(
-        {
-          [EDITING_CONFIG_KEY]: key,
-        },
-        resolve
-      );
-    });
-  }
+export function setEditingConfigKey(key: string): Promise<object> {
+  return new Promise((resolve) => {
+    csmInstance.set(
+      {
+        [EDITING_CONFIG_KEY]: key,
+      },
+      resolve
+    );
+  });
 }
 
 export function saveConfig(
   jsonc: string,
   editingConfigKey: string
-): Promise<any> | void {
+): Promise<any> {
   const json = JSONC2JSON(jsonc);
 
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.get(
-        {
-          [JSONC_CONFIG]: {},
-          [JSON_CONFIG]: {},
-        },
-        (result: any) => {
-          // migrate
-          if (typeof result[JSONC_CONFIG] === "string") {
-            result[JSONC_CONFIG] = {};
-            result[JSON_CONFIG] = {};
-          }
-
-          result[JSONC_CONFIG][editingConfigKey] = jsonc;
-
-          JSON_Parse(json, (error, parsedJSON) => {
-            if (!error) {
-              result[JSON_CONFIG][editingConfigKey] = parsedJSON;
-              return;
-            }
-            result[JSON_CONFIG][editingConfigKey] = "";
-          });
-
-          csmInstance.set(result, resolve);
+  return new Promise((resolve) => {
+    csmInstance.get(
+      {
+        [JSONC_CONFIG]: {},
+        [JSON_CONFIG]: {},
+      },
+      (result: any) => {
+        // migrate
+        if (typeof result[JSONC_CONFIG] === "string") {
+          result[JSONC_CONFIG] = {};
+          result[JSON_CONFIG] = {};
         }
-      );
-    });
-  }
+
+        result[JSONC_CONFIG][editingConfigKey] = jsonc;
+
+        JSON_Parse(json, (error, parsedJSON) => {
+          if (!error) {
+            result[JSON_CONFIG][editingConfigKey] = parsedJSON;
+            return;
+          }
+          result[JSON_CONFIG][editingConfigKey] = "";
+        });
+
+        csmInstance.set(result, resolve);
+      }
+    );
+  });
 }
 
 export function getChecked(): Promise<string> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve(Enabled.YES);
-    }
     csmInstance.get(DISABLED, (result: any) => {
       resolve(result[DISABLED]);
     });
   });
 }
 
-export function setChecked(checked?: boolean): Promise<object> | void {
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.set(
-        {
-          [DISABLED]: checked ? Enabled.YES : Enabled.NO,
-        },
-        resolve
-      );
-    });
-  }
+export function setChecked(checked?: boolean): Promise<object> {
+  return new Promise((resolve) => {
+    csmInstance.set(
+      {
+        [DISABLED]: checked ? Enabled.YES : Enabled.NO,
+      },
+      resolve
+    );
+  });
 }
 
 export function getOptions(): Promise<OptionsStorage> {
   return new Promise((resolve) => {
-    if (process.env.NODE_ENV !== "production") {
-      return resolve({
-        [CLEAR_CACHE_ENABLED]: Enabled.YES,
-        [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
-      });
-    }
     csmInstance.get(
       {
         [CLEAR_CACHE_ENABLED]: Enabled.YES,
@@ -358,29 +301,22 @@ export function getOptions(): Promise<OptionsStorage> {
   });
 }
 
-export function setOptions(options: any): Promise<OptionsStorage> | void {
-  if (process.env.NODE_ENV === "production") {
-    return new Promise((resolve) => {
-      csmInstance.set(
-        {
-          clearCacheEnabled: options.clearCacheEnabled
-            ? Enabled.YES
-            : Enabled.NO,
-          corsEnabled: options.corsEnabled ? Enabled.YES : Enabled.NO,
-        },
-        resolve
-      );
-    });
-  }
+export function setOptions(options: any): Promise<OptionsStorage> {
+  return new Promise((resolve) => {
+    csmInstance.set(
+      {
+        clearCacheEnabled: options.clearCacheEnabled ? Enabled.YES : Enabled.NO,
+        corsEnabled: options.corsEnabled ? Enabled.YES : Enabled.NO,
+      },
+      resolve as any
+    );
+  });
 }
 
 export function openLink(url: string, isInner: boolean = false): void {
-  chrome.tabs.create(
-    { url: isInner ? chrome.runtime.getURL(url) : url },
-    (tab) => {
-      // Tab opened.
-    }
-  );
+  chrome.tabs.create({
+    url: isInner ? chrome.runtime.getURL(url) : url,
+  });
 }
 
 export function removeUnusedItems() {
@@ -397,7 +333,7 @@ export function removeUnusedItems() {
       ],
     },
     (result: any) => {
-      let stash: any = {
+      const stash: any = {
         [JSONC_CONFIG]: {},
         [JSON_CONFIG]: {},
       };

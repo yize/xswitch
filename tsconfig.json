@@ -1,51 +1,38 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "target": "es2017",
-    "lib": [
-      "dom",
-      "es2017",
-      "es2018",
-      "es2019"
-    ],
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "jsx": "preserve",
     "sourceMap": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "declaration": false,
-    "outDir": "./build",
-    "rootDir": "./src"
+    "noEmit": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["chrome", "node", "vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
-    "./src/**/*",
-    "./typings/**/*"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "manifest.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "env.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ],
-  "types": [
-    "jest",
-    "node",
-    "chrome",
-    "react"
-  ],
-  "awesomeTypescriptLoaderOptions": {
-    "transpileOnly" : true
-  },
-  "files": [
-    "./src/manifest-v3.d.ts"
-  ]
+  "exclude": ["node_modules", "dist", "build", "__tests__"]
 }

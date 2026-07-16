@@ -8,7 +8,7 @@ const replace = (jsonc: string): string => {
         .replace(REG.WHITESPACE, EMPTY_STRING)
         .replace(REG.TRIM_JSON, ($0, $1, $2) => $2)
     );
-  } catch (e) {
+  } catch {
     console.log(
       stripJsonComments(jsonc)
         .replace(REG.WHITESPACE, EMPTY_STRING)

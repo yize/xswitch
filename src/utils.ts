@@ -11,6 +11,6 @@ export function JSON_Parse(json: string, cb: (error: object | boolean, json?: ob
   try {
     cb(false, JSON.parse(json));
   } catch (e) {
-    cb(e);
+    cb(e as object);
   }
 }
