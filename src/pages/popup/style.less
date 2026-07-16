@@ -27,15 +27,25 @@ li {
 }
 
 .xswitch-container {
-  width: 100%;
-  min-width: 800px;
+  // 编辑器填充侧栏之外的剩余宽度，允许收缩到 0；
+  // 长行的横向滚动交给 Monaco 自身的内部滚动条处理。
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 600px;
   height: 100vh;
 }
 
 .xswitch-wrapper {
   display: flex;
+  // popup 用固定宽度打开(Chrome popup 上限 ~800px)，标签页(.in-tab)用整窗宽度。
+  // 编辑器自适应填充，不再做面板级横向滚动，长行由 Monaco 内部滚动条负责。
+  width: 800px;
   overflow: hidden;
+
+  &.in-tab {
+    width: 100vw;
+    max-width: 100vw;
+  }
 
   .xswitch-tabs {
     padding: 0;
@@ -118,13 +128,15 @@ li {
   display: flex;
   align-items: baseline;
   flex-direction: column;
+  // 作为 wrapper 的横向 flex 子项，保持固定宽度、不收缩，
+  // 让编辑器溢出而不是把侧栏挤扁。
+  flex: 0 0 auto;
   min-height: 600px;
   height: 100vh;
   border-right: 1px solid #bfbfbf;
 }
 
 .toolbar-area {
-  width: 120px;
   position: fixed;
   right: 20px;
   top: 13px;
@@ -132,14 +144,16 @@ li {
   cursor: pointer;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  align-items: center;
+  gap: 14px;
 
-  .open-readme {
+  .open-readme,
+  .new-tab-control,
+  .theme-control,
+  .rules-control {
     font-size: 18px;
-  }
-
-  .new-tab-control {
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
@@ -155,3 +169,37 @@ li {
     opacity: 1;
   }
 }
+
+// ---------------------------------------------------------------------------
+// 暗夜模式：Ant Design Vue 组件由 ConfigProvider 的 darkAlgorithm 处理，
+// 这里只覆盖自定义元素（背景/边框/hover/新建区等硬编码浅色）。
+// ---------------------------------------------------------------------------
+[data-theme="dark"] {
+  body {
+    background: #141414;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .xswitch-left-area {
+    border-right-color: #303030;
+  }
+
+  .xswitch-tabs li {
+    &:hover {
+      background: #1f1f1f;
+    }
+
+    &.editing {
+      border-color: #434343 #141414 #434343 transparent;
+    }
+
+    &.dragovering {
+      background-color: #262626;
+    }
+  }
+
+  .xswitch-new-item-container {
+    background: #141414;
+  }
+}
+

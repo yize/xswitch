@@ -44,6 +44,7 @@ export const CLEAR_CACHE_ENABLED = 'clearCacheEnabled';
 export const CORS_STORAGE = 'cors';
 export const CORS_ENABLED_STORAGE_KEY = 'corsEnabled';
 export const PROXY_STORAGE_KEY = 'proxy';
+export const THEME_MODE_STORAGE_KEY = 'theme_mode';
 export const MILLISECONDS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
 export const RULE = 'rule';
 export const LANGUAGE_JSON = 'json';

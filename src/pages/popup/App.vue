@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from "vue";
-import { message } from "ant-design-vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { message, Modal } from "ant-design-vue";
 import {
   DeleteOutlined,
   CheckOutlined,
@@ -8,8 +8,11 @@ import {
   QuestionCircleTwoTone,
   CodeTwoTone,
   EditTwoTone,
+  BulbTwoTone,
+  SnippetsTwoTone,
 } from "@ant-design/icons-vue";
 import monaco from "@/monaco-env";
+import { useTheme } from "@/use-theme";
 import {
   ANYTHING,
   FORMAT_DOCUMENT_CMD,
@@ -24,7 +27,7 @@ import {
   DEFAULT_DUP_DATA,
   JSONC_CONFIG,
 } from "@/constants";
-import { Enabled } from "@/enums";
+import { Enabled, ThemeMode } from "@/enums";
 import {
   getConfig,
   saveConfig,
@@ -36,6 +39,9 @@ import {
   setConfigItems,
   getConfigItems,
   removeUnusedItems,
+  exportRules,
+  importRules,
+  isValidRuleExport,
 } from "@/chrome-storage";
 import { getEditorConfig } from "@/editor-config";
 
@@ -50,9 +56,31 @@ const dragoverKey = ref("");
 const editKeyForUI = ref("0");
 const newItem = ref("");
 const items = ref<RuleItem[]>([]);
+// 是否已在独立标签页中打开：popup 弹窗里 getCurrent 返回 undefined，
+// 标签页里返回 tab 对象。用于在标签页中隐藏「新标页打开」按钮。
+const isInTab = ref(false);
+
+// 主题：自动 / 浅色 / 深色
+const { themeMode, isDark, themeConfig, initTheme, setMode } = useTheme();
+
+function onSelectTheme({ key }: { key: ThemeMode }) {
+  setMode(key);
+}
+
+// Monaco 主题跟随明暗切换
+watch(
+  isDark,
+  (dark) => {
+    monaco.editor.setTheme(dark ? "xswitch-dark" : "xswitch-light");
+  },
+  { immediate: true }
+);
 
 const shellRef = ref<HTMLDivElement | null>(null);
 const tabsRef = ref<HTMLUListElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+// 选择文件前记录本次导入模式：合并追加 or 覆盖全部
+let pendingImportMode: "merge" | "overwrite" = "merge";
 
 let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 let editingKey = "0";
@@ -154,6 +182,100 @@ function handleOpenReadme() {
   openLink(HELP_URL);
 }
 
+// 触发浏览器下载一个文本文件
+function downloadTextFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // 释放对象 URL，避免内存泄漏
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+async function handleExportRules() {
+  try {
+    const payload = await exportRules();
+    const date = new Date().toISOString().slice(0, 10);
+    downloadTextFile(
+      `xswitch-rules-${date}.json`,
+      JSON.stringify(payload, null, 2)
+    );
+    message.success("规则已导出");
+  } catch {
+    message.error("导出失败");
+  }
+}
+
+// 重新从存储加载分组列表与编辑器内容（导入后刷新 UI）
+async function reloadFromStorage(preferKey?: string) {
+  items.value = Array.from(await getConfigItems());
+  const key =
+    preferKey && items.value.some((it) => it.id === preferKey)
+      ? preferKey
+      : items.value[0]?.id || "0";
+  editingKey = key;
+  editKeyForUI.value = key;
+  setEditingConfigKey(key);
+  const config = await getConfig(key);
+  setEditorValue((config as any)?.[JSONC_CONFIG] || DEFAULT_DUP_DATA);
+}
+
+// 点击「导入」菜单：记录模式，覆盖模式先二次确认再打开文件选择框
+function handleImportMenuClick({ key }: { key: string }) {
+  if (key === "export") {
+    handleExportRules();
+    return;
+  }
+  const mode = key === "import-overwrite" ? "overwrite" : "merge";
+  const openPicker = () => {
+    pendingImportMode = mode;
+    fileInputRef.value?.click();
+  };
+  if (mode === "overwrite") {
+    Modal.confirm({
+      title: "覆盖导入",
+      content: "将用导入文件中的规则替换当前全部规则，确定继续？",
+      okText: "覆盖",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: openPicker,
+    });
+  } else {
+    openPicker();
+  }
+}
+
+async function onImportFileChange(ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files && input.files[0];
+  // 允许再次选择同一文件：清空 value
+  input.value = "";
+  if (!file) {
+    return;
+  }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!isValidRuleExport(data)) {
+      message.error("文件格式不正确，不是有效的 XSwitch 规则文件");
+      return;
+    }
+    await importRules(data, pendingImportMode);
+    await reloadFromStorage(pendingImportMode === "merge" ? editingKey : "0");
+    message.success(
+      pendingImportMode === "overwrite"
+        ? "已覆盖导入规则"
+        : `已合并导入 ${data.items.length} 个分组`
+    );
+  } catch {
+    message.error("导入失败：无法解析文件");
+  }
+}
+
 function handleDragStart(ev: DragEvent, id: string) {
   ev.dataTransfer?.setData("application/my-app", id);
   if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "move";
@@ -234,6 +356,18 @@ async function handleRemove(idx: number) {
 onMounted(async () => {
   checked.value = (await getChecked()) !== Enabled.NO;
 
+  // 加载主题设置（自动/浅色/深色）
+  await initTheme();
+
+  // 判断当前是否已在独立标签页中打开
+  try {
+    chrome.tabs.getCurrent((tab) => {
+      isInTab.value = !!tab;
+    });
+  } catch {
+    isInTab.value = false;
+  }
+
   const editingConfigKey = await getEditingConfigKey();
   editingKey = editingConfigKey;
   editKeyForUI.value = editingConfigKey;
@@ -243,10 +377,10 @@ onMounted(async () => {
 
   let monacoReady = true;
   if (shellRef.value) {
-    editor = monaco.editor.create(
-      shellRef.value,
-      getEditorConfig((config as any)?.[JSONC_CONFIG]) as any
-    );
+    editor = monaco.editor.create(shellRef.value, {
+      ...(getEditorConfig((config as any)?.[JSONC_CONFIG]) as any),
+      theme: isDark.value ? "xswitch-dark" : "xswitch-light",
+    });
     saveConfig(editor.getValue(), editingKey);
 
     registerCompletion();
@@ -274,86 +408,137 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="xswitch-wrapper">
-    <div class="xswitch-left-area">
-      <ul
-        ref="tabsRef"
-        class="xswitch-tabs"
-      >
-        <li
-          v-for="(item, idx) in items"
-          :id="item.id"
-          :key="item.id"
-          draggable="true"
-          :class="{
-            editing: item.id === editKeyForUI,
-            dragovering: item.id === dragoverKey,
-          }"
-          @click="handleSetEditingKey(item.id)"
-          @dragstart="(e) => handleDragStart(e, item.id)"
-          @dragover="(e) => handleDragOver(e, item.id)"
-          @drop="(e) => handleDrop(e, item.id)"
+  <a-config-provider :theme="themeConfig">
+    <div
+      class="xswitch-wrapper"
+      :class="{ 'in-tab': isInTab }"
+    >
+      <div class="xswitch-left-area">
+        <ul
+          ref="tabsRef"
+          class="xswitch-tabs"
         >
-          <a-checkbox
-            :checked="item.active"
-            :disabled="item.id === '0'"
-            @change="handleSetActive(idx)"
-            @click.stop
-          />
-          <span class="label">&nbsp;{{ item.name }}</span>
-          <a-popconfirm
-            v-if="item.id !== '0'"
-            title="Are you sure to delete?"
-            @confirm="handleRemove(idx)"
+          <li
+            v-for="(item, idx) in items"
+            :id="item.id"
+            :key="item.id"
+            draggable="true"
+            :class="{
+              editing: item.id === editKeyForUI,
+              dragovering: item.id === dragoverKey,
+            }"
+            @click="handleSetEditingKey(item.id)"
+            @dragstart="(e) => handleDragStart(e, item.id)"
+            @dragover="(e) => handleDragOver(e, item.id)"
+            @drop="(e) => handleDrop(e, item.id)"
           >
-            <delete-outlined
-              class="delete-icon"
+            <a-checkbox
+              :checked="item.active"
+              :disabled="item.id === '0'"
+              @change="handleSetActive(idx)"
               @click.stop
             />
-          </a-popconfirm>
-        </li>
-      </ul>
-      <div class="xswitch-new-item-container">
-        <a-input
-          v-model:value="newItem"
-          class="new-item"
-          placeholder="新建规则名称"
-          :style="{ marginTop: '8px' }"
-          @press-enter="handleAdd"
-        />
-        <edit-two-tone
-          class="confirm-button"
-          @click="handleAdd"
-        />
+            <span class="label">&nbsp;{{ item.name }}</span>
+            <a-popconfirm
+              v-if="item.id !== '0'"
+              title="Are you sure to delete?"
+              @confirm="handleRemove(idx)"
+            >
+              <delete-outlined
+                class="delete-icon"
+                @click.stop
+              />
+            </a-popconfirm>
+          </li>
+        </ul>
+        <div class="xswitch-new-item-container">
+          <a-input
+            v-model:value="newItem"
+            class="new-item"
+            placeholder="新建规则名称"
+            :style="{ marginTop: '8px' }"
+            @press-enter="handleAdd"
+          />
+          <edit-two-tone
+            class="confirm-button"
+            @click="handleAdd"
+          />
+        </div>
       </div>
+      <div
+        ref="shellRef"
+        class="xswitch-container"
+      />
     </div>
-    <div
-      ref="shellRef"
-      class="xswitch-container"
-    />
-  </div>
 
-  <div class="toolbar-area">
-    <a-switch
-      :checked="checked"
-      @change="handleToggle"
+    <div class="toolbar-area">
+      <a-switch
+        :checked="checked"
+        @change="handleToggle"
+      >
+        <template #checkedChildren>
+          <check-outlined />
+        </template>
+        <template #unCheckedChildren>
+          <close-outlined />
+        </template>
+      </a-switch>
+
+      <a-dropdown :trigger="['click']">
+        <bulb-two-tone class="theme-control" />
+        <template #overlay>
+          <a-menu
+            :selected-keys="[themeMode]"
+            @click="onSelectTheme"
+          >
+            <a-menu-item :key="ThemeMode.AUTO">
+              跟随系统
+            </a-menu-item>
+            <a-menu-item :key="ThemeMode.LIGHT">
+              浅色
+            </a-menu-item>
+            <a-menu-item :key="ThemeMode.DARK">
+              深色
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+
+      <a-dropdown :trigger="['click']">
+        <snippets-two-tone class="rules-control" />
+        <template #overlay>
+          <a-menu @click="handleImportMenuClick">
+            <a-menu-item key="export">
+              导出规则
+            </a-menu-item>
+            <a-menu-item key="import-merge">
+              导入并合并
+            </a-menu-item>
+            <a-menu-item key="import-overwrite">
+              导入并覆盖
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+
+      <question-circle-two-tone
+        class="open-readme"
+        @click="handleOpenReadme"
+      />
+
+      <code-two-tone
+        v-if="!isInTab"
+        class="new-tab-control"
+        @click="handleOpenNewTab"
+      />
+    </div>
+
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="application/json,.json"
+      style="display: none"
+      @change="onImportFileChange"
     >
-      <template #checkedChildren>
-        <check-outlined />
-      </template>
-      <template #unCheckedChildren>
-        <close-outlined />
-      </template>
-    </a-switch>
-
-    <question-circle-two-tone
-      class="open-readme"
-      @click="handleOpenReadme"
-    />
-
-    <code-two-tone
-      class="new-tab-control"
-      @click="handleOpenNewTab"
-    />
-  </div>
+  </a-config-provider>
 </template>

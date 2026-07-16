@@ -19,3 +19,9 @@ export enum BadgeText {
   OFF = 'OFF',
   ON = 'ON',
 }
+
+export enum ThemeMode {
+  AUTO = 'auto',
+  LIGHT = 'light',
+  DARK = 'dark',
+}
