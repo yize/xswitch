@@ -71,7 +71,10 @@ function registerCompletion() {
   completionProvider = monaco.languages.registerCompletionItemProvider(
     LANGUAGE_JSON,
     {
-      provideCompletionItems(model, position) {
+      provideCompletionItems(
+        model: monaco.editor.ITextModel,
+        position: monaco.Position
+      ) {
         const word = model.getWordUntilPosition(position);
         const range = {
           startLineNumber: position.lineNumber,

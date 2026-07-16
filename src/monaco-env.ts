@@ -1,4 +1,8 @@
-import * as monaco from "monaco-editor";
+// 只引入 Monaco 内核 editor.api + JSON 语言贡献，而不是全量 barrel，
+// 从而剔除 60+ 种语言 tokenizer 与 ts/css/html 语言服务，大幅减小体积。
+// XSwitch 只用到 JSON 编辑，所需仅内核编辑器 + JSON 校验/补全/格式化。
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 

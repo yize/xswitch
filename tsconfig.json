@@ -22,7 +22,10 @@
     "types": ["chrome", "node", "vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "monaco-editor/esm/vs/editor/editor.api": [
+        "node_modules/monaco-editor/esm/vs/editor/editor.api.d.ts"
+      ]
     }
   },
   "include": [
