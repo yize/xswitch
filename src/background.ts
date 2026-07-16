@@ -10,7 +10,6 @@ import {
   USE_CHROME_STORAGE_SYNC_FN,
   GREY_ICON_PATH,
   BLUE_ICON_PATH,
-  DARK_MODE_MEDIA,
   ALL_URLS,
 } from "./constants";
 import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
@@ -176,8 +175,6 @@ chrome.storage.onChanged.addListener((changes) => {
       applyRules();
     }
   );
-
-  checkAndChangeIcons();
 });
 
 // 启动时应用一次规则
@@ -214,42 +211,33 @@ function setBadgeAndBackgroundColor(
   });
 }
 
+function setActionIcon(enabled: boolean): void {
+  // 兼容 Manifest V3: browserAction -> action
+  const action = (chrome as any).action || (chrome as any).browserAction;
+  try {
+    action.setIcon({ path: enabled ? BLUE_ICON_PATH : GREY_ICON_PATH });
+  } catch {
+    // 忽略设置图标失败
+  }
+}
+
 function setIcon(): void {
+  const enabled = isEnabled();
+  // 开启时蓝色图标，关闭时灰色图标
+  setActionIcon(enabled && !parseError);
+
   if (parseError) {
     setBadgeAndBackgroundColor(BadgeText.ERROR, IconBackgroundColor.ERROR);
     return;
   }
 
-  if (isEnabled()) {
+  if (enabled) {
     setBadgeAndBackgroundColor(
       activeConfig?.[PROXY_STORAGE_KEY]?.length || 0,
       IconBackgroundColor.ON
     );
   } else {
     setBadgeAndBackgroundColor(BadgeText.OFF, IconBackgroundColor.OFF);
-  }
-}
-
-function checkAndChangeIcons() {
-  // 兼容 Manifest V3: browserAction -> action
-  const action = (chrome as any).action || (chrome as any).browserAction;
-
-  // Service Worker 环境中没有 window.matchMedia，暂时使用默认图标
-  try {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      const isDarkMode = window.matchMedia(DARK_MODE_MEDIA);
-      if (isDarkMode && isDarkMode.matches) {
-        action.setIcon({ path: BLUE_ICON_PATH });
-      } else {
-        action.setIcon({ path: GREY_ICON_PATH });
-      }
-    } else {
-      // Service Worker 环境，使用默认图标
-      action.setIcon({ path: GREY_ICON_PATH });
-    }
-  } catch {
-    // 出错时使用默认图标
-    action.setIcon({ path: GREY_ICON_PATH });
   }
 }
 
@@ -296,4 +284,4 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 });
 
 // check when extension is loaded
-checkAndChangeIcons();
+setIcon();
