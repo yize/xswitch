@@ -172,55 +172,69 @@ export function generateCorsRules(
 }
 
 /**
- * 清除现有规则
+ * 清除现有规则（原子操作，走同一串行队列）
  */
-export async function removeDeclarativeNetRequestRules(): Promise<void> {
-  try {
-    const ruleIds = await getAllRuleIds();
-    if (ruleIds.length > 0) {
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: ruleIds,
-      });
+export function removeDeclarativeNetRequestRules(): Promise<boolean> {
+  return enqueueUpdate(async () => {
+    const removeRuleIds = await getAllRuleIds();
+    if (removeRuleIds.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds });
     }
-  } catch (error) {
-    console.error("[XSwitch] Failed to remove dynamic rules:", error);
-  }
+  });
+}
+
+// 串行化所有动态规则更新，避免 init 与 storage.onChanged 并发触发时
+// 出现「先后两次 remove/add 交错，导致 id 冲突」的问题。
+let updateQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueUpdate(task: () => Promise<void>): Promise<boolean> {
+  const run = async (): Promise<boolean> => {
+    try {
+      await task();
+      return true;
+    } catch (error) {
+      console.error(
+        "[XSwitch] Failed to update declarativeNetRequest rules:",
+        error
+      );
+      return false;
+    }
+  };
+  const result = updateQueue.then(run, run);
+  // 无论成功失败都让队列继续，避免链被 reject 卡死
+  updateQueue = result.catch(() => undefined);
+  return result;
 }
 
 /**
  * 更新 declarativeNetRequest 规则。
+ * 删除旧规则与添加新规则合并为一次原子 updateDynamicRules 调用，
+ * 并通过串行队列保证多次更新不会并发冲突。
  * @returns 是否成功应用规则（失败时可用于展示错误标记）
  */
-export async function updateDeclarativeNetRequestRules(
+export function updateDeclarativeNetRequestRules(
   config: IForwardConfig,
   disabled: boolean,
   corsEnabled: boolean = true
 ): Promise<boolean> {
-  try {
-    await removeDeclarativeNetRequestRules();
+  return enqueueUpdate(async () => {
+    const removeRuleIds = await getAllRuleIds();
 
-    if (disabled) {
-      return true;
-    }
+    const addRules = disabled
+      ? []
+      : [
+          ...generateProxyRules(config),
+          ...(corsEnabled ? generateCorsRules(config) : []),
+        ];
 
-    const proxyRules = generateProxyRules(config);
-    const corsRules = corsEnabled ? generateCorsRules(config) : [];
-    const allRules = [...proxyRules, ...corsRules];
-
-    if (allRules.length > 0) {
+    // Chrome 会先应用 removeRuleIds 再应用 addRules，单次调用即可避免 id 冲突
+    if (removeRuleIds.length > 0 || addRules.length > 0) {
       await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: allRules,
+        removeRuleIds,
+        addRules,
       });
     }
-
-    return true;
-  } catch (error) {
-    console.error(
-      "[XSwitch] Failed to update declarativeNetRequest rules:",
-      error
-    );
-    return false;
-  }
+  });
 }
 
 /**
@@ -228,8 +242,8 @@ export async function updateDeclarativeNetRequestRules(
  */
 async function getAllRuleIds(): Promise<number[]> {
   try {
-    const rules = await (chrome as any).declarativeNetRequest.getDynamicRules();
-    return rules.map((rule: any) => rule.id);
+    const rules = await chrome.declarativeNetRequest.getDynamicRules();
+    return rules.map((rule) => rule.id);
   } catch (error) {
     console.error("[XSwitch] Failed to get dynamic rules:", error);
     return [];
