@@ -37,7 +37,7 @@ function handleCorsChange() {
 
 <template>
   <a-config-provider :theme="themeConfig">
-    <div class="options-container">
+    <div class="w-[500px] mx-auto p-[50px]">
       <a-checkbox
         :checked="clearCacheEnabled"
         @change="handleClearCacheChange"

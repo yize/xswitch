@@ -410,23 +410,28 @@ onBeforeUnmount(() => {
 <template>
   <a-config-provider :theme="themeConfig">
     <div
-      class="xswitch-wrapper"
-      :class="{ 'in-tab': isInTab }"
+      class="flex overflow-hidden"
+      :class="isInTab ? 'w-screen max-w-[100vw]' : 'w-[800px]'"
     >
-      <div class="xswitch-left-area">
+      <div
+        class="flex flex-col items-baseline flex-none min-h-[600px] h-screen border-r border-solid border-[#bfbfbf] dark:border-[#303030]"
+      >
         <ul
           ref="tabsRef"
-          class="xswitch-tabs"
+          class="p-0 w-[220px] whitespace-nowrap overflow-auto -mr-px z-[2] mb-0 pb-[44px] flex-1"
         >
           <li
             v-for="(item, idx) in items"
             :id="item.id"
             :key="item.id"
             draggable="true"
-            :class="{
-              editing: item.id === editKeyForUI,
-              dragovering: item.id === dragoverKey,
-            }"
+            class="group flex items-center px-[10px] py-[5px] leading-[40px] border border-solid border-transparent cursor-pointer hover:bg-[#efefef] dark:hover:bg-[#1f1f1f]"
+            :class="[
+              item.id === editKeyForUI
+                ? '[border-color:#bfbfbf_#fff_#bfbfbf_transparent]! dark:[border-color:#434343_#141414_#434343_transparent]!'
+                : '',
+              item.id === dragoverKey ? 'bg-[#eee]! dark:bg-[#262626]!' : '',
+            ]"
             @click="handleSetEditingKey(item.id)"
             @dragstart="(e) => handleDragStart(e, item.id)"
             @dragover="(e) => handleDragOver(e, item.id)"
@@ -438,40 +443,43 @@ onBeforeUnmount(() => {
               @change="handleSetActive(idx)"
               @click.stop
             />
-            <span class="label">&nbsp;{{ item.name }}</span>
+            <span class="flex-1 overflow-hidden">&nbsp;{{ item.name }}</span>
             <a-popconfirm
               v-if="item.id !== '0'"
               title="Are you sure to delete?"
               @confirm="handleRemove(idx)"
             >
               <delete-outlined
-                class="delete-icon"
+                class="hidden opacity-0 cursor-pointer group-hover:inline-block group-hover:opacity-50 hover:opacity-100!"
                 @click.stop
               />
             </a-popconfirm>
           </li>
         </ul>
-        <div class="xswitch-new-item-container">
+        <div
+          class="relative w-full p-[10px] z-[3] bg-white dark:bg-[#141414]"
+        >
           <a-input
             v-model:value="newItem"
-            class="new-item"
+            class="mt-2"
             placeholder="新建规则名称"
-            :style="{ marginTop: '8px' }"
             @press-enter="handleAdd"
           />
           <edit-two-tone
-            class="confirm-button"
+            class="absolute right-[19px] top-[25px] text-[18px] cursor-pointer"
             @click="handleAdd"
           />
         </div>
       </div>
       <div
         ref="shellRef"
-        class="xswitch-container"
+        class="flex-1 min-w-0 min-h-[600px] h-screen"
       />
     </div>
 
-    <div class="toolbar-area">
+    <div
+      class="fixed right-[20px] top-[13px] z-[1] cursor-pointer flex flex-row items-center gap-[14px]"
+    >
       <a-switch
         :checked="checked"
         @change="handleToggle"
@@ -485,7 +493,7 @@ onBeforeUnmount(() => {
       </a-switch>
 
       <a-dropdown :trigger="['click']">
-        <bulb-two-tone class="theme-control" />
+        <bulb-two-tone class="text-[18px] inline-flex items-center" />
         <template #overlay>
           <a-menu
             :selected-keys="[themeMode]"
@@ -505,7 +513,7 @@ onBeforeUnmount(() => {
       </a-dropdown>
 
       <a-dropdown :trigger="['click']">
-        <snippets-two-tone class="rules-control" />
+        <snippets-two-tone class="text-[18px] inline-flex items-center" />
         <template #overlay>
           <a-menu @click="handleImportMenuClick">
             <a-menu-item key="export">
@@ -522,13 +530,13 @@ onBeforeUnmount(() => {
       </a-dropdown>
 
       <question-circle-two-tone
-        class="open-readme"
+        class="text-[18px] inline-flex items-center"
         @click="handleOpenReadme"
       />
 
       <code-two-tone
         v-if="!isInTab"
-        class="new-tab-control"
+        class="text-[18px] inline-flex items-center"
         @click="handleOpenNewTab"
       />
     </div>
@@ -537,7 +545,7 @@ onBeforeUnmount(() => {
       ref="fileInputRef"
       type="file"
       accept="application/json,.json"
-      style="display: none"
+      class="hidden"
       @change="onImportFileChange"
     >
   </a-config-provider>

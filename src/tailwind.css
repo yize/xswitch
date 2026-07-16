@@ -1,0 +1,38 @@
+/*
+ * Tailwind CSS 入口。
+ * 不引入 preflight（base 层），改由 ant-design-vue 的 reset.css 作为基础重置，
+ * 避免两套 reset 冲突（尤其是按钮背景、svg display 影响 antd 组件与图标）。
+ */
+@layer theme, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* 深色变体挂到现有的 [data-theme="dark"]（由 use-theme 设置在 <html> 上）。 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * 少量无法用工具类表达的全局样式：
+ * - 隐藏原生滚动条（沿用旧设计；Monaco 自渲染滚动条不受影响）
+ * - popup 使用 12px 基准字号
+ * - 列表去掉默认样式
+ */
+::-webkit-scrollbar,
+::-webkit-scrollbar-thumb {
+  display: none;
+}
+
+body {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* 深色下的整页底色/文字色（body 无法用工具类承载）。 */
+[data-theme="dark"] body {
+  background: #141414;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+ul,
+li {
+  list-style: none;
+}
