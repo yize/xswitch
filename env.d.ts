@@ -16,9 +16,8 @@ declare module "*?worker" {
   export default workerConstructor;
 }
 
-// Monaco 深路径 editor.api 的类型通过 tsconfig paths 指向 editor.api.d.ts。
-// JSON 语言贡献仅作副作用导入，无需类型。
-declare module "monaco-editor/esm/vs/language/json/monaco.contribution";
+// Monaco 深路径 editor.api / json.contribution 的类型通过 tsconfig paths
+// 指向各自的 .d.ts；json 贡献的 .d.ts 为 export {}，代码里用类型断言取 jsonDefaults。
 
 declare global {
   interface Window {

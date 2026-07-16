@@ -25,6 +25,9 @@
       "@/*": ["src/*"],
       "monaco-editor/esm/vs/editor/editor.api": [
         "node_modules/monaco-editor/esm/vs/editor/editor.api.d.ts"
+      ],
+      "monaco-editor/esm/vs/language/json/monaco.contribution": [
+        "node_modules/monaco-editor/esm/vs/language/json/monaco.contribution.d.ts"
       ]
     }
   },
