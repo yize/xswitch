@@ -5,7 +5,7 @@ import pkg from "./package.json";
 // 并把下面指向源码的 html/ts 入口改写成构建产物路径。
 export default defineManifest({
   manifest_version: 3,
-  name: "Xswitch",
+  name: "XSwitch",
   short_name: "xsc",
   description:
     "A tool for redirecting URLs and allowing CORS to make the local development experience easy and happy.",
@@ -16,7 +16,7 @@ export default defineManifest({
   },
   action: {
     default_icon: "images/grey_128.png",
-    default_title: "Xswitch",
+    default_title: "XSwitch",
     default_popup: "src/pages/popup/index.html",
   },
   options_page: "src/pages/options/index.html",
