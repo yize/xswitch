@@ -153,10 +153,11 @@ export function generateCorsRules(
               value: "*",
             },
             {
+              // 用通配符覆盖任意自定义请求头（非凭证请求下有效；
+              // 带 credentials 的请求浏览器仍要求显式头列表，DNR 无法动态回显）。
               header: "access-control-allow-headers",
               operation: "set",
-              value:
-                "Content-Type, access-control-allow-headers, Authorization, X-Requested-With, X-Referer",
+              value: "*",
             },
           ],
         },

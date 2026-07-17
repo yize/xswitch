@@ -11,6 +11,7 @@ import {
   GREY_ICON_PATH,
   BLUE_ICON_PATH,
   ALL_URLS,
+  MILLISECONDS_PER_WEEK,
 } from "./constants";
 import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
 import { ChromeStorageManager, getChecked } from "./chrome-storage";
@@ -26,6 +27,8 @@ const csmInstance = new ChromeStorageManager({
 // 运行时状态（此前借助 forward 单例保存，现直接用模块级变量）
 let parseError: boolean = false;
 let corsEnabled: boolean = true;
+let clearCacheEnabled: boolean = true;
+let clearRunning: boolean = false;
 // DISABLED 存储位：值为 Enabled.YES 表示开关处于开启状态
 let switchState: Enabled = Enabled.YES;
 let jsonActiveKeys: string[] = ["0"];
@@ -140,6 +143,7 @@ csmInstance.get(
   },
   (result: any) => {
     switchState = result[DISABLED];
+    clearCacheEnabled = result[CLEAR_CACHE_ENABLED] === Enabled.YES;
     corsEnabled = result[CORS_ENABLED_STORAGE_KEY] === Enabled.YES;
     setIcon();
   }
@@ -152,6 +156,10 @@ chrome.storage.onChanged.addListener((changes) => {
 
   if (changes[DISABLED]) {
     switchState = changes[DISABLED].newValue as Enabled;
+  }
+
+  if (changes[CLEAR_CACHE_ENABLED]) {
+    clearCacheEnabled = changes[CLEAR_CACHE_ENABLED].newValue === Enabled.YES;
   }
 
   if (changes[CORS_ENABLED_STORAGE_KEY]) {
@@ -262,12 +270,28 @@ function recordUrl(url: string): void {
   }
 }
 
+// 与 V2 行为一致：总开关开启且「启用清除缓存」打开时，随请求触发
+// 清除一周内的 HTTP 缓存；clearRunning 防止上一次清除未结束时并发重入。
+function clearCache(): void {
+  if (clearRunning) {
+    return;
+  }
+  clearRunning = true;
+  const oneWeekAgo = Date.now() - MILLISECONDS_PER_WEEK;
+  chrome.browsingData.removeCache({ since: oneWeekAgo }, () => {
+    clearRunning = false;
+  });
+}
+
 try {
   const webRequest = (chrome as any).webRequest;
   if (webRequest && webRequest.onBeforeRequest) {
     webRequest.onBeforeRequest.addListener(
       (details: { url: string }) => {
         recordUrl(details.url);
+        if (isEnabled() && clearCacheEnabled) {
+          clearCache();
+        }
       },
       { urls: [ALL_URLS] }
     );
