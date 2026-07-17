@@ -238,7 +238,16 @@ function handleImportMenuClick({ key }: { key: string }) {
   if (mode === "overwrite") {
     Modal.confirm({
       title: "覆盖导入",
-      content: "将用导入文件中的规则替换当前全部规则，确定继续？",
+      content: () =>
+        h("span", [
+          "将用导入文件中的规则",
+          h(
+            "span",
+            { style: "color:#ff4d4f;font-weight:600" },
+            "替换当前全部规则"
+          ),
+          "，确定继续？",
+        ]),
       okText: "覆盖",
       okType: "danger",
       cancelText: "取消",
