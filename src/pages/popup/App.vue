@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from "vue";
-import { message, Modal } from "ant-design-vue";
+import { onMounted, onBeforeUnmount, ref, watch, h } from "vue";
+import { message, Modal, notification, Button } from "ant-design-vue";
 import {
   DeleteOutlined,
   CheckOutlined,
@@ -264,13 +264,39 @@ async function onImportFileChange(ev: Event) {
       message.error("文件格式不正确，不是有效的 XSwitch 规则文件");
       return;
     }
-    await importRules(data, pendingImportMode);
-    await reloadFromStorage(pendingImportMode === "merge" ? editingKey : "0");
-    message.success(
-      pendingImportMode === "overwrite"
-        ? "已覆盖导入规则"
-        : `已合并导入 ${data.items.length} 个分组`
-    );
+
+    if (pendingImportMode === "overwrite") {
+      // 逃生通道：覆盖前先快照当前全部规则，覆盖后提供「撤销」一键恢复
+      const backup = await exportRules();
+      await importRules(data, "overwrite");
+      await reloadFromStorage("0");
+      const undoKey = "import-overwrite-undo";
+      notification.open({
+        key: undoKey,
+        message: "已覆盖导入规则",
+        description: "原有规则已被替换。如误操作，可在关闭前点击「撤销」恢复。",
+        duration: 10,
+        btn: () =>
+          h(
+            Button,
+            {
+              type: "primary",
+              size: "small",
+              onClick: async () => {
+                await importRules(backup, "overwrite");
+                await reloadFromStorage("0");
+                notification.close(undoKey);
+                message.success("已恢复到覆盖前的规则");
+              },
+            },
+            () => "撤销"
+          ),
+      });
+    } else {
+      await importRules(data, "merge");
+      await reloadFromStorage(editingKey);
+      message.success(`已合并导入 ${data.items.length} 个分组`);
+    }
   } catch {
     message.error("导入失败：无法解析文件");
   }
@@ -414,23 +440,25 @@ onBeforeUnmount(() => {
       :class="isInTab ? 'w-screen max-w-[100vw]' : 'w-[800px]'"
     >
       <div
-        class="flex flex-col items-baseline flex-none min-h-[600px] h-screen border-r border-solid border-[#bfbfbf] dark:border-[#303030]"
+        class="flex flex-col items-baseline flex-none min-h-[600px] h-screen border-r border-black/[0.06] dark:border-white/10"
       >
         <ul
           ref="tabsRef"
-          class="p-0 w-[220px] whitespace-nowrap overflow-auto -mr-px z-[2] mb-0 pb-[44px] flex-1"
+          class="p-0 w-[220px] whitespace-nowrap overflow-auto z-[2] mb-0 pt-1 pb-[44px] flex-1"
         >
           <li
             v-for="(item, idx) in items"
             :id="item.id"
             :key="item.id"
             draggable="true"
-            class="group flex items-center px-[10px] py-[5px] leading-[40px] border border-solid border-transparent cursor-pointer hover:bg-[#efefef] dark:hover:bg-[#1f1f1f]"
+            class="group flex items-center gap-[6px] mx-2 my-0.5 px-3 leading-[40px] rounded-lg cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
             :class="[
               item.id === editKeyForUI
-                ? '[border-color:#bfbfbf_#fff_#bfbfbf_transparent]! dark:[border-color:#434343_#141414_#434343_transparent]!'
+                ? 'bg-[#e6f4ff]! text-[#1677ff]! font-medium dark:bg-[#1677ff]/[0.16]! dark:text-[#69b1ff]!'
                 : '',
-              item.id === dragoverKey ? 'bg-[#eee]! dark:bg-[#262626]!' : '',
+              item.id === dragoverKey
+                ? 'bg-[#1677ff]/[0.08]! ring-1 ring-inset ring-[#1677ff]/40'
+                : '',
             ]"
             @click="handleSetEditingKey(item.id)"
             @dragstart="(e) => handleDragStart(e, item.id)"
@@ -443,7 +471,7 @@ onBeforeUnmount(() => {
               @change="handleSetActive(idx)"
               @click.stop
             />
-            <span class="flex-1 overflow-hidden">&nbsp;{{ item.name }}</span>
+            <span class="flex-1 overflow-hidden">{{ item.name }}</span>
             <a-popconfirm
               v-if="item.id !== '0'"
               title="Are you sure to delete?"
@@ -457,18 +485,21 @@ onBeforeUnmount(() => {
           </li>
         </ul>
         <div
-          class="relative w-full p-[10px] z-[3] bg-white dark:bg-[#141414]"
+          class="w-full p-[10px] z-[3] bg-white dark:bg-[#141414] border-t border-black/[0.06] dark:border-white/10"
         >
           <a-input
             v-model:value="newItem"
             class="mt-2"
             placeholder="新建规则名称"
             @press-enter="handleAdd"
-          />
-          <edit-two-tone
-            class="absolute right-[19px] top-[25px] text-[18px] cursor-pointer"
-            @click="handleAdd"
-          />
+          >
+            <template #suffix>
+              <edit-two-tone
+                class="text-[18px] cursor-pointer"
+                @click="handleAdd"
+              />
+            </template>
+          </a-input>
         </div>
       </div>
       <div
@@ -493,7 +524,7 @@ onBeforeUnmount(() => {
       </a-switch>
 
       <a-dropdown :trigger="['click']">
-        <bulb-two-tone class="text-[18px] inline-flex items-center" />
+        <bulb-two-tone class="flex items-center justify-center h-[22px] text-[18px] leading-none align-middle" />
         <template #overlay>
           <a-menu
             :selected-keys="[themeMode]"
@@ -513,7 +544,7 @@ onBeforeUnmount(() => {
       </a-dropdown>
 
       <a-dropdown :trigger="['click']">
-        <snippets-two-tone class="text-[18px] inline-flex items-center" />
+        <snippets-two-tone class="flex items-center justify-center h-[22px] text-[18px] leading-none align-middle" />
         <template #overlay>
           <a-menu @click="handleImportMenuClick">
             <a-menu-item key="export">
@@ -522,7 +553,10 @@ onBeforeUnmount(() => {
             <a-menu-item key="import-merge">
               导入并合并
             </a-menu-item>
-            <a-menu-item key="import-overwrite">
+            <a-menu-item
+              key="import-overwrite"
+              danger
+            >
               导入并覆盖
             </a-menu-item>
           </a-menu>
@@ -530,13 +564,13 @@ onBeforeUnmount(() => {
       </a-dropdown>
 
       <question-circle-two-tone
-        class="text-[18px] inline-flex items-center"
+        class="flex items-center justify-center h-[22px] text-[18px] leading-none align-middle"
         @click="handleOpenReadme"
       />
 
       <code-two-tone
         v-if="!isInTab"
-        class="text-[18px] inline-flex items-center"
+        class="flex items-center justify-center h-[22px] text-[18px] leading-none align-middle"
         @click="handleOpenNewTab"
       />
     </div>
