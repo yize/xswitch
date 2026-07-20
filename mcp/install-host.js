@@ -6,7 +6,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HOST_NAME = "com.xswitch.mcp";
-const STORE_EXTENSION_ID = "idkjhjggpffolpidfkikidcokdkdaogg";
 const SCRIPT_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const INSTALL_DIRECTORY = process.env.XSWITCH_MCP_INSTALL_DIR || path.join(os.homedir(), ".xswitch");
 const RUNTIME_DIRECTORY = path.join(INSTALL_DIRECTORY, "runtime");
@@ -16,7 +15,7 @@ const MCP_SERVER_SCRIPT = path.join(RUNTIME_DIRECTORY, "server.js");
 function parseArgs(argv) {
   const options = {
     browser: "chrome",
-    extensionId: STORE_EXTENSION_ID,
+    extensionId: undefined,
     uninstall: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -31,7 +30,7 @@ function parseArgs(argv) {
 
 Options:
   --browser chrome|chromium|edge  Browser to register (default: chrome)
-  --extension-id <id>            Installed extension ID (default: Web Store ID)
+  --extension-id <id>            Installed extension ID (required for install)
   --uninstall                    Remove the native host registration
 
 Examples:
@@ -43,7 +42,10 @@ Examples:
   if (!['chrome', 'chromium', 'edge'].includes(options.browser)) {
     throw new Error(`Unsupported browser: ${options.browser}`);
   }
-  if (!/^[a-p]{32}$/.test(options.extensionId)) {
+  if (!options.extensionId && !options.uninstall) {
+    throw new Error("--extension-id is required for install");
+  }
+  if (options.extensionId && !/^[a-p]{32}$/.test(options.extensionId)) {
     throw new Error("extension-id must be a 32-character Chrome extension ID");
   }
   return options;
