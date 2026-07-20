@@ -10,6 +10,7 @@ import { getSocketPath, SOCKET_DIRECTORY } from "./ipc.js";
 import { encodeJsonLine, JsonLineDecoder } from "./protocol.js";
 
 const REQUEST_TIMEOUT_MS = 10_000;
+const CONNECTION_TIMEOUT_MS = 5_000;
 const socketPath = getSocketPath();
 
 class ExtensionBridge {
@@ -17,6 +18,7 @@ class ExtensionBridge {
   socket = null;
   extensionVersion = null;
   pending = new Map();
+  connectionWaiters = new Set();
 
   async listen() {
     if (process.platform !== "win32") {
@@ -82,6 +84,7 @@ class ExtensionBridge {
   #handleMessage(message) {
     if (message?.type === "hello") {
       this.extensionVersion = message.extension_version || "unknown";
+      this.#resolveConnectionWaiters();
       return;
     }
     if (message?.type !== "response" || typeof message.id !== "string") return;
@@ -101,14 +104,44 @@ class ExtensionBridge {
     this.pending.clear();
   }
 
-  call(method, params = {}) {
-    if (!this.socket || this.socket.destroyed || !this.extensionVersion) {
-      return Promise.reject(
-        new Error(
-          "XSwitch extension is not connected. Install the native host, then enable MCP in XSwitch settings."
-        )
-      );
+  #resolveConnectionWaiters() {
+    if (!this.socket || this.socket.destroyed) return;
+    for (const waiter of this.connectionWaiters) {
+      clearTimeout(waiter.timer);
+      waiter.resolve(this.socket);
     }
+    this.connectionWaiters.clear();
+  }
+
+  #rejectConnectionWaiters(error) {
+    for (const waiter of this.connectionWaiters) {
+      clearTimeout(waiter.timer);
+      waiter.reject(error);
+    }
+    this.connectionWaiters.clear();
+  }
+
+  #waitForConnection() {
+    if (this.socket && !this.socket.destroyed && this.extensionVersion) {
+      return Promise.resolve(this.socket);
+    }
+    return new Promise((resolve, reject) => {
+      const waiter = { resolve, reject, timer: null };
+      waiter.timer = setTimeout(() => {
+        this.connectionWaiters.delete(waiter);
+        reject(
+          new Error(
+            "XSwitch extension did not connect within 5 seconds. Confirm the native host extension ID, then open XSwitch settings once."
+          )
+        );
+      }, CONNECTION_TIMEOUT_MS);
+      this.connectionWaiters.add(waiter);
+    });
+  }
+
+  async call(method, params = {}) {
+    const socket = await this.#waitForConnection();
+    if (socket.destroyed) throw new Error("XSwitch extension disconnected");
     const id = randomUUID();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -116,12 +149,13 @@ class ExtensionBridge {
         reject(new Error(`XSwitch extension timed out while handling ${method}`));
       }, REQUEST_TIMEOUT_MS);
       this.pending.set(id, { resolve, reject, timer });
-      this.socket.write(encodeJsonLine({ type: "request", id, method, params }));
+      socket.write(encodeJsonLine({ type: "request", id, method, params }));
     });
   }
 
   async close() {
     this.#rejectPending(new Error("XSwitch MCP server stopped"));
+    this.#rejectConnectionWaiters(new Error("XSwitch MCP server stopped"));
     this.socket?.destroy();
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));

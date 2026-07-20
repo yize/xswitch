@@ -26,7 +26,7 @@ async function waitForSocket(socketPath: string) {
 
 describe("XSwitch MCP server", () => {
   it(
-    "advertises tools and relays a tool call to the extension bridge",
+    "waits for the extension handshake, advertises tools, and relays calls",
     async () => {
       const tempDirectory = fs.mkdtempSync(
         path.join(os.tmpdir(), "xswitch-mcp-test-")
@@ -53,6 +53,11 @@ describe("XSwitch MCP server", () => {
       cleanup.push(() => client.close());
 
       await waitForSocket(socketPath);
+      const earlyResponsePromise = client.callTool({
+        name: "get_xswitch_state",
+        arguments: {},
+      });
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const extension = net.createConnection(socketPath);
       cleanup.push(() => extension.destroy());
       const decoder = new JsonLineDecoder();
@@ -118,10 +123,7 @@ describe("XSwitch MCP server", () => {
         openWorldHint: false,
       });
 
-      const response = await client.callTool({
-        name: "get_xswitch_state",
-        arguments: {},
-      });
+      const response = await earlyResponsePromise;
       expect(response.isError).not.toBe(true);
       expect(JSON.stringify(response.content)).toContain("extension_enabled");
 
