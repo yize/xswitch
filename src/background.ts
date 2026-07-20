@@ -12,6 +12,7 @@ import {
   BLUE_ICON_PATH,
   ALL_URLS,
   MILLISECONDS_PER_WEEK,
+  MCP_ENABLED_STORAGE_KEY,
 } from "./constants";
 import { BadgeText, Enabled, IconBackgroundColor } from "./enums";
 import { ChromeStorageManager, getChecked } from "./chrome-storage";
@@ -19,6 +20,7 @@ import {
   updateDeclarativeNetRequestRules,
   isDeclarativeNetRequestAvailable,
 } from "./declarative-net-request";
+import { setMcpBridgeEnabled } from "./mcp-bridge";
 
 const csmInstance = new ChromeStorageManager({
   useChromeStorageSyncFn: USE_CHROME_STORAGE_SYNC_FN,
@@ -166,6 +168,10 @@ chrome.storage.onChanged.addListener((changes) => {
     corsEnabled = changes[CORS_ENABLED_STORAGE_KEY].newValue === Enabled.YES;
   }
 
+  if (changes[MCP_ENABLED_STORAGE_KEY]) {
+    setMcpBridgeEnabled(changes[MCP_ENABLED_STORAGE_KEY].newValue === Enabled.YES);
+  }
+
   csmInstance.get(
     {
       [JSON_CONFIG]: {
@@ -184,6 +190,13 @@ chrome.storage.onChanged.addListener((changes) => {
     }
   );
 });
+
+csmInstance.get(
+  { [MCP_ENABLED_STORAGE_KEY]: Enabled.YES },
+  (result: any) => {
+    setMcpBridgeEnabled(result[MCP_ENABLED_STORAGE_KEY] === Enabled.YES);
+  }
+);
 
 // 启动时应用一次规则
 csmInstance.get(

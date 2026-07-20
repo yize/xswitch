@@ -71,6 +71,34 @@
 }
 ```
 
+## 通过 MCP 使用 AI 配置规则
+
+XSwitch 内置本地 `stdio` MCP Server，并通过 Chrome Native Messaging 与扩展安全通信。规则和通信都保留在本机，普通网页不能调用规则读写接口。
+
+首次使用不需要手动 checkout 仓库或执行终端命令：打开 XSwitch 设置页，复制“配置 Prompt”并发送给具备本地终端权限的 Codex、Claude Code 等 AI 客户端。Prompt 已包含当前扩展 ID，并要求 AI 自动完成本机桥接安装、客户端 MCP 配置和连通性验证。只有客户端必须重启才能加载新 MCP 时，AI 才会提示这一个动作。
+
+MCP 默认开启，可在设置页随时断开。它提供以下工具：
+
+- `get_xswitch_state`：读取开关、选项和全部规则分组
+- `upsert_xswitch_rule_group`：增量新增或修改分组、转发规则和 CORS 匹配项
+- `delete_xswitch_rule_group`：删除非默认分组
+- `set_xswitch_enabled`：启用或停用全部 XSwitch 规则
+- `set_xswitch_options`：修改清除缓存和 CORS 全局选项
+- `list_xswitch_backups`：查看最近的本机回滚快照
+- `restore_xswitch_backup`：恢复指定快照；省略备份 ID 时撤销最近一次 MCP 修改
+
+所有 MCP 写操作都会先在扩展本地保存完整快照。写入或校验失败时会自动恢复；成功写入后保留最近 10 份历史。备份内容不会通过列表工具返回，也不会离开本机。
+
+开发者仍可手动安装或卸载本机桥接：
+
+```bash
+npm install
+npm run mcp:install-host -- --extension-id <扩展ID>
+npm run mcp:install-host -- --uninstall
+```
+
+要求：macOS 或 Linux、Node.js 20+。Edge 或 Chromium 用户可额外传入 `--browser edge` 或 `--browser chromium`。
+
 更多说明：[https://yuque.com/jiushen/blog/xswitch-readme](https://yuque.com/jiushen/blog/xswitch-readme)
 
 - 访问 [https://alinw.alicdn.com/platform/daily-test/isDaily.js](https://alinw.alicdn.com/platform/daily-test/isDaily.js)

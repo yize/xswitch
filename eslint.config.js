@@ -5,11 +5,23 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "build/**", "node_modules/**", "lib/**"],
+    ignores: [
+      "dist/**",
+      "mcp/dist/**",
+      "build/**",
+      "node_modules/**",
+      "lib/**",
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs["flat/recommended"],
+  {
+    files: ["mcp/**/*.js"],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   {
     files: ["**/*.vue"],
     languageOptions: {

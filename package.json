@@ -1,6 +1,6 @@
 {
   "name": "xswitch",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Xswitch - A compact proxy tool based on Chrome extensions (Vue 3 + Vite)",
   "type": "module",
   "scripts": {
@@ -10,15 +10,20 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx,.vue",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mcp:start": "node mcp/server.js",
+    "mcp:install-host": "npm --prefix mcp run build && node mcp/install-host.js"
   },
   "repository": "https://github.com/yize/xswitch.git",
   "license": "MIT",
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "ant-design-vue": "^4.2.6",
+    "jsonc-parser": "^3.3.1",
     "monaco-editor": "^0.55.1",
-    "vue": "^3.5.40"
+    "vue": "^3.5.40",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.7.1",

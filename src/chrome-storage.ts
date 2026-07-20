@@ -10,6 +10,7 @@ import {
   USE_CHROME_STORAGE_SYNC_FN,
   SYNC_STORAGE_DATA_HAS_BEEN_MIGARATED_TO_LOCAL,
   THEME_MODE_STORAGE_KEY,
+  MCP_ENABLED_STORAGE_KEY,
   DEFAULT_DATA,
 } from "./constants";
 import { JSONC2JSON, JSON_Parse } from "./utils";
@@ -21,6 +22,7 @@ interface ConfigStorage {
 interface OptionsStorage {
   [CLEAR_CACHE_ENABLED]: string;
   [CORS_ENABLED_STORAGE_KEY]: string;
+  [MCP_ENABLED_STORAGE_KEY]: string;
 }
 
 interface ChromeStorageManagerProps {
@@ -292,11 +294,13 @@ export function getOptions(): Promise<OptionsStorage> {
       {
         [CLEAR_CACHE_ENABLED]: Enabled.YES,
         [CORS_ENABLED_STORAGE_KEY]: Enabled.YES,
+        [MCP_ENABLED_STORAGE_KEY]: Enabled.YES,
       },
       (result: any) => {
         resolve({
           [CLEAR_CACHE_ENABLED]: result.clearCacheEnabled,
           [CORS_ENABLED_STORAGE_KEY]: result.corsEnabled,
+          [MCP_ENABLED_STORAGE_KEY]: result.mcpEnabled,
         });
       }
     );
@@ -309,6 +313,7 @@ export function setOptions(options: any): Promise<OptionsStorage> {
       {
         clearCacheEnabled: options.clearCacheEnabled ? Enabled.YES : Enabled.NO,
         corsEnabled: options.corsEnabled ? Enabled.YES : Enabled.NO,
+        mcpEnabled: options.mcpEnabled ? Enabled.YES : Enabled.NO,
       },
       resolve as any
     );

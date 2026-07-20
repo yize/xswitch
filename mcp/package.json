@@ -1,0 +1,34 @@
+{
+  "name": "xswitch-mcp",
+  "version": "0.2.0",
+  "description": "Local MCP bridge for configuring XSwitch rules with AI clients",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yize/xswitch.git",
+    "directory": "mcp"
+  },
+  "bin": {
+    "xswitch-mcp": "install-host.js"
+  },
+  "files": [
+    "dist",
+    "install-host.js",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "esbuild server.js native-host.js --bundle --platform=node --format=esm --outdir=dist",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

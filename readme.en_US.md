@@ -70,6 +70,34 @@ Rules will be executed in order before all requests are initiated.
 }
 ```
 
+## Configure rules with AI through MCP
+
+XSwitch includes a local `stdio` MCP server and communicates securely with the extension through Chrome Native Messaging. Rules and messages stay on the local machine, and regular web pages cannot access the rule-management API.
+
+First-time setup does not require a manual source checkout or terminal commands. Open XSwitch settings, copy the setup prompt, and send it to an AI client with local terminal access, such as Codex or Claude Code. The prompt includes the current extension ID and instructs the AI to install the native bridge, configure its own MCP client, and verify the connection. The AI only asks for one final action when the client must restart to load the new MCP server.
+
+MCP is enabled by default and can be disconnected from the settings page at any time. The server exposes these tools:
+
+- `get_xswitch_state` reads the extension state, options, and every rule group.
+- `upsert_xswitch_rule_group` creates or partially updates a group, proxy rules, and CORS patterns.
+- `delete_xswitch_rule_group` deletes a non-default group.
+- `set_xswitch_enabled` enables or disables all XSwitch rules.
+- `set_xswitch_options` updates the global cache-clearing and CORS options.
+- `list_xswitch_backups` lists recent local rollback snapshots.
+- `restore_xswitch_backup` restores a snapshot, or undoes the latest MCP change when no backup ID is provided.
+
+Every MCP write saves a complete snapshot in the extension before changing data. Failed writes or validation are rolled back automatically, while the 10 most recent successful snapshots are retained. Backup contents are never returned by the listing tool or sent off the local machine.
+
+Developers can still install or remove the native bridge manually:
+
+```bash
+npm install
+npm run mcp:install-host -- --extension-id <extension-id>
+npm run mcp:install-host -- --uninstall
+```
+
+Requirements: macOS or Linux and Node.js 20+. Pass `--browser edge` or `--browser chromium` when applicable.
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT) © [yize.shc](https://www.yuque.com/jiushen)

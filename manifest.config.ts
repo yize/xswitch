@@ -29,6 +29,7 @@ export default defineManifest({
     "browsingData",
     "webRequest",
     "declarativeNetRequest",
+    "nativeMessaging",
   ],
   host_permissions: ["<all_urls>"],
   commands: {
