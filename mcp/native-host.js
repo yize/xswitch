@@ -15,6 +15,7 @@ const nativeDecoder = new NativeMessageDecoder();
 let socket = null;
 let reconnectTimer = null;
 let queuedMessages = [];
+let helloMessage = null;
 let stopped = false;
 
 function log(message) {
@@ -37,6 +38,7 @@ function connect() {
 
   candidate.on("connect", () => {
     socket = candidate;
+    if (helloMessage) candidate.write(encodeJsonLine(helloMessage));
     for (const message of queuedMessages) candidate.write(encodeJsonLine(message));
     queuedMessages = [];
   });
@@ -62,8 +64,9 @@ function connect() {
 process.stdin.on("data", (chunk) => {
   try {
     for (const message of nativeDecoder.push(chunk)) {
+      if (message?.type === "hello") helloMessage = message;
       if (socket && !socket.destroyed) socket.write(encodeJsonLine(message));
-      else queuedMessages.push(message);
+      else if (message?.type !== "hello") queuedMessages.push(message);
     }
   } catch (error) {
     log(error instanceof Error ? error.message : String(error));

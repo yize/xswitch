@@ -1,6 +1,6 @@
 {
   "name": "xswitch-mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Local MCP bridge for configuring XSwitch rules with AI clients",
   "type": "module",
   "license": "MIT",
