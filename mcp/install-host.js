@@ -16,6 +16,7 @@ function parseArgs(argv) {
   const options = {
     browser: "chrome",
     extensionId: undefined,
+    userDataDir: undefined,
     uninstall: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -24,17 +25,22 @@ function parseArgs(argv) {
     if (arg === "uninstall") options.uninstall = true;
     else if (arg === "--browser") options.browser = argv[++index];
     else if (arg === "--extension-id") options.extensionId = argv[++index];
-    else if (arg === "--uninstall") options.uninstall = true;
+    else if (arg === "--user-data-dir") options.userDataDir = argv[++index];
+    else if (arg.startsWith("--user-data-dir=")) {
+      options.userDataDir = arg.slice("--user-data-dir=".length);
+    } else if (arg === "--uninstall") options.uninstall = true;
     else if (arg === "--help" || arg === "-h") {
       console.log(`Usage: xswitch-mcp install [options]
 
 Options:
   --browser chrome|chromium|edge  Browser to register (default: chrome)
   --extension-id <id>            Installed extension ID (required for install)
+  --user-data-dir <path>         Custom browser --user-data-dir
   --uninstall                    Remove the native host registration
 
 Examples:
   npx --yes xswitch-mcp install --extension-id <extension-id>
+  npx --yes xswitch-mcp install --extension-id <extension-id> --user-data-dir <path>
   npx --yes xswitch-mcp uninstall`);
       process.exit(0);
     } else throw new Error(`Unknown argument: ${arg}`);
@@ -48,12 +54,24 @@ Examples:
   if (options.extensionId && !/^[a-p]{32}$/.test(options.extensionId)) {
     throw new Error("extension-id must be a 32-character Chrome extension ID");
   }
+  if (options.userDataDir !== undefined && !options.userDataDir) {
+    throw new Error("--user-data-dir requires a non-empty path");
+  }
   return options;
 }
 
-function manifestLocation(browser) {
+function manifestLocation(browser, userDataDir) {
   if (process.env.XSWITCH_MCP_MANIFEST_PATH) {
-    return process.env.XSWITCH_MCP_MANIFEST_PATH;
+    return path.resolve(process.env.XSWITCH_MCP_MANIFEST_PATH);
+  }
+  const customUserDataDirectory =
+    userDataDir || process.env.XSWITCH_MCP_USER_DATA_DIR;
+  if (customUserDataDirectory) {
+    return path.join(
+      path.resolve(customUserDataDirectory),
+      "NativeMessagingHosts",
+      `${HOST_NAME}.json`
+    );
   }
   if (process.platform === "darwin") {
     const folders = {
@@ -126,7 +144,7 @@ function installRuntime() {
 }
 
 const options = parseArgs(process.argv.slice(2));
-const manifestPath = manifestLocation(options.browser);
+const manifestPath = manifestLocation(options.browser, options.userDataDir);
 
 if (options.uninstall) {
   if (fs.existsSync(manifestPath)) fs.unlinkSync(manifestPath);
